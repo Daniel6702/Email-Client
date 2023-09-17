@@ -1,3 +1,0 @@
-pip install google-auth-oauthlib
-pip install msal
-pip install Flask
