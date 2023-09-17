@@ -1,0 +1,8 @@
+pip install google-auth-oauthlib
+pip install google-api-python-client
+pip install msal
+pip install Flask
+
+Test email:
+dacasoftdev_test@hotmail.com
+DACAtest

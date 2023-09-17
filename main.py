@@ -1,14 +1,27 @@
-import email_services
-import flask_app
+import client_controller
+from email_util import Email, generate_attachment_dict, print_email
 
 if __name__ == '__main__':
-    gmail_service = email_services.GmailService()
-    gmail_service.login()
+    client = client_controller.ClientController("outlook")  #google or outlook
+    client.login()
 
-    outlook_service = email_services.OutlookService()
-    outlook_service.login()
+    x = input("Press enter to continue...")
 
-    app = flask_app.FlaskAppWrapper('redirect_server')
-    app.add_endpoint(endpoint='/oauth2callback', endpoint_name='oauth2callback', handler=flask_app.oauth2callback_google(gmail_service))
-    app.add_endpoint(endpoint='/oauth2callbackoutlook', endpoint_name='oauth2callbackoutlook', handler=flask_app.oauth2callback_outlook(outlook_service))
-    app.run()
+    email = Email(
+        from_email='me',
+        to_email=['pedersendaniel3561@gmail.com',
+                  'pedersendaniel356@gmail.com'],
+        subject='Sample Email with Attachments',
+        body='This is a sample email with attachments.',
+        attachments=[
+            generate_attachment_dict('requirements.txt'),
+        ]
+    )
+    
+    client.send_email(email)
+
+    emails = client.get_emails(10)
+    for mail in emails:
+        print_email(mail)
+    
+    
