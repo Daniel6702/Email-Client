@@ -1,0 +1,22 @@
+TODO List:
+implement queries for receiving emails
+delete emails
+folder system
+Email Sync & Caching
+stay loggend in feature
+
+Requirements:
+pip install google-auth-oauthlib
+pip install google-api-python-client
+pip install msal
+pip install Flask
+pip install bs4
+
+Test emails:
+Til outlook:
+mail: dacasoftdev_test@hotmail.com
+kode: DACAtest
+
+Tile gmail:
+mail: dacasoftdev.test@gmail.com
+kode: DACAtest

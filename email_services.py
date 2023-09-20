@@ -12,6 +12,10 @@ from googleapiclient.discovery import build
 import email_util
 from urllib.parse import urlparse, parse_qs
 from html import escape
+from email.utils import parsedate_to_datetime
+from datetime import datetime, timedelta
+from googleapiclient.errors import HttpError
+
 
 class GmailService():
     def __init__(self):
@@ -19,19 +23,63 @@ class GmailService():
             'Certificates\client_secret_google.json', 
             scopes=['https://www.googleapis.com/auth/gmail.send',
                     'https://www.googleapis.com/auth/gmail.readonly',
-                    'https://www.googleapis.com/auth/gmail.modify'], 
+                    'https://www.googleapis.com/auth/gmail.modify',
+                    'https://www.googleapis.com/auth/userinfo.email',
+                    'https://www.googleapis.com/auth/userinfo.profile'], 
             redirect_uri='https://localhost:8080/oauth2callback'
         )
         self.service = None
+        self.user_info = None
 
     def login(self):
         authorization_url, state = self.flow.authorization_url(access_type='offline', prompt='consent')
         webbrowser.open(authorization_url)
 
     def set_service(self, args):
-        self.flow.fetch_token(authorization_response=args)
-        credentials = self.flow.credentials
+        test_flow = Flow.from_client_secrets_file(
+            'Certificates\client_secret_google.json', 
+            scopes=None, #i dont know why this is needed but it is
+            redirect_uri='https://localhost:8080/oauth2callback'
+        )
+        test_flow.fetch_token(authorization_response=args)
+        credentials = test_flow.credentials
         self.service = build('gmail', 'v1', credentials=credentials)
+        self.people_service = build('people', 'v1', credentials=credentials)
+        self.user_info = self.get_user_info()
+        
+    def get_user_info(self):
+        try:
+            # Retrieve user profile from Gmail API for email info
+            profile = self.service.users().getProfile(userId='me').execute()
+            email = profile.get("emailAddress", None)
+
+            # Retrieve user details from Google People API
+            # Replace 'people_service' with your Google People API client instance
+            people_service = self.people_service  # Assuming it's initialized for the People API
+            person = people_service.people().get(resourceName='people/me', 
+                                                 personFields='names,emailAddresses,occupations,organizations,phoneNumbers,locales').execute()
+            
+            # Extracting useful information from the Google People API response
+            name_data = person.get("names", [])[0]
+            name = name_data.get("displayName", None)
+            job_title = person.get("occupations", [])[0].get("value", None) if person.get("occupations", []) else None
+            company_name = person.get("organizations", [])[0].get("name", None) if person.get("organizations", []) else None
+            phone_number = person.get("phoneNumbers", [])[0].get("value", None) if person.get("phoneNumbers", []) else None
+            language = person.get("locales", [])[0].get("value", None) if person.get("locales", []) else None
+            
+            user_info = {
+                "email": email,
+                "name": name,
+                "job_title": job_title,
+                "company_name": company_name,
+                "phone_number": phone_number,
+                "language": language
+            }
+
+            return user_info
+
+        except HttpError as e:
+            raise Exception(f"Request failed: {e}")
     
     def send_email(self, email):
         message = self.create_message(email)
@@ -41,10 +89,6 @@ class GmailService():
             print("Message sent: %s" % message['id'])
         except Exception as e:
             print(f"An error occurred: {e}")
-            
-    def is_html(self, text):
-        tags = ['<html>', '<head>', '<body>', '<p>', '<br>', '<h1>', '<h2>', '<div>']
-        return any(tag in text.lower() for tag in tags)
 
     def create_message(self, email):
         message = MIMEMultipart()
@@ -70,6 +114,10 @@ class GmailService():
         raw_message = base64.urlsafe_b64encode(message.as_bytes()).decode("utf-8")
         return {'raw': raw_message}
     
+    def is_html(self, text):
+        tags = ['<html>', '<head>', '<body>', '<p>', '<br>', '<h1>', '<h2>', '<div>']
+        return any(tag in text.lower() for tag in tags)
+    
     def get_emails(self, number_of_mails = 10, includeSpamTrash = False):
         #Query Search operators you can use with Gmail: https://support.google.com/mail/answer/7190?hl=en 
         #gets a list of email id's from api. for each id get message data. extracte relevant information and attachments. create list email objects. return list
@@ -78,8 +126,8 @@ class GmailService():
 
         for message in messages:
             message_data = self.get_message('me', message['id'])
-            from_email, to_email, subject, body, attachments = self.extract_data_from_message(message_data)
-            email = email_util.Email(from_email, to_email, subject, body, attachments)
+            from_email, to_email, subject, body, date_sent, attachments = self.extract_data_from_message(message_data)
+            email = email_util.Email(from_email, to_email, subject, body, date_sent, attachments)
             email_list.append(email)
 
         return email_list
@@ -99,11 +147,31 @@ class GmailService():
         except Exception as e:
             print(f"An error occurred: {e}")
             
+    def extract_date_and_time(self,message_data):
+        headers = message_data['payload']['headers']
+        date_str = next((header['value'] for header in headers if header['name'] == 'Date'), None)
+
+        if date_str:
+            date_dt = parsedate_to_datetime(date_str)
+            
+            time_difference_hours = 9 
+            adjusted_date_dt = date_dt + timedelta(hours=time_difference_hours)
+            
+            date_formatted = adjusted_date_dt.strftime('%Y-%m-%d')
+            time_formatted = adjusted_date_dt.strftime('%H:%M:%S.%f')
+            datetime_info = {'date': date_formatted, 'time': time_formatted}
+        else:
+            datetime_info = {'date': None, 'time': None}
+            
+        return datetime_info
+            
     def extract_data_from_message(self, message_data):
         headers = message_data['payload']['headers']
-        from_email = next((header['value'] for header in headers if header['name'] == 'From'), None)
-        to_email = next((header['value'] for header in headers if header['name'] == 'To'), None)
-        subject = next((header['value'] for header in headers if header['name'] == 'Subject'), None)
+        from_email = next((header['value'] for header in headers if header['name'] == 'From'), None).strip()
+        to_email = self.user_info['email']
+        subject = next((header['value'] for header in headers if header['name'].lower() == 'subject'), None)
+
+        datetime_info = self.extract_date_and_time(message_data)
 
         payload = message_data.get('payload', {})
         parts = payload.get('parts', [])
@@ -111,7 +179,7 @@ class GmailService():
         html_content = self.extract_email_content(parts)
         attachments_list = self.extract_attachments(message_data['id'], parts)
 
-        return from_email, to_email, subject, html_content, attachments_list
+        return from_email, to_email, subject, html_content, datetime_info, attachments_list
             
     def extract_email_content(self, parts): #Extract the html content of the email body
         html_content = ""
@@ -129,7 +197,7 @@ class GmailService():
                 text_content += data
                 
         if not html_content and text_content:
-            html_content = f"<html><body>{escape(text_content)}</body></html>"
+            html_content = email_util.text_to_html(text_content)
 
         return html_content
 
@@ -161,8 +229,6 @@ class GmailService():
                     attachments_list.append(attachment_info)
 
         return attachments_list
-    
-
 
 class OutlookService():
     def __init__(self):
@@ -182,6 +248,8 @@ class OutlookService():
         self.scopes = ["https://graph.microsoft.com/Mail.Send",
                        "https://graph.microsoft.com/Mail.Read",
                        "https://graph.microsoft.com/User.Read"]
+        
+        self.user_info = None
 
     def set_service(self, args):
         url_parts = urlparse(args)
@@ -193,6 +261,7 @@ class OutlookService():
             redirect_uri=self.redirect_uri,
         )
         self.result = result  
+        self.user_info = self.get_user_info()
 
     def login(self):
         auth_url = self.app.get_authorization_request_url(
@@ -200,6 +269,36 @@ class OutlookService():
             redirect_uri=self.redirect_uri,
         )
         webbrowser.open(auth_url)
+        
+    def get_user_info(self):
+        headers = {
+            "Authorization": f"Bearer {self.result['access_token']}"
+        }
+        try:
+            # Requesting specific fields in the API call
+            response = requests.get("https://graph.microsoft.com/v1.0/me?$select=id,displayName,mail,userPrincipalName,jobTitle,mobilePhone,companyName,department,officeLocation,preferredLanguage", headers=headers, timeout=30)
+            response.raise_for_status()
+            user_data = response.json()
+
+            email = user_data.get("mail", user_data.get("userPrincipalName", None))
+            name = user_data.get("displayName", None)
+            job_title = user_data.get("jobTitle", None)
+            mobile_phone = user_data.get("mobilePhone", None)
+            company_name = user_data.get("companyName", None)
+            preferred_language = user_data.get("preferredLanguage", None)
+
+            user_info = {
+                "email": email,
+                "name": name,
+                "job_title": job_title,
+                "company_name": company_name,
+                "phone_number": mobile_phone,
+                "language": preferred_language
+            }
+
+            return user_info
+        except requests.RequestException as e:
+            raise Exception(f"Request failed: {e}")
 
     def get_emails(self, num_emails=10):
         try:
@@ -229,38 +328,38 @@ class OutlookService():
         email_list = []
         emails_data = response.json()["value"]
         for data in emails_data:
-            from_email, to_email, subject, body, attachments = self.extract_data_from_message(data)
-            email = email_util.Email(from_email, to_email, subject, body, attachments)
+            from_email, to_email, subject, body, datetime_info, attachments = self.extract_data_from_message(data)
+            email = email_util.Email(from_email, to_email, subject, body, datetime_info, attachments)
             email_list.append(email)
-            print(emails_data)
         return email_list
-    
-    def get_user_email(self):
-        headers = {
-            "Authorization": f"Bearer {self.result['access_token']}"
-        }
-        try:
-            response = requests.get("https://graph.microsoft.com/v1.0/me", headers=headers, timeout=30)
-            response.raise_for_status()
-            user_data = response.json()
-            return user_data.get("mail", user_data.get("userPrincipalName", None))
-        except requests.RequestException as e:
-            raise Exception(f"Request failed: {e}")
 
     def extract_data_from_message(self, email_data):
         from_email_info = email_data.get("from", {}).get("emailAddress", {})
-        from_email = from_email_info.get("address", from_email_info.get("name", None))
-        to_email = self.get_user_email()
+        from_email = from_email_info.get("address", from_email_info.get("name", None)).lower()
+        to_email = self.user_info["email"].lower()
         subject = email_data["subject"]
         
+        #Get body
         body_content_type = email_data["body"]["contentType"]
         body_content = email_data["body"]["content"]
         if body_content_type == "text":
             body_content = f"<html><body>{escape(body_content)}</body></html>"
+        
+        #Get date and time 
+        received_datetime_str = email_data.get("receivedDateTime", None)
+        if received_datetime_str:
+            received_datetime_obj = datetime.fromisoformat(received_datetime_str.rstrip("Z")) + timedelta(hours=2)
             
+            date_formatted = received_datetime_obj.strftime('%Y-%m-%d')
+            time_formatted = received_datetime_obj.strftime('%H:%M:%S.%f')
+            datetime_info = {'date': date_formatted, 'time': time_formatted}
+        else:
+            datetime_info = {'date': None, 'time': None}
+        
+        #Get attachments    
         attachments = self.get_attachments(email_data)
         
-        return from_email, to_email, subject, body_content, attachments
+        return from_email, to_email, subject, body_content, datetime_info, attachments
 
     def get_attachments(self, email_data):
         attachments = []
@@ -317,7 +416,6 @@ class OutlookService():
         try:
             response = requests.post(endpoint, headers=headers, json=request_body)
             response.raise_for_status()  # Raise an exception if request fails
-            print(response.status_code)  #prints 202
 
             if response.status_code == 202:
                 # Construct a comma-separated string of email addresses

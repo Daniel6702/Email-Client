@@ -21,6 +21,7 @@ class ClientController:
         self.flask_thread.start()
         
         self.logged_in = False
+        self.user_info = None
 
     #Method to initiate the login process for the selected email client.
     def login(self):
@@ -38,3 +39,4 @@ class ClientController:
         #Set the service using the received arguments from the redirect uri
         self.client.set_service(args)
         self.logged_in = True
+        self.user_info = self.client.user_info
