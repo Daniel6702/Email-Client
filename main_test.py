@@ -30,7 +30,7 @@ class SendRecieveEmailTest(unittest.TestCase):
         datetime2 = datetime.strptime(email_sent.datetime_info['date'] + ' ' + email_sent.datetime_info['time'], '%Y-%m-%d %H:%M:%S.%f')
         self.assertTrue(abs((datetime1 - datetime2).total_seconds()) < 120)
 
-        self.assertEqual(str(email_received.attachments[0].get('file_name')), 'requirements.txt')
+        self.assertEqual(str(email_received.attachments[0].get('file_name')), 'Notes.txt')
 
 def suite_setup(client):
     SendRecieveEmailTest.client = client
