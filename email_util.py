@@ -40,7 +40,7 @@ def print_email(email):
         print("Attachments:")
         for attachment in email.attachments:
             print(f"- {attachment['file_name']}")
-    print("=============================================")
+    print("=============================================\n")
     
 #Convert binary data back to a file and save it to the specified path
 def save_attachment(file_data, path, file_name): 
@@ -113,4 +113,40 @@ def get_test_email(client_type):
         ]
         )
     return dummy_email
+
+#Translate google query operation to graph filter
+def translate_to_graph(query, base_endpoint="https://graph.microsoft.com/v1.0/me/messages"):
+    parts = query.split()
+    translated_parts = []
+    folder_endpoint = base_endpoint  # Default endpoint
+
+    for part in parts:
+        if part.startswith("from:"):
+            email = part.split("from:")[1]
+            translated_parts.append(f"from/emailAddress/address eq '{email}'")
+        elif part == "is:unread":
+            translated_parts.append("isRead eq false")
+        elif part == "is:read":
+            translated_parts.append("isRead eq true")
+        elif part == "has:attachment":
+            translated_parts.append("hasAttachments eq true")
+        elif part == "label:important":
+            translated_parts.append("importance eq 'high'")
+        elif part.startswith("after:"):
+            date = part.split("after:")[1].replace('/', '-')
+            translated_parts.append(f"receivedDateTime ge {date}T11:59:59Z")
+        elif part.startswith("before:"):
+            date = part.split("before:")[1].replace('/', '-')
+            translated_parts.append(f"receivedDateTime lt {date}T11:59:59Z")
+        elif part == "in:trash":
+            folder_endpoint = "https://graph.microsoft.com/v1.0/me/mailFolders/deleteditems/messages"
+        elif part == "in:spam":
+            folder_endpoint = "https://graph.microsoft.com/v1.0/me/mailFolders/junkemail/messages"
+
+    # If there's any filtering to be done on top of the folder selection:
+    if translated_parts:
+        filter_query = "$filter=" + " and ".join(translated_parts)
+        return folder_endpoint + "?" + filter_query
+    else:
+        return folder_endpoint
             

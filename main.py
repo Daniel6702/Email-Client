@@ -1,30 +1,34 @@
 import client_controller
 from email_util import Email, generate_attachment_dict, print_email
-from datetime import datetime
+import sys
+from PyQt5.QtWidgets import QApplication, QMainWindow
+from PyQt5.QtCore import QUrl
+from PyQt5.QtWebEngineWidgets import QWebEngineView
+
+class MainWindow(QMainWindow):
+
+    def __init__(self, html):
+        super(MainWindow, self).__init__()
+
+        self.browser = QWebEngineView()
+        self.browser.setHtml(html)
+
+        self.setCentralWidget(self.browser)
+        self.show()
 
 if __name__ == '__main__':
-    client = client_controller.ClientController("google")  #google or outlook
+    client = client_controller.ClientController("outlook")  #google or outlook
     client.login()
 
-    x = input("Press enter to continue...")
-
-    email = Email(
-        from_email='me',
-        to_email=['pedersendaniel3561@gmail.com',
-                  'pedersendaniel356@gmail.com'],
-        subject='Sample Email with Attachments',
-        body='This is a sample email with attachments.',
-        datetime_info = {'date': datetime.now().date(),
-                         'time': datetime.now().time()},
-        attachments=[
-            generate_attachment_dict('Notes.txt'),
-        ]
-    )
-    
-    #client.send_email(email)
-
-    emails = client.get_emails(5)
+    #emails = client.get_emails(query="from:pedersendaniel3561@gmail.com has:attachment after:2023/09/19",number_of_mails=5)
+    emails = client.get_emails(number_of_mails=1)
+    html = None
     for mail in emails:
         print_email(mail)
+        html = mail.body
+
+    app = QApplication(sys.argv)
+    window = MainWindow(html)
+    sys.exit(app.exec_())
     
     

@@ -17,7 +17,7 @@ class SendRecieveEmailTest(unittest.TestCase):
         
         sleep(5)
         
-        email_received = self.client.get_emails(1)[0]
+        email_received = self.client.get_emails(number_of_mails=1)[0]
         print("Email received!")
 
         # Check if email received is the same as email sent
@@ -30,7 +30,7 @@ class SendRecieveEmailTest(unittest.TestCase):
         datetime2 = datetime.strptime(email_sent.datetime_info['date'] + ' ' + email_sent.datetime_info['time'], '%Y-%m-%d %H:%M:%S.%f')
         self.assertTrue(abs((datetime1 - datetime2).total_seconds()) < 120)
 
-        self.assertEqual(str(email_received.attachments[0].get('file_name')), 'requirements.txt')
+        self.assertEqual(str(email_received.attachments[0].get('file_name')), 'Notes.txt')
 
 def suite_setup(client):
     SendRecieveEmailTest.client = client
@@ -38,10 +38,11 @@ def suite_setup(client):
     return suite
 
 if __name__ == '__main__':
-    client = client_controller.ClientController("google")  #google or outlook
+    client = client_controller.ClientController("outlook")  #google or outlook
     client.login()
-
-    x = input("Press enter to continue...")
+    
+    #while client.logged_in == False:
+    #    sleep(1)
 
     test_suite = suite_setup(client)
     runner = unittest.TextTestRunner()

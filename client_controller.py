@@ -1,6 +1,8 @@
 import email_services
 import flask_app
 import threading
+from time import sleep
+import os
 
 class ClientController:
     def __init__(self, client_type):
@@ -22,21 +24,36 @@ class ClientController:
         
         self.logged_in = False
         self.user_info = None
-
+        
     #Method to initiate the login process for the selected email client.
     def login(self):
         self.client.login()
+        while self.logged_in == False:
+            sleep(1)
+            self.logged_in = self.client.logged_in
+        else:
+            self.on_login()    
+        
 
-    def send_email(self, email):
+    def send_email(self,email):
         self.client.send_email(email)
 
-    #Emails are retrieved as a list of email objects (see mail.py). 
-    def get_emails(self, number_of_mails = 10):
-        return self.client.get_emails(number_of_mails)
+    #Emails are retrieved as a list of email objects
+    def get_emails(self, query="", number_of_mails = 10):
+        return self.client.get_emails(query, number_of_mails)
+    
+    def on_login(self):
+        self.user_info = self.client.user_info
+        
+    #Deletes the credentials 
+    def delete_credentials(self):
+        files_to_delete = ['Certificates/credentials.json', 'Certificates/refresh_token.txt'] 
+        for file in files_to_delete:
+            if os.path.exists(file):
+                os.remove(file)
     
     #Callback method to handle the response from the OAuth2 authorization process
     def api_callback(self,args):
         #Set the service using the received arguments from the redirect uri
         self.client.set_service(args)
-        self.logged_in = True
-        self.user_info = self.client.user_info
+        

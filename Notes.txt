@@ -1,9 +1,9 @@
 TODO List:
-implement queries for receiving emails
+implement queries for receiving emails (IN PROGRESS)
 delete emails
 folder system
 Email Sync & Caching
-stay loggend in feature
+implement logging
 
 Requirements:
 pip install google-auth-oauthlib

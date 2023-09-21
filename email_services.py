@@ -15,6 +15,9 @@ from html import escape
 from email.utils import parsedate_to_datetime
 from datetime import datetime, timedelta
 from googleapiclient.errors import HttpError
+import os
+from google.oauth2.credentials import Credentials
+from google.auth.transport.requests import Request
 
 
 class GmailService():
@@ -30,10 +33,39 @@ class GmailService():
         )
         self.service = None
         self.user_info = None
+        self.logged_in = False
+        self.CREDENTIALS_FILE = 'Certificates\credentials.json'
+        
+    def save_credentials(self,credentials):
+        with open(self.CREDENTIALS_FILE, 'w') as file:
+            file.write(credentials.to_json())
+
+    def load_credentials(self):
+        if os.path.exists(self.CREDENTIALS_FILE):
+            with open(self.CREDENTIALS_FILE, 'r') as file:
+                return Credentials.from_authorized_user_file(self.CREDENTIALS_FILE)
+        return None
 
     def login(self):
-        authorization_url, state = self.flow.authorization_url(access_type='offline', prompt='consent')
-        webbrowser.open(authorization_url)
+        credentials = self.load_credentials()
+        
+        if not credentials or (credentials.expired and not credentials.refresh_token):
+            # No credentials or they're invalid without possibility of refresh.
+            authorization_url, state = self.flow.authorization_url(access_type='offline', prompt='consent')
+            webbrowser.open(authorization_url)
+            return None
+        elif credentials.expired:
+            # We have a refresh token, so let's use it.
+            credentials.refresh(Request())
+            self.save_credentials(credentials)  
+            
+        self.build(credentials)
+            
+    def build(self,credentials):
+        self.service = build('gmail', 'v1', credentials=credentials)
+        self.people_service = build('people', 'v1', credentials=credentials)
+        self.user_info = self.get_user_info()
+        self.logged_in = True
 
     def set_service(self, args):
         test_flow = Flow.from_client_secrets_file(
@@ -43,9 +75,8 @@ class GmailService():
         )
         test_flow.fetch_token(authorization_response=args)
         credentials = test_flow.credentials
-        self.service = build('gmail', 'v1', credentials=credentials)
-        self.people_service = build('people', 'v1', credentials=credentials)
-        self.user_info = self.get_user_info()
+        self.save_credentials(credentials)
+        self.build(credentials)
         
     def get_user_info(self):
         try:
@@ -118,10 +149,10 @@ class GmailService():
         tags = ['<html>', '<head>', '<body>', '<p>', '<br>', '<h1>', '<h2>', '<div>']
         return any(tag in text.lower() for tag in tags)
     
-    def get_emails(self, number_of_mails = 10, includeSpamTrash = False):
+    def get_emails(self, query="in:inbox", number_of_mails = 10, includeSpamTrash = False):
         #Query Search operators you can use with Gmail: https://support.google.com/mail/answer/7190?hl=en 
         #gets a list of email id's from api. for each id get message data. extracte relevant information and attachments. create list email objects. return list
-        messages = self.list_messages('me', query='in:inbox', number_of_emails=number_of_mails, includeSpamTrash = includeSpamTrash)
+        messages = self.list_messages('me', query=query, number_of_emails=number_of_mails, includeSpamTrash = includeSpamTrash)
         email_list = []
 
         for message in messages:
@@ -250,6 +281,8 @@ class OutlookService():
                        "https://graph.microsoft.com/User.Read"]
         
         self.user_info = None
+        self.logged_in = False
+        self.REFRESH_TOKEN = 'Certificates\\refresh_token.txt'
 
     def set_service(self, args):
         url_parts = urlparse(args)
@@ -261,9 +294,36 @@ class OutlookService():
             redirect_uri=self.redirect_uri,
         )
         self.result = result  
+        
+        
+        with open(self.REFRESH_TOKEN, 'w') as token_file:
+            token_file.write(result.get('refresh_token'))
+            
+        self.logged_in = True
         self.user_info = self.get_user_info()
 
     def login(self):
+        if os.path.exists(self.REFRESH_TOKEN):
+            with open(self.REFRESH_TOKEN, 'r') as token_file:
+                refresh_token = token_file.read()
+
+            result = self.app.acquire_token_by_refresh_token(
+                refresh_token=refresh_token,
+                scopes=self.scopes,
+            )
+
+            if 'access_token' in result:
+                self.result = result
+                self.user_info = self.get_user_info()
+                print("logged into: " + self.user_info['email'])
+
+                # Update the saved refresh token with the new one
+                with open(self.REFRESH_TOKEN, 'w') as token_file:
+                    token_file.write(result.get('refresh_token'))
+                self.logged_in = True
+                return  # Successfully logged in using refresh token
+            
+            
         auth_url = self.app.get_authorization_request_url(
             scopes=self.scopes,
             redirect_uri=self.redirect_uri,
@@ -300,14 +360,23 @@ class OutlookService():
         except requests.RequestException as e:
             raise Exception(f"Request failed: {e}")
 
-    def get_emails(self, num_emails=10):
+    def get_emails(self, query="", num_emails=10):
         try:
             access_token = self.result["access_token"]
         except KeyError:
             raise Exception("Access token is missing.")
         
-        GRAPH_API_ENDPOINT = "https://graph.microsoft.com/v1.0/me/messages"
         FIELDS_TO_RETRIEVE = "id,subject,from,receivedDateTime,body,attachments"
+
+        # Translate the query if it's provided
+        endpoint_url = "https://graph.microsoft.com/v1.0/me/messages"  # Default endpoint
+        filter_query = ""
+
+        if query:
+            endpoint_url = email_util.translate_to_graph(query)
+            if "$filter=" in endpoint_url:
+                filter_query = endpoint_url.split("$filter=")[1]
+                endpoint_url = endpoint_url.split("?")[0]
 
         query_parameters = {
             "$top": num_emails,
@@ -315,12 +384,15 @@ class OutlookService():
             "$expand": "attachments",
         }
 
+        if filter_query:
+            query_parameters["$filter"] = filter_query
+
         headers = {
             "Authorization": f"Bearer {access_token}"
         }
 
         try:
-            response = requests.get(GRAPH_API_ENDPOINT, headers=headers, params=query_parameters, timeout=30)
+            response = requests.get(endpoint_url, headers=headers, params=query_parameters, timeout=30)
             response.raise_for_status()
         except requests.RequestException as e:
             raise Exception(f"Request failed: {e}")
