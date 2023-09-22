@@ -4,6 +4,8 @@ delete emails
 folder system
 Email Sync & Caching
 implement logging
+login to two clients at once
+email id
 
 Requirements:
 pip install google-auth-oauthlib

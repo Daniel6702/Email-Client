@@ -323,7 +323,6 @@ class OutlookService():
                 self.logged_in = True
                 return  # Successfully logged in using refresh token
             
-            
         auth_url = self.app.get_authorization_request_url(
             scopes=self.scopes,
             redirect_uri=self.redirect_uri,

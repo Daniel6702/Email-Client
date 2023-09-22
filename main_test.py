@@ -3,6 +3,7 @@ from datetime import datetime
 import email_util
 import client_controller
 from time import sleep
+import flask_app
 
 class SendRecieveEmailTest(unittest.TestCase):
     client = None  
@@ -12,7 +13,7 @@ class SendRecieveEmailTest(unittest.TestCase):
 
     def test_email_received(self):
         email_sent = email_util.get_test_email(self.client.client_type)
-        client.send_email(email_sent)
+        self.client.send_email(email_sent)
         print("Email sent!")
         
         sleep(5)
@@ -32,18 +33,26 @@ class SendRecieveEmailTest(unittest.TestCase):
 
         self.assertEqual(str(email_received.attachments[0].get('file_name')), 'Notes.txt')
 
-def suite_setup(client):
-    SendRecieveEmailTest.client = client
-    suite = unittest.TestLoader().loadTestsFromTestCase(SendRecieveEmailTest)
-    return suite
+
+def suite_setup(client_outlook, client_google):
+    # Load tests for outlook client
+    SendRecieveEmailTest.client = client_outlook
+    test1 = unittest.TestLoader().loadTestsFromTestCase(SendRecieveEmailTest)
+    
+    # Load tests for google client
+    SendRecieveEmailTest.client = client_google
+    test2 = unittest.TestLoader().loadTestsFromTestCase(SendRecieveEmailTest)
+    
+    combined_suite = unittest.TestSuite([test1, test2])
+    return combined_suite
 
 if __name__ == '__main__':
-    client = client_controller.ClientController("outlook")  #google or outlook
-    client.login()
-    
-    #while client.logged_in == False:
-    #    sleep(1)
+    app = flask_app.FlaskAppWrapper('redirect_server')
+    client_outlook = client_controller.ClientController('outlook',app) 
+    client_outlook.login()
+    client_google = client_controller.ClientController('google',app)
+    client_google.login()
 
-    test_suite = suite_setup(client)
+    test_suite = suite_setup(client_outlook,client_google)
     runner = unittest.TextTestRunner()
     runner.run(test_suite)
