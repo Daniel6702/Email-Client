@@ -17,7 +17,7 @@ class MainWindow(QMainWindow):
         # Set the window's geometry to match the screen size
         self.setGeometry(screen.left(), screen.top(), screen.width(), screen.height())
         # Controls the logo of the window
-        icon = QIcon("logo.jpg")
+        icon = QIcon("icon_logo.png")
         self.setWindowIcon(icon)
 
         # Create a central widget for the main window
@@ -38,9 +38,13 @@ class MainWindow(QMainWindow):
         self.searchbar.setPlaceholderText("Search")
 
         # Adds clickable icons
-        contact_tab = QPushButton(QIcon("contact_icon.png"), "Contacts")
-        mail_tab = QPushButton(QIcon("mail_icon.png"), "Mail")
-        settings_tab = QPushButton(QIcon("gear_icon.png"), "Settings")
+        contact_tab = QPushButton(QIcon("icon_contact.png"), "Contacts")
+        mail_tab = QPushButton(QIcon("icon_mail.png"), "Mail")
+        settings_tab = QPushButton(QIcon("icon_gear.png"), "Settings")
+        self.light_icon = QIcon("icon_sun.png")
+        self.dark_icon = QIcon("icon_moon.png")
+        light_dark = QPushButton(QIcon("icon_moon.png"),"")
+        light_dark.clicked.connect(self.toggleDarkMode)
 
         # Add the search bar widgets to the search layout
         search_layout.addWidget(self.searchbar)
@@ -50,6 +54,7 @@ class MainWindow(QMainWindow):
         icons_layout.addWidget(contact_tab)
         icons_layout.addWidget(mail_tab)
         icons_layout.addWidget(settings_tab)
+        icons_layout.addWidget(light_dark)
 
         # Add the search layout and icons layout to the vertical search bar layout
         search_bar_layout.addLayout(search_layout)
@@ -96,4 +101,24 @@ class MainWindow(QMainWindow):
         # Set the splitter as the central widget
         main_layout.addWidget(splitter)
 
+        #improtant for making dark/light mode work
+        self.is_light_mode = True
+
         self.show()
+    
+
+    def toggleDarkMode(self):
+        # Toggle the mode flag
+        self.is_light_mode = not self.is_light_mode
+        # Apply the appropriate stylesheet
+        self.setStyleSheet(self.getStylesheet(self.is_light_mode))
+
+
+    def getStylesheet(self, is_light_mode):
+        if is_light_mode:
+            return ""
+        else:
+            # Define a dark mode stylesheet
+            dark_stylesheet = "background-color: black; color: white;"
+            return dark_stylesheet
+
