@@ -7,6 +7,11 @@ from PyQt5.QtWebEngineWidgets import QWebEngineView
 from PyQt5.QtGui import *
 from PyQt5.QtWidgets import QGridLayout
 from PyQt5.QtCore import Qt
+import imaplib
+from email.header import decode_header
+import imaplib 
+
+
 
 class MainWindow(QMainWindow):
     def __init__(self, html):
@@ -38,13 +43,13 @@ class MainWindow(QMainWindow):
         self.searchbar.setPlaceholderText("Search")
 
         # Adds clickable icons
+        self.dark_mode_icon = QIcon("icon_moon.png")
+        self.light_mode_icon = QIcon("icon_sun.png")
         contact_tab = QPushButton(QIcon("icon_contact.png"), "Contacts")
         mail_tab = QPushButton(QIcon("icon_mail.png"), "Mail")
         settings_tab = QPushButton(QIcon("icon_gear.png"), "Settings")
-        self.light_icon = QIcon("icon_sun.png")
-        self.dark_icon = QIcon("icon_moon.png")
-        light_dark = QPushButton(QIcon("icon_moon.png"),"")
-        light_dark.clicked.connect(self.toggleDarkMode)
+        self.light_dark = QPushButton(self.dark_mode_icon, "Barbie mode")
+        self.light_dark.clicked.connect(self.toggleDarkMode)
 
         # Add the search bar widgets to the search layout
         search_layout.addWidget(self.searchbar)
@@ -54,7 +59,7 @@ class MainWindow(QMainWindow):
         icons_layout.addWidget(contact_tab)
         icons_layout.addWidget(mail_tab)
         icons_layout.addWidget(settings_tab)
-        icons_layout.addWidget(light_dark)
+        icons_layout.addWidget(self.light_dark)
 
         # Add the search layout and icons layout to the vertical search bar layout
         search_bar_layout.addLayout(search_layout)
@@ -106,19 +111,25 @@ class MainWindow(QMainWindow):
 
         self.show()
     
-
+    #toggle button for the background
     def toggleDarkMode(self):
-        # Toggle the mode flag
+        #Toggle the mode flag
         self.is_light_mode = not self.is_light_mode
-        # Apply the appropriate stylesheet
+        #Apply the appropriate stylesheet
         self.setStyleSheet(self.getStylesheet(self.is_light_mode))
+        # Change the dark mode button icon
+        if self.is_light_mode:
+            self.light_dark.setIcon(self.dark_mode_icon)
+        else:
+            self.light_dark.setIcon(self.light_mode_icon)
 
-
+    #Changes the color of the background
     def getStylesheet(self, is_light_mode):
         if is_light_mode:
             return ""
         else:
-            # Define a dark mode stylesheet
-            dark_stylesheet = "background-color: black; color: white;"
+            # Set the background color to an RGB value
+            dark_stylesheet = "background-color: rgb(255, 91, 165); color: white;"
             return dark_stylesheet
 
+  
