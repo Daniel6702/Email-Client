@@ -2,19 +2,130 @@ import client_controller
 from email_util import Email, generate_attachment_dict, print_email
 import sys
 from PyQt5.QtWidgets import QApplication, QListWidget, QLabel, QMainWindow, QDesktopWidget, QSplitter, QCheckBox, QFormLayout, QLineEdit, QVBoxLayout, QHBoxLayout, QWidget, QGridLayout, QPushButton, QWidget
-from PyQt5.QtCore import QUrl
+from PyQt5.QtCore import QUrl, Qt, pyqtSignal, QSettings
 from PyQt5.QtWebEngineWidgets import QWebEngineView
 from PyQt5.QtGui import *
-from PyQt5.QtWidgets import QGridLayout
-from PyQt5.QtCore import Qt
 import imaplib
 from email.header import decode_header
-import imaplib 
+import os
+from email_util import Email
 
+class LoginScreen(QWidget):
+    login_successful = pyqtSignal(str)  # Custom signal for successful login
+
+    def __init__(self, parent=None):
+        super(LoginScreen, self).__init__(parent)
+        self.setWindowTitle("Smail")
+        # Set the window's geometry to match the screen size
+        screen = QDesktopWidget().screenGeometry()
+        # Calculate the center position
+        x = (screen.width() - self.width()) // 2
+        y = (screen.height() - self.height()) // 2
+        self.setGeometry(x, y, 400, 250)
+
+        # Controls the logo of the window
+        icon = QIcon("icon_logo.png")
+        self.setWindowIcon(icon)
+
+        layout = QVBoxLayout()
+        # Create a QLabel for the logo
+        logo_label = QLabel(self)
+        # Replace 'icon_logo.png' with the correct path to your logo file
+        pixmap = QPixmap("icon_logo.png")
+        logo_width = 150
+        pixmap = pixmap.scaledToWidth(logo_width, Qt.SmoothTransformation)
+        logo_label.setPixmap(pixmap)
+        logo_label.setAlignment(Qt.AlignCenter)  # Align the logo to the center
+        layout.addWidget(logo_label)   
+
+        # creates an email line
+        self.email_input = QLineEdit()
+        self.email_input.setPlaceholderText("Email Address")
+        layout.addWidget(self.email_input)
+        #creates a password line
+        self.password_input = QLineEdit()
+        self.password_input.setPlaceholderText("Password")
+        #Hides password from other
+        self.password_input.setEchoMode(QLineEdit.Password)
+        layout.addWidget(self.password_input)
+        #creates a login button, to connect to main window
+        self.login_button = QPushButton("Login")
+        self.login_button.clicked.connect(self.login)
+        layout.addWidget(self.login_button)
+         # Create a checkbox for "Remember Me"
+        self.remember_me_checkbox = QCheckBox("Remember Me")
+        layout.addWidget(self.remember_me_checkbox)
+
+        # Load the saved email and password (if available)
+        self.load_saved_credentials()
+        
+        self.setLayout(layout)
+
+
+    def save_credentials(self, email, password):
+        settings = QSettings("MyApp", "Login")
+        settings.setValue("email", email)
+        settings.setValue("password", password)
+        settings.setValue("remember_me", self.remember_me_checkbox.isChecked())
+
+
+    def load_saved_credentials(self):
+        settings = QSettings("MyApp", "Login")
+        email = settings.value("email", "")
+        password = settings.value("password", "")
+        remember_me = settings.value("remember_me", False)  # Explicitly convert to bool
+    
+        self.email_input.setText(email)
+        self.password_input.setText(password)
+        self.remember_me_checkbox.setChecked(bool(remember_me))  # Convert to bool
+
+    def login(self):
+        email = self.email_input.text()
+        password = self.password_input.text()
+    
+        if self.authenticate(email, password):
+            if self.remember_me_checkbox.isChecked():
+                self.save_credentials(email, password)
+            dynamic_html_content = self.fetch_dynamic_email_content()
+            self.login_successful.emit(dynamic_html_content)
+            self.handle_successful_login()
+        
+    def authenticate(self, email, password):    
+        # Example: Authenticate using dummy credentials
+        if email == 'DACASoftDev_test@hotmail.com' and password == 'DACAtest':
+            return True
+        else:
+            return False
+
+    def handle_successful_login(self, html):
+        try:
+            # Retrieve the dynamic email HTML content after successful login
+            # Replace this with the code to fetch email content from your email service
+            dynamic_html_content = self.fetch_dynamic_email_content()
+
+            # Emit the login_successful signal with the dynamic HTML content
+            self.login_successful.emit(dynamic_html_content)
+        except Exception as e:
+            print("Error in handle_successful_login:", str(e))
+    
+    def fetch_dynamic_email_content(self):
+         # Create a test email for demonstration
+        email_client = Email(
+        from_email='dacasoftdev_test@hotmail.com',
+        to_email=['dacasoftdev_test@hotmail.com'],
+        subject='Sample Email',
+        body='<p>This is a sample email body.</p>',
+        datetime_info={'date': '2023-09-18', 'time': '15:43:56.111501'},
+        )
+
+        # Extract the HTML content from the test email
+        email_content = email_client.body
+
+        return email_content
 
 
 class MainWindow(QMainWindow):
-    def __init__(self, html):
+    def __init__(self, html=None):
         super(MainWindow, self).__init__()
         self.setWindowTitle("Smail")
         # Get the screen geometry using QDesktopWidget
@@ -131,5 +242,12 @@ class MainWindow(QMainWindow):
             # Set the background color to an RGB value
             dark_stylesheet = "background-color: rgb(255, 91, 165); color: white;"
             return dark_stylesheet
+        
+    # Slot method to handle login success and display MainWindow
+    def on_login_successful(self, html):
+        # Create an instance of MainWindow and show it
+        main_window = MainWindow()
+        main_window.show()
 
-  
+        # Set the HTML content for the email view
+        main_window.set_email_html(html)
