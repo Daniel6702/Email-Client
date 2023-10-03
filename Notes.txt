@@ -7,6 +7,9 @@ implement logging
 login to two clients at once
 email id
 
+BUGS:
+Date and Time 
+
 Requirements:
 pip install google-auth-oauthlib
 pip install google-api-python-client
