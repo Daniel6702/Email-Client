@@ -43,9 +43,8 @@ class LoginScreen(QWidget):
         label = QLabel("Users")
         self.layout.addWidget(label)
         users = email_util.load_users_from_file('Certificates\\users.json')
-        print(users)
         buttons = []
-        
+
         def make_user_button_function(user):
             def function():
                 return self.start_login_process(user.client_type, user)
@@ -104,7 +103,6 @@ class LoginScreen(QWidget):
         self.start_login_process(client_type, user, app)
     
     def start_login_process(self,client_type, user, app = None):
-        print(user)
         client = client_controller.ClientController(client_type, app)
         client.login(user)
         self.login_successful.emit(client)

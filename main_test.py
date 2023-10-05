@@ -47,11 +47,11 @@ def suite_setup(client_outlook, client_google):
     return combined_suite
 
 if __name__ == '__main__':
-    app = flask_app.FlaskAppWrapper('redirect_server')
-    client_outlook = client_controller.ClientController('outlook',app) 
-    client_outlook.login()
-    client_google = client_controller.ClientController('google',app)
-    client_google.login()
+    users = email_util.load_users_from_file('Certificates\\users.json')
+    client_google = client_controller.ClientController('google')
+    client_google.login(users[0])
+    client_outlook = client_controller.ClientController('outlook') 
+    client_outlook.login(users[1])
 
     test_suite = suite_setup(client_outlook,client_google)
     runner = unittest.TextTestRunner()

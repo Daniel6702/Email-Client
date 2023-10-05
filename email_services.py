@@ -52,34 +52,12 @@ class GmailService():
             webbrowser.open(authorization_url)
             return None
         else:
-            print("Type:  "+str(type(user.credentials)))
-            file_path = 'temp.json'
-            with open(file_path, 'w') as file:
-                json.dump(user.credentials, file)
-            time.sleep(2)
-            credentials = Credentials.from_authorized_user_file(file_path)
-            os.remove(file_path)
-  
-            #Then delete the file again
+            credentials = Credentials.from_authorized_user_info(user.credentials)  
             if credentials.expired:
                 credentials.refresh(Request())
+                user.credentials = credentials.to_json()
+                email_util.update_user_in_file(user, 'Certificates\\users.json')
             self.build(credentials)
-            
-        '''
-        credentials = self.load_credentials()
-        
-        if not credentials or (credentials.expired and not credentials.refresh_token):
-            # No credentials or they're invalid without possibility of refresh.
-            authorization_url, state = self.flow.authorization_url(access_type='offline', prompt='consent')
-            webbrowser.open(authorization_url)
-            return None
-        elif credentials.expired:
-            # We have a refresh token, so let's use it.
-            credentials.refresh(Request())
-            self.save_credentials(credentials)  
-            
-        self.build(credentials)
-        '''
             
     def build(self,credentials):
         self.service = build('gmail', 'v1', credentials=credentials)
@@ -95,39 +73,18 @@ class GmailService():
         )
         test_flow.fetch_token(authorization_response=args)
         credentials = test_flow.credentials
-        #self.save_credentials(credentials)
         self.build(credentials)
         
     def get_user_info(self,credentials):
         try:
-            # Retrieve user profile from Gmail API for email info
             profile = self.service.users().getProfile(userId='me').execute()
             email = profile.get("emailAddress", None)
-
-            # Retrieve user details from Google People API
-            # Replace 'people_service' with your Google People API client instance
-            people_service = self.people_service  # Assuming it's initialized for the People API
+            people_service = self.people_service
             person = people_service.people().get(resourceName='people/me', 
-                                                 personFields='names,emailAddresses,occupations,organizations,phoneNumbers,locales').execute()
+                                                 personFields='names,emailAddresses').execute()
             
-            # Extracting useful information from the Google People API response
             name_data = person.get("names", [])[0]
             name = name_data.get("displayName", None)
-            job_title = person.get("occupations", [])[0].get("value", None) if person.get("occupations", []) else None
-            company_name = person.get("organizations", [])[0].get("name", None) if person.get("organizations", []) else None
-            phone_number = person.get("phoneNumbers", [])[0].get("value", None) if person.get("phoneNumbers", []) else None
-            language = person.get("locales", [])[0].get("value", None) if person.get("locales", []) else None
-            
-            '''
-            user_info = {
-                "email": email,
-                "name": name,
-                "job_title": job_title,
-                "company_name": company_name,
-                "phone_number": phone_number,
-                "language": language
-            }
-            '''
 
             user = email_util.User(name = name, email = email, client_type="google", credentials=credentials.to_json())
 
@@ -334,7 +291,6 @@ class OutlookService():
             webbrowser.open(auth_url)
         else:
             refresh_token = user.credentials['credentials']
-            print("refresh_token: "+refresh_token)
 
             result = self.app.acquire_token_by_refresh_token(
                 refresh_token=refresh_token,
@@ -356,29 +312,14 @@ class OutlookService():
         }
         try:
             # Requesting specific fields in the API call
-            response = requests.get("https://graph.microsoft.com/v1.0/me?$select=id,displayName,mail,userPrincipalName,jobTitle,mobilePhone,companyName,department,officeLocation,preferredLanguage", headers=headers, timeout=30)
+            response = requests.get("https://graph.microsoft.com/v1.0/me?$select=id,displayName,mail,userPrincipalName", headers=headers, timeout=30)
             response.raise_for_status()
             user_data = response.json()
 
             email = user_data.get("mail", user_data.get("userPrincipalName", None))
             name = user_data.get("displayName", None)
-            job_title = user_data.get("jobTitle", None)
-            mobile_phone = user_data.get("mobilePhone", None)
-            company_name = user_data.get("companyName", None)
-            preferred_language = user_data.get("preferredLanguage", None)
-
-            '''
-            user_info = {
-                "email": email,
-                "name": name,
-                "job_title": job_title,
-                "company_name": company_name,
-                "phone_number": mobile_phone,
-                "language": preferred_language
-            }
-            '''
-            
-            user = email_util.User(name = name, email = email, client_type="outlook", credentials=self.result.get('refresh_token'))
+            credentials = {'credentials': self.result.get('refresh_token')}
+            user = email_util.User(name = name, email = email, client_type="outlook", credentials=credentials)
 
             return user
         except requests.RequestException as e:
@@ -441,7 +382,7 @@ class OutlookService():
         if body_content_type == "text":
             body_content = f"<html><body>{escape(body_content)}</body></html>"
         
-        #Get date and time 
+        #Get date and time THIS DOESNT WORK
         received_datetime_str = email_data.get("receivedDateTime", None)
         if received_datetime_str:
             received_datetime_obj = datetime.fromisoformat(received_datetime_str.rstrip("Z")) + timedelta(hours=2)
