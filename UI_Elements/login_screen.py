@@ -1,10 +1,9 @@
 import client_controller
 from PyQt5.QtWidgets import QApplication, QListWidget, QLabel, QMainWindow, QDesktopWidget, QSplitter, QCheckBox, QFormLayout, QLineEdit, QVBoxLayout, QHBoxLayout, QWidget, QGridLayout, QPushButton, QWidget, QLayout
 from PyQt5.QtCore import QUrl, Qt, pyqtSignal, QSettings
-from PyQt5.QtWebEngineWidgets import QWebEngineView
 from PyQt5.QtGui import *
 import flask_app
-
+import email_util
 '''
 The primary purpose of the login screen is to generate and return a 'client' object.
 '''
@@ -16,7 +15,7 @@ class LoginScreen(QWidget):
         self.layout = QVBoxLayout()
         self.initial_layout()
         
-        if (1==2): #check if there exists a user (NOT IMPLEMENTED)
+        if (email_util.load_users_from_file('Certificates\\users.json') != []): #check if there exists a user (NOT IMPLEMENTED)
             self.existing_user_login_layout()
         else:
             self.new_user_login_layout()
@@ -29,21 +28,52 @@ class LoginScreen(QWidget):
         outlook_button = QPushButton("Login with Outlook")
         grid.addWidget(google_button, 0, 0)
         grid.addWidget(outlook_button, 0, 1)
-        google_button.clicked.connect(lambda: self.start_login_process('google'))
-        outlook_button.clicked.connect(lambda: self.start_login_process('outlook'))
+        google_button.clicked.connect(self.new_login_google)
+        outlook_button.clicked.connect(self.new_login_outlook)
+        self.remember_me_checkbox = QCheckBox("Remember Me")
+        self.layout.addWidget(self.remember_me_checkbox)
         self.layout.addLayout(grid)
     
     def existing_user_login_layout(self):
-        pass
+        #load users from file
+        #create a list of buttons for each user
+        #if a button is clicked, start the login process, with the user and client_type as parameter, app = None
+        #create a button for new user. change the layout to new_user_login_layout if clicked
+        #create a simple text label that says users
+        label = QLabel("Users")
+        self.layout.addWidget(label)
+        users = email_util.load_users_from_file('Certificates\\users.json')
+        print(users)
+        buttons = []
+        
+        def make_user_button_function(user):
+            def function():
+                return self.start_login_process(user.client_type, user)
+            return function
+
+        for user in users:
+            button = QPushButton(user.name+" ("+user.client_type+")")
+            button.clicked.connect(make_user_button_function(user))
+            buttons.append(button)
+
+        new_user_button = QPushButton("New User")
+        new_user_button.clicked.connect(self.new_user_login_layout)
+        grid = QGridLayout()
+        for i in range(len(buttons)):
+            grid.addWidget(buttons[i], i, 0)
+        grid.addWidget(new_user_button, len(buttons), 0)
+        self.layout.addLayout(grid)
     
     def initial_layout(self):
         self.setWindowTitle("Smail")
         # Set the window's geometry to match the screen size
         screen = QDesktopWidget().screenGeometry()
+
         # Calculate the center position
         x = (screen.width() - self.width()) // 2
         y = (screen.height() - self.height()) // 2
-        self.setGeometry(x, y, 400, 250)
+        WINDOW_WIDTH, WINDOW_HEIGHT = 400, 250
+        self.setGeometry(x, y, WINDOW_WIDTH, WINDOW_HEIGHT)
 
         # Controls the logo of the window
         icon = QIcon("Images\icon_logo.png")
@@ -51,21 +81,32 @@ class LoginScreen(QWidget):
 
         # Create a QLabel for the logo
         logo_label = QLabel(self)
-        # Replace 'icon_logo.png' with the correct path to your logo file
         pixmap = QPixmap("Images\icon_logo.png")
         logo_width = 150
         pixmap = pixmap.scaledToWidth(logo_width, Qt.SmoothTransformation)
         logo_label.setPixmap(pixmap)
         logo_label.setAlignment(Qt.AlignCenter)  # Align the logo to the center
         self.layout.addWidget(logo_label)   
-        
-        self.remember_me_checkbox = QCheckBox("Remember Me")
-        self.layout.addWidget(self.remember_me_checkbox)
-    
-    def start_login_process(self,client_type):
+
+    def new_login_google(self):
+        self.new_user_login_process("google")
+
+    def new_login_outlook(self):
+        self.new_user_login_process("outlook")
+
+    def new_user_login_process(self, client_type):
+        user = ""
+        if self.remember_me_checkbox.isChecked():
+            user = "new_user_saved"
+        else:
+            user = "new_user"
         app = flask_app.FlaskAppWrapper('redirect_server')
+        self.start_login_process(client_type, user, app)
+    
+    def start_login_process(self,client_type, user, app = None):
+        print(user)
         client = client_controller.ClientController(client_type, app)
-        client.login()
+        client.login(user)
         self.login_successful.emit(client)
 
 

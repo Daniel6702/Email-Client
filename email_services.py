@@ -18,7 +18,7 @@ from googleapiclient.errors import HttpError
 import os
 from google.oauth2.credentials import Credentials
 from google.auth.transport.requests import Request
-
+import time
 
 class GmailService():
     def __init__(self):
@@ -32,13 +32,13 @@ class GmailService():
             redirect_uri='https://localhost:8080/oauth2callback'
         )
         self.service = None
-        self.user_info = None
+        self.user = None
         self.logged_in = False
         self.CREDENTIALS_FILE = 'Certificates\credentials.json'
         
-    def save_credentials(self,credentials):
-        with open(self.CREDENTIALS_FILE, 'w') as file:
-            file.write(credentials.to_json())
+    #def save_credentials(self,credentials):
+    #    with open(self.CREDENTIALS_FILE, 'w') as file:
+    #        file.write(credentials.to_json())
 
     def load_credentials(self):
         if os.path.exists(self.CREDENTIALS_FILE):
@@ -46,7 +46,26 @@ class GmailService():
                 return Credentials.from_authorized_user_file(self.CREDENTIALS_FILE)
         return None
 
-    def login(self):
+    def login(self, user):
+        if user == "new_user" or user == "new_user_saved":
+            authorization_url, state = self.flow.authorization_url(access_type='offline', prompt='consent')
+            webbrowser.open(authorization_url)
+            return None
+        else:
+            print("Type:  "+str(type(user.credentials)))
+            file_path = 'temp.json'
+            with open(file_path, 'w') as file:
+                json.dump(user.credentials, file)
+            time.sleep(2)
+            credentials = Credentials.from_authorized_user_file(file_path)
+            os.remove(file_path)
+  
+            #Then delete the file again
+            if credentials.expired:
+                credentials.refresh(Request())
+            self.build(credentials)
+            
+        '''
         credentials = self.load_credentials()
         
         if not credentials or (credentials.expired and not credentials.refresh_token):
@@ -60,11 +79,12 @@ class GmailService():
             self.save_credentials(credentials)  
             
         self.build(credentials)
+        '''
             
     def build(self,credentials):
         self.service = build('gmail', 'v1', credentials=credentials)
         self.people_service = build('people', 'v1', credentials=credentials)
-        self.user_info = self.get_user_info()
+        self.user = self.get_user_info(credentials)
         self.logged_in = True
 
     def set_service(self, args):
@@ -75,10 +95,10 @@ class GmailService():
         )
         test_flow.fetch_token(authorization_response=args)
         credentials = test_flow.credentials
-        self.save_credentials(credentials)
+        #self.save_credentials(credentials)
         self.build(credentials)
         
-    def get_user_info(self):
+    def get_user_info(self,credentials):
         try:
             # Retrieve user profile from Gmail API for email info
             profile = self.service.users().getProfile(userId='me').execute()
@@ -98,6 +118,7 @@ class GmailService():
             phone_number = person.get("phoneNumbers", [])[0].get("value", None) if person.get("phoneNumbers", []) else None
             language = person.get("locales", [])[0].get("value", None) if person.get("locales", []) else None
             
+            '''
             user_info = {
                 "email": email,
                 "name": name,
@@ -106,8 +127,11 @@ class GmailService():
                 "phone_number": phone_number,
                 "language": language
             }
+            '''
 
-            return user_info
+            user = email_util.User(name = name, email = email, client_type="google", credentials=credentials.to_json())
+
+            return user
 
         except HttpError as e:
             raise Exception(f"Request failed: {e}")
@@ -199,7 +223,7 @@ class GmailService():
     def extract_data_from_message(self, message_data):
         headers = message_data['payload']['headers']
         from_email = next((header['value'] for header in headers if header['name'] == 'From'), None).strip()
-        to_email = self.user_info['email']
+        to_email = self.user.email
         subject = next((header['value'] for header in headers if header['name'].lower() == 'subject'), None)
 
         datetime_info = self.extract_date_and_time(message_data)
@@ -280,7 +304,7 @@ class OutlookService():
                        "https://graph.microsoft.com/Mail.Read",
                        "https://graph.microsoft.com/User.Read"]
         
-        self.user_info = None
+        self.user = None
         self.logged_in = False
         self.REFRESH_TOKEN = 'Certificates\\refresh_token.txt'
 
@@ -295,17 +319,22 @@ class OutlookService():
         )
         self.result = result  
         
-        
         with open(self.REFRESH_TOKEN, 'w') as token_file:
             token_file.write(result.get('refresh_token'))
             
         self.logged_in = True
-        self.user_info = self.get_user_info()
+        self.user = self.get_user_info()
 
-    def login(self):
-        if os.path.exists(self.REFRESH_TOKEN):
-            with open(self.REFRESH_TOKEN, 'r') as token_file:
-                refresh_token = token_file.read()
+    def login(self, user):
+        if user == "new_user" or user == "new_user_saved":
+            auth_url = self.app.get_authorization_request_url(
+            scopes=self.scopes,
+            redirect_uri=self.redirect_uri
+            )
+            webbrowser.open(auth_url)
+        else:
+            refresh_token = user.credentials['credentials']
+            print("refresh_token: "+refresh_token)
 
             result = self.app.acquire_token_by_refresh_token(
                 refresh_token=refresh_token,
@@ -314,20 +343,12 @@ class OutlookService():
 
             if 'access_token' in result:
                 self.result = result
-                self.user_info = self.get_user_info()
-                print("logged into: " + self.user_info['email'])
-
-                # Update the saved refresh token with the new one
-                with open(self.REFRESH_TOKEN, 'w') as token_file:
-                    token_file.write(result.get('refresh_token'))
+                self.user = self.get_user_info()
+                temp = {'credentials': result.get('refresh_token')}
+                self.user.credentials = temp
                 self.logged_in = True
-                return  # Successfully logged in using refresh token
-            
-        auth_url = self.app.get_authorization_request_url(
-            scopes=self.scopes,
-            redirect_uri=self.redirect_uri,
-        )
-        webbrowser.open(auth_url)
+
+            return  # Successfully logged in using refresh token
         
     def get_user_info(self):
         headers = {
@@ -346,6 +367,7 @@ class OutlookService():
             company_name = user_data.get("companyName", None)
             preferred_language = user_data.get("preferredLanguage", None)
 
+            '''
             user_info = {
                 "email": email,
                 "name": name,
@@ -354,8 +376,11 @@ class OutlookService():
                 "phone_number": mobile_phone,
                 "language": preferred_language
             }
+            '''
+            
+            user = email_util.User(name = name, email = email, client_type="outlook", credentials=self.result.get('refresh_token'))
 
-            return user_info
+            return user
         except requests.RequestException as e:
             raise Exception(f"Request failed: {e}")
 
@@ -407,7 +432,7 @@ class OutlookService():
     def extract_data_from_message(self, email_data):
         from_email_info = email_data.get("from", {}).get("emailAddress", {})
         from_email = from_email_info.get("address", from_email_info.get("name", None)).lower()
-        to_email = self.user_info["email"].lower()
+        to_email = self.user.email
         subject = email_data["subject"]
         
         #Get body

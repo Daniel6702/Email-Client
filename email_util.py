@@ -3,6 +3,8 @@ from bs4 import BeautifulSoup
 import re
 import html
 from datetime import datetime
+from dataclasses import dataclass, asdict
+import json
 
 #Base email object
 class Email:
@@ -21,6 +23,45 @@ attachment = {
             'attachment_id': att_id
             }
 '''
+
+@dataclass
+class User:
+    name: str
+    email: str
+    client_type: str
+    credentials: dict
+
+def add_user_to_file(user: User, file_path):
+    users = load_users_from_file(file_path)
+    users.append(user)
+
+    with open(file_path, 'w') as file:
+        json.dump([asdict(u) for u in users], file)
+
+def load_users_from_file(file_path):
+    try:
+        with open(file_path, 'r') as file:
+            data = json.load(file)
+            
+            # Modify user_data['credentials'] if it's a string
+            for user_data in data:
+                credentials = user_data.get('credentials', {})
+                
+                if isinstance(credentials, str):
+                    try:
+                        # Remove surrounding quotes if present
+                        stripped_credentials = credentials.strip('"')
+                        print("TESTETSTESTET: "+stripped_credentials)
+                        # Convert JSON formatted string to dict
+                        user_data['credentials'] = json.loads(stripped_credentials)
+                    except json.JSONDecodeError:
+                        raise ValueError("Invalid JSON format in credentials.")
+            
+            return [User(**user_data) for user_data in data]
+    except (FileNotFoundError, json.JSONDecodeError) as e:
+        print(f"An error occurred: {str(e)}")
+        return []
+
 #Debugging method to print email contents
 def print_email(email):
     print("=============================================")

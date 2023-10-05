@@ -5,9 +5,10 @@ from time import sleep
 import os
 from flask import Flask, request, Response
 import random
+import email_util
 
 class ClientController:
-    def __init__(self, client_type, app):
+    def __init__(self, client_type, app=None):
         self.client_type = client_type
         
         # Depending on the client_type, create an instance of the corresponding email service.
@@ -18,18 +19,23 @@ class ClientController:
             self.client = email_services.GmailService()
             endpoint='/oauth2callback'
         
-        app.add_endpoint(endpoint=endpoint, endpoint_name=str(random.randint(0,100)), handler=flask_app.oauth2callback(self))
+        if app != None:
+            app.add_endpoint(endpoint=endpoint, endpoint_name=str(random.randint(0,100)), handler=flask_app.oauth2callback(self))
 
         self.logged_in = False
         self.user_info = None
 
     #Method to initiate the login process for the selected email client.
-    def login(self):
-        self.client.login()
+    def login(self,user):
+        self.client.login(user)
         while self.logged_in == False:
             sleep(1)
             self.logged_in = self.client.logged_in
         else:
+            if user == "new_user_saved":
+                user = self.client.user
+                email_util.add_user_to_file(user, 'Certificates\\users.json')
+
             self.on_login()    
 
     def send_email(self,email):
@@ -40,7 +46,7 @@ class ClientController:
         return self.client.get_emails(query, number_of_mails)
     
     def on_login(self):
-        self.user_info = self.client.user_info
+        pass
         
     #Deletes the credentials 
     def delete_credentials(self):
