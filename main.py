@@ -20,5 +20,8 @@ class AppController:
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
+    with open("UI_Elements\\style.qss", "r") as f:
+        _style = f.read()
+        app.setStyleSheet(_style)
     manager = AppController(app)
     sys.exit(app.exec_())

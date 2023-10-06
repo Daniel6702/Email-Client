@@ -1,5 +1,5 @@
 import client_controller
-from PyQt5.QtWidgets import QApplication, QListWidget, QLabel, QMainWindow, QDesktopWidget, QSplitter, QCheckBox, QFormLayout, QLineEdit, QVBoxLayout, QHBoxLayout, QWidget, QGridLayout, QPushButton, QWidget, QLayout
+from PyQt5.QtWidgets import QStackedWidget,QApplication, QListWidget, QLabel, QMainWindow, QDesktopWidget, QSplitter, QCheckBox, QFormLayout, QLineEdit, QVBoxLayout, QHBoxLayout, QWidget, QGridLayout, QPushButton, QWidget, QLayout
 from PyQt5.QtCore import QUrl, Qt, pyqtSignal, QSettings
 from PyQt5.QtGui import *
 import flask_app
@@ -8,21 +8,47 @@ import email_util
 The primary purpose of the login screen is to generate and return a 'client' object.
 '''
 class LoginScreen(QWidget):
-    login_successful = pyqtSignal(object)  
+    login_successful = pyqtSignal(object)
 
     def __init__(self, parent=None):
         super(LoginScreen, self).__init__(parent)
-        self.layout = QVBoxLayout()
+
+        self.stacked_widget = QStackedWidget()
+        self.layout = QVBoxLayout(self)
+
         self.initial_layout()
+
+        self.new_user_widget = QWidget()
+        self.existing_user_widget = QWidget()
         
-        if (email_util.load_users_from_file('Certificates\\users.json') != []): #check if there exists a user (NOT IMPLEMENTED)
-            self.existing_user_login_layout()
+        self.new_user_login_layout(self.new_user_widget)
+        self.existing_user_login_layout(self.existing_user_widget)
+        
+        self.stacked_widget.addWidget(self.existing_user_widget)
+        self.stacked_widget.addWidget(self.new_user_widget)
+
+        if email_util.load_users_from_file('Certificates\\users.json') != []:
+            self.switch_to_existing_user_login_layout()
         else:
-            self.new_user_login_layout()
+            self.switch_to_new_user_login_layout()
             
-        self.setLayout(self.layout)
+        self.layout.addWidget(self.stacked_widget)
         
-    def new_user_login_layout(self):
+        self.setLayout(self.layout)
+
+    def new_user_login_layout(self, parent_widget):
+        layout = QVBoxLayout(parent_widget)
+
+        back_button = QPushButton("Back")
+        back_button.clicked.connect(self.switch_to_existing_user_login_layout)
+        back_button.width = 50
+        layout.addWidget(back_button)
+       
+        layout.addWidget(self.create_logo())
+        
+        self.remember_me_checkbox = QCheckBox("Remember Me")
+        layout.addWidget(self.remember_me_checkbox)
+
         grid = QGridLayout()
         google_button = QPushButton("Login with Google")
         outlook_button = QPushButton("Login with Outlook")
@@ -30,18 +56,21 @@ class LoginScreen(QWidget):
         grid.addWidget(outlook_button, 0, 1)
         google_button.clicked.connect(self.new_login_google)
         outlook_button.clicked.connect(self.new_login_outlook)
-        self.remember_me_checkbox = QCheckBox("Remember Me")
-        self.layout.addWidget(self.remember_me_checkbox)
-        self.layout.addLayout(grid)
-    
-    def existing_user_login_layout(self):
-        #load users from file
-        #create a list of buttons for each user
-        #if a button is clicked, start the login process, with the user and client_type as parameter, app = None
-        #create a button for new user. change the layout to new_user_login_layout if clicked
-        #create a simple text label that says users
-        label = QLabel("Users")
-        self.layout.addWidget(label)
+
+        layout.addLayout(grid)
+            
+    def existing_user_login_layout(self, parent_widget):
+        layout = QVBoxLayout(parent_widget)
+        layout.addWidget(self.create_logo())
+
+        welcome_label = QLabel("Welcome Back")
+        welcome_label.setObjectName("welcome_label")
+        layout.addWidget(welcome_label)
+
+        select_user_label = QLabel("Please select a user")
+        select_user_label.setObjectName("select_user_label")
+        layout.addWidget(select_user_label)
+
         users = email_util.load_users_from_file('Certificates\\users.json')
         buttons = []
 
@@ -56,12 +85,18 @@ class LoginScreen(QWidget):
             buttons.append(button)
 
         new_user_button = QPushButton("New User")
-        new_user_button.clicked.connect(self.new_user_login_layout)
+        new_user_button.clicked.connect(self.switch_to_new_user_login_layout)
         grid = QGridLayout()
-        for i in range(len(buttons)):
-            grid.addWidget(buttons[i], i, 0)
+        for i, button in enumerate(buttons):
+            grid.addWidget(button, i, 0)
         grid.addWidget(new_user_button, len(buttons), 0)
-        self.layout.addLayout(grid)
+        layout.addLayout(grid)
+        
+    def switch_to_new_user_login_layout(self):
+        self.stacked_widget.setCurrentIndex(1)
+    
+    def switch_to_existing_user_login_layout(self):
+        self.stacked_widget.setCurrentIndex(0)
     
     def initial_layout(self):
         self.setWindowTitle("Smail")
@@ -77,15 +112,15 @@ class LoginScreen(QWidget):
         # Controls the logo of the window
         icon = QIcon("Images\icon_logo.png")
         self.setWindowIcon(icon)
-
-        # Create a QLabel for the logo
-        logo_label = QLabel(self)
+    
+    def create_logo(self):
+        logo_label = QLabel()
         pixmap = QPixmap("Images\icon_logo.png")
         logo_width = 150
         pixmap = pixmap.scaledToWidth(logo_width, Qt.SmoothTransformation)
         logo_label.setPixmap(pixmap)
         logo_label.setAlignment(Qt.AlignCenter)  # Align the logo to the center
-        self.layout.addWidget(logo_label)   
+        return logo_label 
 
     def new_login_google(self):
         self.new_user_login_process("google")
