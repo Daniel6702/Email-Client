@@ -1,6 +1,6 @@
 import client_controller
 from PyQt5.QtWidgets import QStackedWidget,QApplication, QListWidget, QLabel, QMainWindow, QDesktopWidget, QSplitter, QCheckBox, QFormLayout, QLineEdit, QVBoxLayout, QHBoxLayout, QWidget, QGridLayout, QPushButton, QWidget, QLayout
-from PyQt5.QtCore import QUrl, Qt, pyqtSignal, QSettings
+from PyQt5.QtCore import QUrl, Qt, pyqtSignal, QSettings,QSize
 from PyQt5.QtGui import *
 import flask_app
 import email_util
@@ -38,26 +38,35 @@ class LoginScreen(QWidget):
 
     def new_user_login_layout(self, parent_widget):
         layout = QVBoxLayout(parent_widget)
-
-        back_button = QPushButton("Back")
-        back_button.clicked.connect(self.switch_to_existing_user_login_layout)
-        back_button.width = 50
-        layout.addWidget(back_button)
-       
         layout.addWidget(self.create_logo())
         
         self.remember_me_checkbox = QCheckBox("Remember Me")
+        self.remember_me_checkbox.setMaximumWidth(145)
         layout.addWidget(self.remember_me_checkbox)
 
         grid = QGridLayout()
         google_button = QPushButton("Login with Google")
         outlook_button = QPushButton("Login with Outlook")
+
+        # Set icons
+        google_button.setIcon(QIcon(QPixmap('Images\\google_icon.png')))
+        outlook_button.setIcon(QIcon(QPixmap('Images\\outlook_icon.png')))
+
+        # Optionally set the size of the icons
+        icon_size = QSize(32, 32)  # adjust width and height to your needs
+        google_button.setIconSize(icon_size)
+        outlook_button.setIconSize(icon_size)
+
         grid.addWidget(google_button, 0, 0)
         grid.addWidget(outlook_button, 0, 1)
         google_button.clicked.connect(self.new_login_google)
         outlook_button.clicked.connect(self.new_login_outlook)
-
         layout.addLayout(grid)
+
+        back_button = QPushButton("Back")
+        back_button.clicked.connect(self.switch_to_existing_user_login_layout)
+        back_button.setMaximumWidth(80)
+        layout.addWidget(back_button)
             
     def existing_user_login_layout(self, parent_widget):
         layout = QVBoxLayout(parent_widget)
