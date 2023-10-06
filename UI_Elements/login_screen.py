@@ -1,6 +1,6 @@
 import client_controller
 from PyQt5.QtWidgets import QStackedWidget,QApplication, QListWidget, QLabel, QMainWindow, QDesktopWidget, QSplitter, QCheckBox, QFormLayout, QLineEdit, QVBoxLayout, QHBoxLayout, QWidget, QGridLayout, QPushButton, QWidget, QLayout
-from PyQt5.QtCore import QUrl, Qt, pyqtSignal, QSettings,QSize
+from PyQt5.QtCore import QUrl, Qt, pyqtSignal, QSettings,QSize, QEasingCurve, QPropertyAnimation, QRect, QPoint
 from PyQt5.QtGui import *
 import flask_app
 import email_util
@@ -12,57 +12,77 @@ class LoginScreen(QWidget):
 
     def __init__(self, parent=None):
         super(LoginScreen, self).__init__(parent)
-
-        self.stacked_widget = QStackedWidget()
         self.layout = QVBoxLayout(self)
 
+        '''load initial window settings'''
         self.initial_layout()
 
+        '''create main widgets'''
         self.new_user_widget = QWidget()
         self.existing_user_widget = QWidget()
-        
         self.new_user_login_layout(self.new_user_widget)
         self.existing_user_login_layout(self.existing_user_widget)
         
+        '''create stacked widget and add the main widgets. Such that we can switch between them'''
+        self.stacked_widget = QStackedWidget()
         self.stacked_widget.addWidget(self.existing_user_widget)
         self.stacked_widget.addWidget(self.new_user_widget)
 
+        '''Check if there are any users saved. If so, switch to existing user login layout. Else, switch to new user login layout'''
         if email_util.load_users_from_file('Certificates\\users.json') != []:
             self.switch_to_existing_user_login_layout()
         else:
             self.switch_to_new_user_login_layout()
             
         self.layout.addWidget(self.stacked_widget)
+
+        '''Animation'''
+        self.animation = QPropertyAnimation(self.stacked_widget, b"geometry")
+        self.animation.setDuration(100)  # 500 ms
+        self.animation.setEasingCurve(QEasingCurve.InOutCubic)
+        self.stacked_widget.currentChanged.connect(self.start_animation)
         
         self.setLayout(self.layout)
 
+    def start_animation(self):
+        offset_width = self.stacked_widget.width()
+        if self.stacked_widget.currentIndex() == 1: 
+            start_rect = QRect(self.stacked_widget.geometry().topLeft() + QPoint(offset_width, 0),
+                            self.stacked_widget.geometry().size())
+        else:  
+            start_rect = QRect(self.stacked_widget.geometry().topLeft() - QPoint(offset_width, 0),
+                            self.stacked_widget.geometry().size())
+
+        self.animation.setStartValue(start_rect)
+        self.animation.setEndValue(self.stacked_widget.geometry())
+        self.animation.start()
+
     def new_user_login_layout(self, parent_widget):
         layout = QVBoxLayout(parent_widget)
+        '''Add Logo'''
         layout.addWidget(self.create_logo())
         
+        '''Add remember me checkbox'''
         self.remember_me_checkbox = QCheckBox("Remember Me")
         self.remember_me_checkbox.setMaximumWidth(145)
         layout.addWidget(self.remember_me_checkbox)
 
+        '''Add login buttons'''
         grid = QGridLayout()
         google_button = QPushButton("Login with Google")
         outlook_button = QPushButton("Login with Outlook")
-
-        # Set icons
         google_button.setIcon(QIcon(QPixmap('Images\\google_icon.png')))
         outlook_button.setIcon(QIcon(QPixmap('Images\\outlook_icon.png')))
-
-        # Optionally set the size of the icons
         icon_size = QSize(32, 32)  # adjust width and height to your needs
         google_button.setIconSize(icon_size)
         outlook_button.setIconSize(icon_size)
-
         grid.addWidget(google_button, 0, 0)
         grid.addWidget(outlook_button, 0, 1)
         google_button.clicked.connect(self.new_login_google)
         outlook_button.clicked.connect(self.new_login_outlook)
         layout.addLayout(grid)
 
+        '''Add back button'''
         back_button = QPushButton("Back")
         back_button.clicked.connect(self.switch_to_existing_user_login_layout)
         back_button.setMaximumWidth(80)
@@ -70,41 +90,47 @@ class LoginScreen(QWidget):
             
     def existing_user_login_layout(self, parent_widget):
         layout = QVBoxLayout(parent_widget)
+        '''Add Logo'''
         layout.addWidget(self.create_logo())
 
+        '''Title text labels'''
         welcome_label = QLabel("Welcome Back")
         welcome_label.setObjectName("welcome_label")
         layout.addWidget(welcome_label)
-
         select_user_label = QLabel("Please select a user")
         select_user_label.setObjectName("select_user_label")
         layout.addWidget(select_user_label)
 
+        '''Generate user buttons'''
         users = email_util.load_users_from_file('Certificates\\users.json')
         buttons = []
-
         def make_user_button_function(user):
             def function():
                 return self.start_login_process(user.client_type, user)
             return function
-
         for user in users:
             button = QPushButton(user.name+" ("+user.client_type+")")
             button.clicked.connect(make_user_button_function(user))
             buttons.append(button)
 
-        new_user_button = QPushButton("New User")
-        new_user_button.clicked.connect(self.switch_to_new_user_login_layout)
+        '''Add user buttons to layout grid'''
         grid = QGridLayout()
         for i, button in enumerate(buttons):
             grid.addWidget(button, i, 0)
+
+        '''Create new user button'''
+        new_user_button = QPushButton("New User")
+        new_user_button.clicked.connect(self.switch_to_new_user_login_layout)
         grid.addWidget(new_user_button, len(buttons), 0)
+
         layout.addLayout(grid)
         
     def switch_to_new_user_login_layout(self):
+        self.previous_index = self.stacked_widget.currentIndex()
         self.stacked_widget.setCurrentIndex(1)
-    
+
     def switch_to_existing_user_login_layout(self):
+        self.previous_index = self.stacked_widget.currentIndex()
         self.stacked_widget.setCurrentIndex(0)
     
     def initial_layout(self):
