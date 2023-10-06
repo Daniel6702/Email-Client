@@ -1,5 +1,5 @@
 from email_util import Email, generate_attachment_dict, print_email
-from PyQt5.QtWidgets import QApplication, QListWidget, QLabel, QMainWindow, QDesktopWidget, QSplitter, QCheckBox, QFormLayout, QLineEdit, QVBoxLayout, QHBoxLayout, QWidget, QGridLayout, QPushButton, QWidget
+from PyQt5.QtWidgets import QApplication, QListWidget, QLabel, QMenu, QMainWindow, QDesktopWidget, QSplitter, QCheckBox, QFormLayout, QLineEdit, QVBoxLayout, QHBoxLayout, QWidget, QGridLayout, QPushButton, QWidget
 from PyQt5.QtCore import QUrl, Qt, pyqtSignal, QSettings
 from PyQt5.QtWebEngineWidgets import QWebEngineView
 from PyQt5.QtGui import *
@@ -52,6 +52,15 @@ class MainWindow(QMainWindow):
         settings_tab = QPushButton(QIcon("Images\icon_gear.png"), "Settings")
         self.light_dark = QPushButton(self.dark_mode_icon, "Barbie mode")
         self.light_dark.clicked.connect(self.toggleDarkMode)
+
+        menu = QMenu(self)
+        menu.addAction('Filter')
+        menu.addSeparator()
+        dark_mode_action = menu.addAction('Dark Mode')
+        dark_mode_action.triggered.connect(self.toggleDarkMode)
+        menu.addSeparator()
+        menu.addAction('Log Out')
+        settings_tab.setMenu(menu)
 
         # Add the search bar widgets to the search layout
         search_layout.addWidget(self.searchbar)
