@@ -1,5 +1,5 @@
 import client_controller
-from PyQt5.QtWidgets import QStackedWidget,QApplication, QListWidget, QLabel, QMainWindow, QDesktopWidget, QSplitter, QCheckBox, QFormLayout, QLineEdit, QVBoxLayout, QHBoxLayout, QWidget, QGridLayout, QPushButton, QWidget, QLayout
+from PyQt5.QtWidgets import QStackedWidget,QApplication, QListWidget, QLabel, QMainWindow,QFrame, QDesktopWidget, QSplitter, QCheckBox, QFormLayout, QLineEdit, QVBoxLayout, QHBoxLayout, QWidget, QGridLayout, QPushButton, QWidget, QLayout
 from PyQt5.QtCore import QUrl, Qt, pyqtSignal, QSettings,QSize, QEasingCurve, QPropertyAnimation, QRect, QPoint
 from PyQt5.QtGui import *
 import flask_app
@@ -9,7 +9,6 @@ The primary purpose of the login screen is to generate and return a 'client' obj
 '''
 class LoginScreen(QWidget):
     login_successful = pyqtSignal(object)
-
     def __init__(self, parent=None):
         super(LoginScreen, self).__init__(parent)
         self.layout = QVBoxLayout(self)
@@ -93,13 +92,21 @@ class LoginScreen(QWidget):
         '''Add Logo'''
         layout.addWidget(self.create_logo())
 
-        '''Title text labels'''
+        '''text labels'''
         welcome_label = QLabel("Welcome Back")
         welcome_label.setObjectName("welcome_label")
         layout.addWidget(welcome_label)
         select_user_label = QLabel("Please select a user")
         select_user_label.setObjectName("select_user_label")
         layout.addWidget(select_user_label)
+
+        '''lines'''
+        login_line1 = QFrame()
+        login_line1.setFrameShape(QFrame.HLine)
+        login_line1.setObjectName('login_line')
+        login_line2 = QFrame()
+        login_line2.setFrameShape(QFrame.HLine)
+        login_line2.setObjectName('login_line')
 
         '''Generate user buttons'''
         users = email_util.load_users_from_file('Certificates\\users.json')
@@ -113,17 +120,21 @@ class LoginScreen(QWidget):
             button.clicked.connect(make_user_button_function(user))
             buttons.append(button)
 
-        '''Add user buttons to layout grid'''
+        '''Add user buttons and lines to layout grid'''
         grid = QGridLayout()
+        grid.addWidget(login_line1, 0, 0)
         for i, button in enumerate(buttons):
-            grid.addWidget(button, i, 0)
+            grid.addWidget(button, i+1, 0)
+        grid.addWidget(login_line2, len(buttons)+1, 0)
 
         '''Create new user button'''
         new_user_button = QPushButton("New User")
         new_user_button.clicked.connect(self.switch_to_new_user_login_layout)
-        grid.addWidget(new_user_button, len(buttons), 0)
+        new_user_button.setObjectName("new_user_button")
+        new_user_button.setMaximumWidth(100)
 
         layout.addLayout(grid)
+        layout.addWidget(new_user_button,0, Qt.AlignCenter)
         
     def switch_to_new_user_login_layout(self):
         self.previous_index = self.stacked_widget.currentIndex()
@@ -176,67 +187,3 @@ class LoginScreen(QWidget):
         client = client_controller.ClientController(client_type, app)
         client.login(user)
         self.login_successful.emit(client)
-
-
-    '''
-    def save_credentials(self, email, password):
-        settings = QSettings("MyApp", "Login")
-        settings.setValue("email", email)
-        settings.setValue("password", password)
-        settings.setValue("remember_me", self.remember_me_checkbox.isChecked())
-
-
-    def load_saved_credentials(self):
-        settings = QSettings("MyApp", "Login")
-        email = settings.value("email", "")
-        password = settings.value("password", "")
-        remember_me = settings.value("remember_me", False)  # Explicitly convert to bool
-    
-        self.email_input.setText(email)
-        self.password_input.setText(password)
-        self.remember_me_checkbox.setChecked(bool(remember_me))  # Convert to bool
-
-    def login(self):
-        email = self.email_input.text()
-        password = self.password_input.text()
-    
-        if self.authenticate(email, password):
-            if self.remember_me_checkbox.isChecked():
-                self.save_credentials(email, password)
-            dynamic_html_content = self.fetch_dynamic_email_content()
-            self.login_successful.emit(dynamic_html_content)
-            self.handle_successful_login()
-        
-    def authenticate(self, email, password):    
-        # Example: Authenticate using dummy credentials
-        if email == 'DACASoftDev_test@hotmail.com' and password == 'DACAtest':
-            return True
-        else:
-            return False
-
-    def handle_successful_login(self, html):
-        try:
-            # Retrieve the dynamic email HTML content after successful login
-            # Replace this with the code to fetch email content from your email service
-            dynamic_html_content = self.fetch_dynamic_email_content()
-
-            # Emit the login_successful signal with the dynamic HTML content
-            self.login_successful.emit(dynamic_html_content)
-        except Exception as e:
-            print("Error in handle_successful_login:", str(e))
-    
-    def fetch_dynamic_email_content(self):
-         # Create a test email for demonstration
-        email_client = Email(
-        from_email='dacasoftdev_test@hotmail.com',
-        to_email=['dacasoftdev_test@hotmail.com'],
-        subject='Sample Email',
-        body='<p>This is a sample email body.</p>',
-        datetime_info={'date': '2023-09-18', 'time': '15:43:56.111501'},
-        )
-
-        # Extract the HTML content from the test email
-        email_content = email_client.body
-
-        return email_content
-    '''

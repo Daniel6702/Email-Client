@@ -324,6 +324,8 @@ class OutlookService():
             return user
         except requests.RequestException as e:
             raise Exception(f"Request failed: {e}")
+        
+    
 
     def get_emails(self, query="", num_emails=10):
         try:

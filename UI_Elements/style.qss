@@ -12,7 +12,7 @@ QLabel#welcome_label {
 }
 QLabel#select_user_label {
   color: #0f1925;
-  font-size: 12px;
+  font-size: 14px;
   font-weight: normal;
   margin-bottom: 10px;
 }
@@ -24,20 +24,44 @@ QLineEdit {
 QLineEdit:focus {
   border: 1px solid #d0e3ff;
 }
+
+QFrame#login_line {
+    border: none;
+    background-color: #9d9d9d;
+    height: 1px;
+    margin: 3px 0px;
+}
+
+
 QPushButton {
   background-color: #0d6efd;
   color: #fff;
   font-weight: 600;
   border-radius: 8px;
-  border: 1px solid #0d6efd;
+  border: 2px solid #0d6efd;
   padding: 5px 15px;
-  margin-top: 10px;
+  margin-top: 0px;
   outline: 0px;
 }
 QPushButton:hover {
   background-color: #0b5ed7;
-  border: 1px solid #9ac3fe;
+  border: 2px solid #9ac3fe;
 }
+QPushButton#new_user_button {
+  background-color: #3a8345;
+  color: #fff;
+  font-weight: 600;
+  border-radius: 8px;
+  border: 2px solid #305334;
+  padding: 5px 15px;
+  margin-top: 10px;
+  outline: 0px;
+}
+QPushButton:hover#new_user_button {
+  background-color: #396841;
+  border: 2px solid #27422d;
+}
+
 QCheckBox {
     background-color: #0d6efd;
     color: #fff;
