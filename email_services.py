@@ -92,7 +92,18 @@ class GmailService():
 
         except HttpError as e:
             raise Exception(f"Request failed: {e}")
-    
+        
+    def get_email_folders(self):
+        results = self.service.users().labels().list(userId='me').execute()
+        labels = results.get('labels', [])
+        
+        folders = []
+        for label in labels:
+            folders.append(email_util.Folder(name=label['name'], id=label['id']))
+        
+        return folders
+        
+
     def send_email(self, email):
         message = self.create_message(email)
         user_id = email.from_email
@@ -130,10 +141,20 @@ class GmailService():
         tags = ['<html>', '<head>', '<body>', '<p>', '<br>', '<h1>', '<h2>', '<div>']
         return any(tag in text.lower() for tag in tags)
     
-    def get_emails(self, query="in:inbox", number_of_mails = 10, includeSpamTrash = False):
-        #Query Search operators you can use with Gmail: https://support.google.com/mail/answer/7190?hl=en 
-        #gets a list of email id's from api. for each id get message data. extracte relevant information and attachments. create list email objects. return list
-        messages = self.list_messages('me', query=query, number_of_emails=number_of_mails, includeSpamTrash = includeSpamTrash)
+    def validate_label(self,label_name):
+        labels = self.get_email_folders()
+        for label in labels:
+            if label.name == label_name.upper():
+                return True
+        return False
+            
+    def get_emails(self, label='INBOX', query="", number_of_mails=10, includeSpamTrash=False):
+        if not self.validate_label(label):
+            raise ValueError("Invalid label")
+
+        query = f'in:{label} {query}'
+        
+        messages = self.list_messages('me', query=query, number_of_emails=number_of_mails, includeSpamTrash=includeSpamTrash)
         email_list = []
 
         for message in messages:
@@ -325,9 +346,36 @@ class OutlookService():
         except requests.RequestException as e:
             raise Exception(f"Request failed: {e}")
         
-    
+    def get_email_folders(self, folder_id=None, parent=None):
+        headers = {
+            "Authorization": f"Bearer {self.result['access_token']}"
+        }
 
-    def get_emails(self, query="", num_emails=10):
+        try:
+            endpoint_url = f"https://graph.microsoft.com/v1.0/me/mailFolders/{folder_id}/childFolders" if folder_id else "https://graph.microsoft.com/v1.0/me/mailFolders"
+
+            # Request to get email folders from the API
+            response = requests.get(endpoint_url, headers=headers, timeout=30)
+            response.raise_for_status()
+
+            folder_data = response.json()
+
+            folders = [email_util.Folder(name=f['displayName'], id=f['id']) for f in folder_data['value']]
+            
+            if parent:
+                parent.children.extend(folders)
+
+            # Recursively fetch subfolders for each found folder.
+            for folder in folders:
+                self.get_email_folders(folder.id, folder)
+
+            return folders if parent is None else parent.children
+        except requests.RequestException as e:
+            raise Exception(f"Request failed: {e}")
+        
+    '''folder_id (Optional): It is an identifier of the email folder you want to retrieve emails from. 
+    If None, the method retrieves emails from the default endpoint (i.e., all messages across all folders)'''
+    def get_emails(self, folder_id=None, query="", num_emails=10):
         try:
             access_token = self.result["access_token"]
         except KeyError:
@@ -335,15 +383,17 @@ class OutlookService():
         
         FIELDS_TO_RETRIEVE = "id,subject,from,receivedDateTime,body,attachments"
 
-        # Translate the query if it's provided
-        endpoint_url = "https://graph.microsoft.com/v1.0/me/messages"  # Default endpoint
+        # Construct endpoint URL
+        if folder_id:
+            endpoint_url = f"https://graph.microsoft.com/v1.0/me/mailFolders/{folder_id}/messages"
+        else:
+            endpoint_url = "https://graph.microsoft.com/v1.0/me/messages" 
+
         filter_query = ""
 
         if query:
-            endpoint_url = email_util.translate_to_graph(query)
-            if "$filter=" in endpoint_url:
-                filter_query = endpoint_url.split("$filter=")[1]
-                endpoint_url = endpoint_url.split("?")[0]
+            endpoint_url, filter_query = email_util.translate_to_graph(query, base_endpoint=endpoint_url)
+            # If filter_query is empty, endpoint_url will have the necessary filters applied. 
 
         query_parameters = {
             "$top": num_emails,
@@ -370,7 +420,8 @@ class OutlookService():
             from_email, to_email, subject, body, datetime_info, attachments = self.extract_data_from_message(data)
             email = email_util.Email(from_email, to_email, subject, body, datetime_info, attachments)
             email_list.append(email)
-        return email_list
+        return email_list 
+
 
     def extract_data_from_message(self, email_data):
         from_email_info = email_data.get("from", {}).get("emailAddress", {})

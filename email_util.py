@@ -3,8 +3,9 @@ from bs4 import BeautifulSoup
 import re
 import html
 from datetime import datetime
-from dataclasses import dataclass, asdict
+from dataclasses import dataclass, asdict, field
 import json
+from typing import List
 
 #Base email object
 class Email:
@@ -23,6 +24,16 @@ attachment = {
             'attachment_id': att_id
             }
 '''
+@dataclass
+class Folder:
+    name: str
+    id: str
+    children: List['Folder'] = field(default_factory=list)
+
+def print_folder_hierarchy(folders, indent=0):
+    for folder in folders:
+        print('  ' * indent + folder.name)
+        print_folder_hierarchy(folder.children, indent + 1)
 
 @dataclass
 class User:
@@ -159,12 +170,11 @@ def get_test_email(client_type):
         ]
         )
     return dummy_email
-
-#Translate google query operation to graph filter
+            
 def translate_to_graph(query, base_endpoint="https://graph.microsoft.com/v1.0/me/messages"):
     parts = query.split()
     translated_parts = []
-    folder_endpoint = base_endpoint  # Default endpoint
+    folder_endpoint = base_endpoint 
 
     for part in parts:
         if part.startswith("from:"):
@@ -189,10 +199,12 @@ def translate_to_graph(query, base_endpoint="https://graph.microsoft.com/v1.0/me
         elif part == "in:spam":
             folder_endpoint = "https://graph.microsoft.com/v1.0/me/mailFolders/junkemail/messages"
 
+        #... (rest of your conditions)
+        # No changes needed in the conditions
+
     # If there's any filtering to be done on top of the folder selection:
     if translated_parts:
         filter_query = "$filter=" + " and ".join(translated_parts)
-        return folder_endpoint + "?" + filter_query
+        return folder_endpoint, filter_query
     else:
-        return folder_endpoint
-            
+        return folder_endpoint, ""
