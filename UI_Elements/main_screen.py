@@ -4,6 +4,8 @@ from PyQt5.QtCore import QUrl, Qt, pyqtSignal, QSettings
 from PyQt5.QtWebEngineWidgets import QWebEngineView
 from PyQt5.QtGui import *
 
+from UI_Elements.folder_field import FolderField
+
 class MainWindow(QMainWindow):
     def __init__(self, client):
         super(MainWindow, self).__init__()
@@ -11,9 +13,9 @@ class MainWindow(QMainWindow):
         
         '''TEMPORARY'''
         html = None
-        emails = client.get_emails(number_of_mails=1)
+        emails = client.get_emails(folder_id='Inbox',query="",number_of_mails=1)
         for mail in emails:
-            print_email(mail)
+            #print_email(mail)
             html = mail.body
         '''TEMPORARY'''
         
@@ -92,6 +94,13 @@ class MainWindow(QMainWindow):
         left_layout.addLayout(search_bar_layout)
         left_layout.addLayout(email_layout)
 
+        #Folders
+        folder_field = FolderField(self.client)
+        folder_field.email_signal.connect(self.update_mails)
+        folder_layout = folder_field.folder_field_layout()
+
+        left_layout.addLayout(folder_layout) #FIX THIS
+
         # Set the layout for the left widget
         left_widget.setLayout(left_layout)
 
@@ -122,6 +131,11 @@ class MainWindow(QMainWindow):
 
         self.show()
     
+    '''This function is run by the folder field when a folder is clicked. the emails parameter is a list of email objects from that folder'''
+    def update_mails(self,emails):
+        for mail in emails:
+            print_email(mail)
+
     #toggle button for the background
     def toggleDarkMode(self):
         #Toggle the mode flag

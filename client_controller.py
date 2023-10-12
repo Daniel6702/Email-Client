@@ -28,7 +28,7 @@ class ClientController:
     #Method to initiate the login process for the selected email client.
     def login(self,user):
         self.client.login(user)
-        while self.logged_in == False:
+        while self.logged_in == False: #Fix this
             sleep(1)
             self.logged_in = self.client.logged_in
         else:
@@ -42,12 +42,17 @@ class ClientController:
         self.client.send_email(email)
 
     #Emails are retrieved as a list of email objects
-    def get_emails(self, query="", number_of_mails = 10):
-        return self.client.get_emails(query, number_of_mails)
+    def get_emails(self,folder_id=None, query="", number_of_mails = 10):
+        return self.client.get_emails(folder_id,query, number_of_mails)
     
     def on_login(self):
+        #x = self.client.get_email_folders()
+        #email_util.print_folder_hierarchy(x)
         pass
-        
+    
+    def get_email_folders(self):
+        return self.client.get_email_folders()
+
     #Deletes the credentials 
     def delete_credentials(self):
         files_to_delete = ['Certificates/credentials.json', 'Certificates/refresh_token.txt'] 
