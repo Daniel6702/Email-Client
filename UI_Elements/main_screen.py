@@ -78,11 +78,10 @@ class MainWindow(QMainWindow):
 
         # Create a list widget for emails
         self.list = QListWidget()
-        self.list.insertItem(0, 'Mail 0')
-        self.list.insertItem(1, 'Mail 1')
-        self.list.insertItem(2, 'Mail 2')
-        self.list.insertItem(3, 'Mail 3')
-        self.list.insertItem(4, 'Mail 4')
+        emails = client.get_emails(number_of_mails=15)
+        for i, mail in enumerate(emails):
+            email_item_text = f"Subject: {mail.subject}\nFrom: {mail.from_email}\nDate: {mail.datetime_info['date']} {mail.datetime_info['time'].split('.')[0]}"
+            self.list.insertItem(i, email_item_text)
 
         # Create a horizontal layout for email items
         email_layout = QHBoxLayout()
