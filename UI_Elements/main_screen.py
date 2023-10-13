@@ -1,5 +1,5 @@
 from email_util import Email, generate_attachment_dict, print_email
-from PyQt5.QtWidgets import QApplication, QListWidget, QLabel, QMenu, QMainWindow, QDesktopWidget, QSplitter, QCheckBox, QFormLayout, QLineEdit, QVBoxLayout, QHBoxLayout, QWidget, QGridLayout, QPushButton, QWidget
+from PyQt5.QtWidgets import QApplication, QListWidget, QListWidgetItem, QLabel, QMenu, QMainWindow, QDesktopWidget, QSplitter, QCheckBox, QFormLayout, QLineEdit, QVBoxLayout, QHBoxLayout, QWidget, QGridLayout, QPushButton, QWidget
 from PyQt5.QtCore import QUrl, Qt, pyqtSignal, QSettings
 from PyQt5.QtWebEngineWidgets import QWebEngineView
 from PyQt5.QtGui import *
@@ -7,6 +7,9 @@ from PyQt5.QtGui import *
 from UI_Elements.folder_field import FolderField
 
 class MainWindow(QMainWindow):
+    
+    email_clicked = pyqtSignal(object)
+
     def __init__(self, client):
         super(MainWindow, self).__init__()
         self.client = client
@@ -108,6 +111,19 @@ class MainWindow(QMainWindow):
         right_widget = QWidget()
         right_layout = QVBoxLayout(right_widget)
 
+        self.from_user = QLineEdit()
+        self.from_user.setPlaceholderText("From")
+        self.too_user = QLineEdit()
+        self.too_user.setPlaceholderText("Too")
+        self.subject = QLineEdit()
+        self.subject.setPlaceholderText("Subject")
+
+        # Add the 'From', 'Too', 'Subject' QLineEdit widgets to the right layout
+        right_layout.addWidget(self.from_user)
+        right_layout.addWidget(self.too_user)
+        right_layout.addWidget(self.subject)
+
+
         self.browser = QWebEngineView()
         self.browser.setHtml(html)
         right_layout.addWidget(self.browser)
@@ -160,8 +176,37 @@ class MainWindow(QMainWindow):
     # Slot method to handle login success and display MainWindow
     def on_login_successful(self, html):
         # Create an instance of MainWindow and show it
-        main_window = MainWindow()
+        main_window = MainWindow(html)
         main_window.show()
 
         # Set the HTML content for the email view
         main_window.set_email_html(html)
+
+    def on_email_clicked(self, item):
+        # Get the index of the selected item
+        index = self.list.row(item)
+    
+        # Fetch the corresponding email from your Outlook or Google service
+        selected_email = self.client.get_emails(number_of_mails=15)[index]
+    
+        # Update the QLineEdit widgets with information from the selected email
+        self.from_user.setText(selected_email.from_email)
+    
+        # Use the correct attribute name
+        self.too_user.setText(selected_email.to_email)
+    
+        self.subject.setText(selected_email.subject)
+    
+        # Emit the signal with the selected email
+        self.email_clicked.emit(selected_email)
+
+
+
+    def setup_email_list(self):
+        emails = self.client.get_emails(number_of_mails=15)
+        for i, mail in enumerate(emails):
+            email_item_text = f"Subject: {mail.subject}\nFrom: {mail.from_email}\nDate: {mail.datetime_info['date']} {mail.datetime_info['time'].split('.')[0]}"
+            item = QListWidgetItem(email_item_text)
+            self.list.addItem(item)
+        # Connect the itemClicked signal to the on_email_clicked slot
+        self.list.itemClicked.connect(self.on_email_clicked)

@@ -17,13 +17,23 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from email.mime.base import MIMEBase
 from email import encoders
-from html import escape
-
-# Custom Module Imports
-import email_util
-import webbrowser
+import base64
+import msal
 import json
+import requests
+from google_auth_oauthlib.flow import Flow
+from googleapiclient.discovery import build
+import email_util
+from urllib.parse import urlparse, parse_qs
+from html import escape
+from email.utils import parsedate_to_datetime
+from datetime import datetime, timedelta
+from googleapiclient.errors import HttpError
+import os
+from google.oauth2.credentials import Credentials
+from google.auth.transport.requests import Request
 import time
+import webbrowser
 
 class GmailService():
     def __init__(self):
@@ -43,13 +53,9 @@ class GmailService():
         self.refresh_flag = False
 
     def load_credentials(self):
-        # Check if the credentials file exists
         if os.path.exists(self.CREDENTIALS_FILE):
-            # Open the credentials file in read mode
             with open(self.CREDENTIALS_FILE, 'r') as file:
-                # Load credentials from the file and return the Credentials object
                 return Credentials.from_authorized_user_file(self.CREDENTIALS_FILE)
-        # Return None if the credentials file doesn't exist
         return None
     
     def open_browser_to_login(self):
