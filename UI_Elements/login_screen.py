@@ -4,6 +4,7 @@ from PyQt5.QtCore import QUrl, Qt, pyqtSignal, QSettings,QSize, QEasingCurve, QP
 from PyQt5.QtGui import *
 import flask_app
 import email_util
+import time
 '''
 The primary purpose of the login screen is to generate and return a 'client' object.
 '''
@@ -19,13 +20,16 @@ class LoginScreen(QWidget):
         '''create main widgets'''
         self.new_user_widget = QWidget()
         self.existing_user_widget = QWidget()
+        self.loading_widget = QWidget()
         self.new_user_login_layout(self.new_user_widget)
         self.existing_user_login_layout(self.existing_user_widget)
+        self.loading_screen_layout(self.loading_widget)
         
         '''create stacked widget and add the main widgets. Such that we can switch between them'''
         self.stacked_widget = QStackedWidget()
         self.stacked_widget.addWidget(self.existing_user_widget)
         self.stacked_widget.addWidget(self.new_user_widget)
+        self.stacked_widget.addWidget(self.loading_widget)
 
         '''Check if there are any users saved. If so, switch to existing user login layout. Else, switch to new user login layout'''
         if email_util.load_users_from_file('Certificates\\users.json') != []:
@@ -42,6 +46,11 @@ class LoginScreen(QWidget):
         self.stacked_widget.currentChanged.connect(self.start_animation)
         
         self.setLayout(self.layout)
+
+    def loading_screen_layout(self,parent_widget):
+        layout = QVBoxLayout(parent_widget)
+        label = QLabel("Loading...")
+        layout.addWidget(label, 0, Qt.AlignCenter)
 
     def start_animation(self):
         offset_width = self.stacked_widget.width()
@@ -135,14 +144,18 @@ class LoginScreen(QWidget):
 
         layout.addLayout(grid)
         layout.addWidget(new_user_button,0, Qt.AlignCenter)
-        
-    def switch_to_new_user_login_layout(self):
-        self.previous_index = self.stacked_widget.currentIndex()
-        self.stacked_widget.setCurrentIndex(1)
 
     def switch_to_existing_user_login_layout(self):
         self.previous_index = self.stacked_widget.currentIndex()
         self.stacked_widget.setCurrentIndex(0)
+
+    def switch_to_new_user_login_layout(self):
+        self.previous_index = self.stacked_widget.currentIndex()
+        self.stacked_widget.setCurrentIndex(1)
+
+    def switch_to_loading_screen(self):
+        self.previous_index = self.stacked_widget.currentIndex()
+        self.stacked_widget.setCurrentIndex(2)
     
     def initial_layout(self):
         self.setWindowTitle("Smail")
@@ -175,6 +188,7 @@ class LoginScreen(QWidget):
         self.new_user_login_process("outlook")
 
     def new_user_login_process(self, client_type):
+        self.switch_to_loading_screen()
         user = ""
         if self.remember_me_checkbox.isChecked():
             user = "new_user_saved"
@@ -184,6 +198,7 @@ class LoginScreen(QWidget):
         self.start_login_process(client_type, user, app)
     
     def start_login_process(self,client_type, user, app = None):
+        self.switch_to_loading_screen()
         client = client_controller.ClientController(client_type, app)
         client.login(user)
         self.login_successful.emit(client)

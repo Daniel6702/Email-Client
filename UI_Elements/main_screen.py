@@ -5,6 +5,8 @@ from PyQt5.QtWebEngineWidgets import QWebEngineView
 from PyQt5.QtGui import *
 
 from UI_Elements.folder_field import FolderField
+from UI_Elements.email_list_field import EmailList
+from UI_Elements.search_area import SearchArea
 
 class MainWindow(QMainWindow):
     
@@ -13,96 +15,36 @@ class MainWindow(QMainWindow):
     def __init__(self, client):
         super(MainWindow, self).__init__()
         self.client = client
-        
-        '''TEMPORARY'''
-        html = None
-        emails = client.get_emails(folder_id='Inbox',query="",number_of_mails=1)
-        for mail in emails:
-            #print_email(mail)
-            html = mail.body
-        '''TEMPORARY'''
-        
-        
-        self.setWindowTitle("Smail")
-        # Get the screen geometry using QDesktopWidget
-        screen = QDesktopWidget().screenGeometry()
-        # Set the window's geometry to match the screen size
-        self.setGeometry(screen.left(), screen.top(), screen.width(), screen.height())
-        # Controls the logo of the window
-        icon = QIcon("Images\icon_logo.png")
-        self.setWindowIcon(icon)
+        self.initialize_ui()
+    
 
         # Create a central widget for the main window
         main_widget = QWidget()
         self.setCentralWidget(main_widget)
         # Create a QVBoxLayout for the central widget
-        main_layout = QVBoxLayout(main_widget)
+        self.main_layout = QVBoxLayout(main_widget)
         # Create a QSplitter widget
         splitter = QSplitter(Qt.Horizontal)
         # Create a widget for the left section (search bar and email list)
         left_widget = QWidget()
         left_layout = QVBoxLayout(left_widget)
 
-        # Create a vertical layout for the search bar and buttons
-        search_bar_layout = QVBoxLayout()
-        search_layout = QHBoxLayout()
-        self.searchbar = QLineEdit()
-        self.searchbar.setPlaceholderText("Search")
+        '''Search bar area'''
+        search_area = SearchArea()
+        search_area.dark_mode_signal.connect(self.toggleDarkMode)
+        search_bar_layout = search_area.layout
 
-        # Adds clickable icons
-        self.dark_mode_icon = QIcon("Images\icon_moon.png")
-        self.light_mode_icon = QIcon("Images\icon_sun.png")
-        contact_tab = QPushButton(QIcon("Images\icon_contact.png"), "Contacts")
-        mail_tab = QPushButton(QIcon("Images\icon_mail.png"), "Mail")
-        settings_tab = QPushButton(QIcon("Images\icon_gear.png"), "Settings")
-        self.light_dark = QPushButton(self.dark_mode_icon, "Barbie mode")
-        self.light_dark.clicked.connect(self.toggleDarkMode)
-
-        menu = QMenu(self)
-        menu.addAction('Filter')
-        menu.addSeparator()
-        dark_mode_action = menu.addAction('Dark Mode')
-        dark_mode_action.triggered.connect(self.toggleDarkMode)
-        menu.addSeparator()
-        menu.addAction('Log Out')
-        settings_tab.setMenu(menu)
-
-        # Add the search bar widgets to the search layout
-        search_layout.addWidget(self.searchbar)
-
-        # Create a horizontal layout for the icons
-        icons_layout = QHBoxLayout()
-        icons_layout.addWidget(contact_tab)
-        icons_layout.addWidget(mail_tab)
-        icons_layout.addWidget(settings_tab)
-        icons_layout.addWidget(self.light_dark)
-
-        # Add the search layout and icons layout to the vertical search bar layout
-        search_bar_layout.addLayout(search_layout)
-        search_bar_layout.addLayout(icons_layout)
-
-        # Create a list widget for emails
-        
-        self.list = QListWidget()
-        emails = client.get_emails(number_of_mails=5)
-        for i, mail in enumerate(emails):
-            email_item_text = f"Subject: {mail.subject}\nFrom: {mail.from_email}\nDate: {mail.datetime_info['date']} {mail.datetime_info['time'].split('.')[0]}"
-            self.list.insertItem(i, email_item_text)
-
-        # Create a horizontal layout for email items
-        email_layout = QHBoxLayout()
-        email_layout.addWidget(self.list)
-
-        # Add the search bar layout, email layout, and browser to the main layout
+        '''Email list'''
+        self.email_list = EmailList(client)
+        self.email_list.email_clicked.connect(self.get_clicked_email)
         left_layout.addLayout(search_bar_layout)
-        left_layout.addLayout(email_layout)
+        left_layout.addLayout(self.email_list.list_layout)
 
-        #Folders
-        folder_field = FolderField(self.client)
-        folder_field.email_signal.connect(self.update_mails)
-        folder_layout = folder_field.folder_field_layout()
-
-        left_layout.addLayout(folder_layout) #FIX THIS
+        '''Folders'''
+        self.folder_field = FolderField(self.client)
+        self.folder_field.email_signal.connect(self.update_mails)
+        self.folder_layout = self.folder_field.folder_field_layout()
+        left_layout.addLayout(self.folder_layout) #FIX THIS
 
         # Set the layout for the left widget
         left_widget.setLayout(left_layout)
@@ -111,21 +53,8 @@ class MainWindow(QMainWindow):
         right_widget = QWidget()
         right_layout = QVBoxLayout(right_widget)
 
-        self.from_user = QLineEdit()
-        self.from_user.setPlaceholderText("From")
-        self.too_user = QLineEdit()
-        self.too_user.setPlaceholderText("Too")
-        self.subject = QLineEdit()
-        self.subject.setPlaceholderText("Subject")
+       
 
-        # Add the 'From', 'Too', 'Subject' QLineEdit widgets to the right layout
-        right_layout.addWidget(self.from_user)
-        right_layout.addWidget(self.too_user)
-        right_layout.addWidget(self.subject)
-
-
-        self.browser = QWebEngineView()
-        self.browser.setHtml(html)
         right_layout.addWidget(self.browser)
 
         # Set the layout for the right widget
@@ -140,7 +69,7 @@ class MainWindow(QMainWindow):
         splitter.setSizes([int(screen_width * 1 / 3), int(screen_width * 2 / 3)])
 
         # Set the splitter as the central widget
-        main_layout.addWidget(splitter)
+        self.main_layout.addWidget(splitter)
 
         #improtant for making dark/light mode work
         self.is_light_mode = True
@@ -148,9 +77,25 @@ class MainWindow(QMainWindow):
         self.show()
     
     '''This function is run by the folder field when a folder is clicked. the emails parameter is a list of email objects from that folder'''
-    def update_mails(self,emails):
-        for mail in emails:
-            print_email(mail)
+    def update_mails(self, emails):
+        for i in reversed(range(self.email_list.list_layout.count())): 
+            self.email_list.list_layout.itemAt(i).widget().setParent(None)
+        self.email_list.setup_email_list(emails)
+        self.main_layout.update()
+
+    def get_clicked_email(self,mail):
+        self.browser.setHtml(mail.body)
+        #print_email(mail)
+
+    def initialize_ui(self):
+        self.setWindowTitle("Smail")
+        # Get the screen geometry using QDesktopWidget
+        screen = QDesktopWidget().screenGeometry()
+        # Set the window's geometry to match the screen size
+        self.setGeometry(screen.left(), screen.top(), screen.width(), screen.height())
+        # Controls the logo of the window
+        icon = QIcon("Images\icon_logo.png")
+        self.setWindowIcon(icon)
 
     #toggle button for the background
     def toggleDarkMode(self):
@@ -185,22 +130,18 @@ class MainWindow(QMainWindow):
     def on_email_clicked(self, item):
         # Get the index of the selected item
         index = self.list.row(item)
-    
+
         # Fetch the corresponding email from your Outlook or Google service
         selected_email = self.client.get_emails(number_of_mails=15)[index]
-    
+
         # Update the QLineEdit widgets with information from the selected email
-        self.from_user.setText(selected_email.from_email)
-    
-        # Use the correct attribute name
-        self.too_user.setText(selected_email.to_email)
-    
-        self.subject.setText(selected_email.subject)
-    
+        self.from_user.setText(f"From: {selected_email.from_email}")
+        self.too_user.setText(f"To: {selected_email.to_email}")
+        self.subject.setText(f"Subject: {selected_email.subject}")
+        # Update the displayed HTML content using the utility class
+        # UiUtility.update_email_html(self.browser, selected_email)
         # Emit the signal with the selected email
         self.email_clicked.emit(selected_email)
-
-
 
     def setup_email_list(self):
         emails = self.client.get_emails(number_of_mails=15)
@@ -210,3 +151,4 @@ class MainWindow(QMainWindow):
             self.list.addItem(item)
         # Connect the itemClicked signal to the on_email_clicked slot
         self.list.itemClicked.connect(self.on_email_clicked)
+

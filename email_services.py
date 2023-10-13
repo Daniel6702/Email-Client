@@ -32,7 +32,6 @@ from googleapiclient.errors import HttpError
 import os
 from google.oauth2.credentials import Credentials
 from google.auth.transport.requests import Request
-import time
 import webbrowser
 
 class GmailService():
@@ -51,12 +50,6 @@ class GmailService():
         self.logged_in = False
         self.CREDENTIALS_FILE = 'Certificates\credentials.json'
         self.refresh_flag = False
-
-    def load_credentials(self):
-        if os.path.exists(self.CREDENTIALS_FILE):
-            with open(self.CREDENTIALS_FILE, 'r') as file:
-                return Credentials.from_authorized_user_file(self.CREDENTIALS_FILE)
-        return None
     
     def open_browser_to_login(self):
         authorization_url, state = self.flow.authorization_url(
@@ -130,8 +123,7 @@ class GmailService():
             folders.append(email_util.Folder(name=label['name'], id=label['id']))
         
         return folders
-        
-
+    
     def send_email(self, email):
         message = self.create_message(email)
         user_id = email.from_email
