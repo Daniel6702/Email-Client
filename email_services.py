@@ -2,6 +2,7 @@
 import base64
 import os
 from datetime import datetime, timedelta
+from email.utils import parsedate_to_datetime
 from urllib.parse import urlparse, parse_qs
 
 # Third-party Library Imports
@@ -39,10 +40,7 @@ class GmailService():
         self.user = None
         self.logged_in = False
         self.CREDENTIALS_FILE = 'Certificates\credentials.json'
-        
-    #def save_credentials(self,credentials):
-    #    with open(self.CREDENTIALS_FILE, 'w') as file:
-    #        file.write(credentials.to_json())
+        self.refresh_flag = False
 
     def load_credentials(self):
         # Check if the credentials file exists
@@ -53,24 +51,40 @@ class GmailService():
                 return Credentials.from_authorized_user_file(self.CREDENTIALS_FILE)
         # Return None if the credentials file doesn't exist
         return None
+    
+    def open_browser_to_login(self):
+        authorization_url, state = self.flow.authorization_url(
+                    access_type='offline', prompt='consent'
+                )
+        webbrowser.open(authorization_url)
 
     def login(self, user):
-        if user == "new_user" or user == "new_user_saved":
-            authorization_url, state = self.flow.authorization_url(access_type='offline', prompt='consent')
-            webbrowser.open(authorization_url)
+        try:
+            if user == "new_user" or user == "new_user_saved":
+                self.open_browser_to_login()
+                return None
+            else:
+                credentials = Credentials.from_authorized_user_info(
+                    user.credentials
+                )
+                if credentials.expired:
+                    try:
+                        credentials.refresh(Request())
+                    except Exception as refresh_error:
+                        print(f"An error occurred during credentials refresh: {refresh_error}")
+                        self.refresh_flag = True
+                        self.open_browser_to_login()
+                        return None
+                self.build(credentials)
+        except Exception as e:
+            print(f"An error occurred: {e}")
             return None
-        else:
-            credentials = Credentials.from_authorized_user_info(user.credentials)  
-            if credentials.expired:
-                credentials.refresh(Request())
-                user.credentials = credentials.to_json()
-                email_util.update_user_in_file(user, 'Certificates\\users.json')
-            self.build(credentials)
             
     def build(self,credentials):
         self.service = build('gmail', 'v1', credentials=credentials)
         self.people_service = build('people', 'v1', credentials=credentials)
         self.user = self.get_user_info(credentials)
+        email_util.update_user_in_file(self.user, 'Certificates\\users.json')
         self.logged_in = True
 
     def set_service(self, args):

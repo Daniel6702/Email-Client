@@ -79,8 +79,9 @@ class MainWindow(QMainWindow):
         search_bar_layout.addLayout(icons_layout)
 
         # Create a list widget for emails
+        
         self.list = QListWidget()
-        emails = client.get_emails(number_of_mails=15)
+        emails = client.get_emails(number_of_mails=5)
         for i, mail in enumerate(emails):
             email_item_text = f"Subject: {mail.subject}\nFrom: {mail.from_email}\nDate: {mail.datetime_info['date']} {mail.datetime_info['time'].split('.')[0]}"
             self.list.insertItem(i, email_item_text)

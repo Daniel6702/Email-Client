@@ -42,7 +42,7 @@ class ClientController:
         self.client.send_email(email)
 
     #Emails are retrieved as a list of email objects
-    def get_emails(self,folder_id=None, query="", number_of_mails = 10):
+    def get_emails(self,folder_id="Inbox", query="", number_of_mails = 10):
         return self.client.get_emails(folder_id,query, number_of_mails)
     
     def on_login(self):
