@@ -31,7 +31,6 @@ class MainWindow(QMainWindow):
 
         '''Search bar area'''
         search_area = SearchArea()
-        search_area.dark_mode_signal.connect(self.toggleDarkMode)
         search_bar_layout = search_area.layout
 
         '''Email list'''
@@ -53,6 +52,19 @@ class MainWindow(QMainWindow):
         right_widget = QWidget()
         right_layout = QVBoxLayout(right_widget)
 
+        self.from_user = QLineEdit()
+        self.from_user.setPlaceholderText("From:")
+        self.too_user = QLineEdit()
+        self.too_user.setPlaceholderText("To:")
+        self.subject = QLineEdit()
+        self.subject.setPlaceholderText("Subject:")
+        # Add the 'From', 'Too', 'Subject' QLineEdit widgets to the right layout
+        right_layout.addWidget(self.from_user)
+        right_layout.addWidget(self.too_user)
+        right_layout.addWidget(self.subject)
+
+        # Create an instance of QWebEngineView
+        self.browser = QWebEngineView()
        
 
         right_layout.addWidget(self.browser)
@@ -85,7 +97,6 @@ class MainWindow(QMainWindow):
 
     def get_clicked_email(self,mail):
         self.browser.setHtml(mail.body)
-        #print_email(mail)
 
     def initialize_ui(self):
         self.setWindowTitle("Smail")

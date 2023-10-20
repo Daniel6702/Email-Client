@@ -3,14 +3,11 @@ from PyQt5.QtCore import pyqtSignal
 from PyQt5.QtGui import *
 
 class SearchArea(QWidget):
-    dark_mode_signal = pyqtSignal()
+    
     def __init__(self,parent=None):
         super(SearchArea, self).__init__(parent)
         self.layout = QVBoxLayout()
         self.setup_layout()
-
-    def toggleDarkMode(self):
-        self.dark_mode_signal.emit()
 
     def setup_layout(self):
         search_bar_layout = QVBoxLayout()
@@ -24,18 +21,7 @@ class SearchArea(QWidget):
         contact_tab = QPushButton(QIcon("Images\icon_contact.png"), "Contacts")
         mail_tab = QPushButton(QIcon("Images\icon_mail.png"), "Mail")
         settings_tab = QPushButton(QIcon("Images\icon_gear.png"), "Settings")
-        self.light_dark = QPushButton(self.dark_mode_icon, "Barbie mode")
-        self.light_dark.clicked.connect(self.toggleDarkMode)
-
-        menu = QMenu(self)
-        menu.addAction('Filter')
-        menu.addSeparator()
-        dark_mode_action = menu.addAction('Dark Mode')
-        dark_mode_action.triggered.connect(self.toggleDarkMode)
-        menu.addSeparator()
-        menu.addAction('Log Out')
-        settings_tab.setMenu(menu)
-
+        
         # Add the search bar widgets to the search layout
         search_layout.addWidget(self.searchbar)
 
@@ -44,7 +30,7 @@ class SearchArea(QWidget):
         icons_layout.addWidget(contact_tab)
         icons_layout.addWidget(mail_tab)
         icons_layout.addWidget(settings_tab)
-        icons_layout.addWidget(self.light_dark)
+
 
         # Add the search layout and icons layout to the vertical search bar layout
         search_bar_layout.addLayout(search_layout)
