@@ -3,39 +3,30 @@ from PyQt5.QtCore import pyqtSignal,Qt
 from PyQt5.QtGui import *
 from email_util import Email
 
-class UiUtility:
-    @staticmethod
-    def update_email_html(browser, html_content):
-        browser.setHtml(html_content)
-        
-class EmailList(QWidget):
+class EmailListArea(QVBoxLayout):
     email_clicked = pyqtSignal(Email)
-    def __init__(self,client,parent=None):
-        super(EmailList, self).__init__(parent)
-        self.client = client
-        self.list_layout = QVBoxLayout()
+    def __init__(self):
+        super().__init__()
+        self.setup_email_list()
 
-    def on_email_clicked(self, mail):
-        self.email_clicked.emit(mail)
-
-    def setup_email_list(self, mails):
+    def setup_email_list(self):
         label = QLabel("mails:")
-        self.list_layout.addWidget(label)
-        list = QListWidget()
+        self.addWidget(label)
+        self.list_widget = QListWidget()
+        self.addWidget(self.list_widget)
+        self.list_widget.itemClicked.connect(self.handle_item_clicked)
+
+    def add_emails_to_list(self, mails):
+        self.list_widget.clear()
         for mail in mails:
             email_item_text = f"Subject: {mail.subject}\nFrom: {mail.from_email}\nDate: {mail.datetime_info['date']} {mail.datetime_info['time'].split('.')[0]}"
             item = QListWidgetItem(email_item_text)
-            list.addItem(item)
-
-            # Use an additional default argument to capture the current value of mail by value
-            item.setData(Qt.UserRole, mail)  # Storing the mail object as item data
-        
-        list.itemClicked.connect(self.handle_item_clicked)
-        self.list_layout.addWidget(list)
+            self.list_widget.addItem(item)
+            item.setData(Qt.UserRole, mail)
 
     def handle_item_clicked(self, item):
-        mail = item.data(Qt.UserRole)  # Retrieving the mail object from item data
-        self.on_email_clicked(mail)
+        mail = item.data(Qt.UserRole)
+        self.email_clicked.emit(mail)
 
         
 

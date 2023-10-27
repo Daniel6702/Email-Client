@@ -78,7 +78,7 @@ class GmailService():
         except Exception as e:
             print(f"An error occurred: {e}")
             return None
-            
+    
     def build(self,credentials):
         self.service = build('gmail', 'v1', credentials=credentials)
         self.people_service = build('people', 'v1', credentials=credentials)

@@ -2,11 +2,11 @@ from PyQt5.QtWidgets import QApplication, QListWidget, QListWidgetItem, QLabel, 
 from PyQt5.QtCore import pyqtSignal
 from PyQt5.QtGui import *
 
-class SearchArea(QWidget):
+class SearchArea(QVBoxLayout):
     dark_mode_signal = pyqtSignal()
-    def __init__(self,parent=None):
-        super(SearchArea, self).__init__(parent)
-        self.layout = QVBoxLayout()
+
+    def __init__(self):
+        super().__init__()
         self.setup_layout()
 
     def toggleDarkMode(self):
@@ -27,7 +27,7 @@ class SearchArea(QWidget):
         self.light_dark = QPushButton(self.dark_mode_icon, "Barbie mode")
         self.light_dark.clicked.connect(self.toggleDarkMode)
 
-        menu = QMenu(self)
+        menu = QMenu(self.searchbar)  # Parented to self.searchbar to avoid error
         menu.addAction('Filter')
         menu.addSeparator()
         dark_mode_action = menu.addAction('Dark Mode')
@@ -49,4 +49,4 @@ class SearchArea(QWidget):
         # Add the search layout and icons layout to the vertical search bar layout
         search_bar_layout.addLayout(search_layout)
         search_bar_layout.addLayout(icons_layout)
-        self.layout.addLayout(search_bar_layout)
+        self.addLayout(search_bar_layout)

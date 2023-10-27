@@ -1,9 +1,9 @@
 import sys
 from PyQt5.QtWidgets import QApplication, QMainWindow
-from UI_Elements.main_screen import MainWindow
-from UI_Elements.login_screen import LoginScreen
+from UI_Elements.main_window import MainWindow
+from UI_Elements.login_window import LoginScreen
 
-class AppController:
+class WindowController:
     def __init__(self, app):
         self.app = app
         self.show_login()
@@ -23,5 +23,5 @@ if __name__ == "__main__":
     with open("UI_Elements\\style.qss", "r") as f:
         _style = f.read()
         app.setStyleSheet(_style)
-    manager = AppController(app)
+    manager = WindowController(app)
     sys.exit(app.exec_())
