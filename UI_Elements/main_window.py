@@ -10,6 +10,7 @@ from UI_Elements.search_area import SearchArea
 from UI_Elements.email_view_area import EmailView
 
 class MainWindow(QMainWindow):
+    open_editor_window = pyqtSignal()
     def __init__(self, appController):
         super(MainWindow, self).__init__()
         self.appController = appController
@@ -22,7 +23,7 @@ class MainWindow(QMainWindow):
         #Generate Layouts
         grid_layout = QGridLayout()
         self.email_list_area = EmailListArea()
-        self.search_area = SearchArea()
+        self.search_area = SearchArea(self.open_editor_window)
         self.folder_area = FolderArea(self.appController)
         self.email_view_area = EmailView()
 

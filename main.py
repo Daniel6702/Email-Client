@@ -2,6 +2,7 @@ import sys
 from PyQt5.QtWidgets import QApplication, QMainWindow
 from UI_Elements.main_window import MainWindow
 from UI_Elements.login_window import LoginScreen
+from UI_Elements.editor_window import EditorWindow
 
 class WindowController:
     def __init__(self, app):
@@ -15,8 +16,13 @@ class WindowController:
         
     def show_main(self, client_obj):
         self.main_window = MainWindow(client_obj)
+        self.main_window.open_editor_window.connect(self.show_editor)
         self.main_window.show()
         self.login_window.close()
+
+    def show_editor(self):
+        self.editor_window = EditorWindow()
+        self.editor_window.show()
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)

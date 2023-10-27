@@ -58,7 +58,26 @@ QPushButton:hover#folder_button {
   background-color: #d2d2d2;
   border: 2px solid #9c9c9c;
 }
-
+QPushButton#new_mail_button {
+  background-color: #00ff08;
+  color: #000;
+  font-weight: 600;
+  border-radius: 8px;
+  border: 2px solid #c80000;
+  padding: 5px 15px;
+  margin-top: 0px;
+  outline: 2px;
+}
+QPushButton:hover#new_mail_button {
+  background-color: #459648;
+  color: #000;
+  font-weight: 600;
+  border-radius: 8px;
+  border: 2px solid #c80000;
+  padding: 5px 15px;
+  margin-top: 0px;
+  outline: 2px;
+}
 QPushButton#new_user_button {
   background-color: #3a8345;
   color: #fff;

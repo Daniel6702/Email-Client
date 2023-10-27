@@ -4,10 +4,10 @@ from PyQt5.QtGui import *
 
 class SearchArea(QVBoxLayout):
     dark_mode_signal = pyqtSignal()
-
-    def __init__(self):
+    def __init__(self,new_mail_signal):
         super().__init__()
         self.setup_layout()
+        self.new_mail_signal = new_mail_signal
 
     def toggleDarkMode(self):
         self.dark_mode_signal.emit()
@@ -22,7 +22,11 @@ class SearchArea(QVBoxLayout):
         self.dark_mode_icon = QIcon("Images\icon_moon.png")
         self.light_mode_icon = QIcon("Images\icon_sun.png")
         contact_tab = QPushButton(QIcon("Images\icon_contact.png"), "Contacts")
-        mail_tab = QPushButton(QIcon("Images\icon_mail.png"), "Mail")
+
+        new_mail_button = QPushButton(QIcon("Images\icon_mail.png"), "Write New Mail")
+        new_mail_button.setObjectName("new_mail_button") 
+        new_mail_button.clicked.connect(self.new_mail_button)
+
         settings_tab = QPushButton(QIcon("Images\icon_gear.png"), "Settings")
         self.light_dark = QPushButton(self.dark_mode_icon, "Barbie mode")
         self.light_dark.clicked.connect(self.toggleDarkMode)
@@ -41,8 +45,8 @@ class SearchArea(QVBoxLayout):
 
         # Create a horizontal layout for the icons
         icons_layout = QHBoxLayout()
+        icons_layout.addWidget(new_mail_button)
         icons_layout.addWidget(contact_tab)
-        icons_layout.addWidget(mail_tab)
         icons_layout.addWidget(settings_tab)
         icons_layout.addWidget(self.light_dark)
 
@@ -50,3 +54,6 @@ class SearchArea(QVBoxLayout):
         search_bar_layout.addLayout(search_layout)
         search_bar_layout.addLayout(icons_layout)
         self.addLayout(search_bar_layout)
+
+    def new_mail_button(self):
+        self.new_mail_signal.emit()
