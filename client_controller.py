@@ -16,10 +16,12 @@ class ClientController:
             self.client = email_services.OutlookService()	
             endpoint='/oauth2callbackoutlook'
         elif client_type == "google":
+            print("google3")
             self.client = email_services.GmailService()
             endpoint='/oauth2callback'
         
         if app != None:
+            print("google4")
             app.add_endpoint(endpoint=endpoint, endpoint_name=str(random.randint(0,100)), handler=flask_app.oauth2callback(self))
 
         self.logged_in = False
