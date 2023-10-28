@@ -169,12 +169,12 @@ class LoginScreen(QWidget):
         self.setGeometry(x, y, WINDOW_WIDTH, WINDOW_HEIGHT)
 
         # Controls the logo of the window
-        icon = QIcon("Images\icon_logo.png")
+        icon = QIcon("Images\\icon_logo.png")
         self.setWindowIcon(icon)
     
     def create_logo(self):
         logo_label = QLabel()
-        pixmap = QPixmap("Images\icon_logo.png")
+        pixmap = QPixmap("Images\\icon_logo.png")
         logo_width = 150
         pixmap = pixmap.scaledToWidth(logo_width, Qt.SmoothTransformation)
         logo_label.setPixmap(pixmap)
@@ -182,7 +182,6 @@ class LoginScreen(QWidget):
         return logo_label 
 
     def new_login_google(self):
-        print("google")
         self.new_user_login_process("google")
 
     def new_login_outlook(self):
@@ -195,12 +194,10 @@ class LoginScreen(QWidget):
             user = "new_user_saved"
         else:
             user = "new_user"
-        print("google2")
         app = flask_app.FlaskAppWrapper('redirect_server')
         self.start_login_process(client_type, user, app)
     
     def start_login_process(self,client_type, user, app = None):
-        print("google3")
         self.switch_to_loading_screen()
         client = client_controller.ClientController(client_type, app)
         client.login(user)

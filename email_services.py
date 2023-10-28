@@ -33,11 +33,42 @@ import os
 from google.oauth2.credentials import Credentials
 from google.auth.transport.requests import Request
 import webbrowser
+from abc import ABC, abstractmethod
+
+class EmailClient(ABC):
+    def __init__(self):
+        self.user = None
+        self.service = None
+        self.logged_in = False
+
+    @abstractmethod
+    def login(self):
+        pass
+
+    @abstractmethod
+    def get_emails(self, folder_id: str, query: str, number_of_mails: int) -> list[email_util.Email]:
+        pass
+
+    @abstractmethod
+    def send_email(self, email: email_util.Email) -> None:
+        pass
+
+    @abstractmethod
+    def get_email_folders(self) -> list[email_util.Folder]:
+        pass
+
+    @abstractmethod
+    def get_user(self) -> email_util.User:
+        pass
+
+    def browser_login(self):
+        pass
+    
 
 class GmailService():
     def __init__(self):
         self.flow = Flow.from_client_secrets_file(
-            'Certificates\client_secret_google.json', 
+            'Certificates\\client_secret_google.json', 
             scopes=['https://www.googleapis.com/auth/gmail.send',
                     'https://www.googleapis.com/auth/gmail.readonly',
                     'https://www.googleapis.com/auth/gmail.modify',
@@ -48,7 +79,7 @@ class GmailService():
         self.service = None
         self.user = None
         self.logged_in = False
-        self.CREDENTIALS_FILE = 'Certificates\credentials.json'
+        self.CREDENTIALS_FILE = 'Certificates\\credentials.json'
         self.refresh_flag = False
     
     def open_browser_to_login(self):
@@ -88,7 +119,7 @@ class GmailService():
 
     def set_service(self, args):
         test_flow = Flow.from_client_secrets_file(
-            'Certificates\client_secret_google.json', 
+            'Certificates\\client_secret_google.json', 
             scopes=None, #i dont know why this is needed but it is
             redirect_uri='https://localhost:8080/oauth2callback'
         )
@@ -287,7 +318,7 @@ class OutlookService():
     def __init__(self):
         self.result = None
 
-        with open('Certificates\client_secret_outlook.json', "r") as json_file:
+        with open('Certificates\\client_secret_outlook.json', "r") as json_file:
             data = json.load(json_file)
 
         authority_url = "https://login.microsoftonline.com/common"
@@ -502,13 +533,14 @@ class OutlookService():
             }
             for email_address in email.to_email
         ]
+        print(to_recipients)
         request_body = {
             'message': {
                 'toRecipients': to_recipients,
                 'subject': email.subject,
                 'importance': 'normal',
                 'body': {
-                    'contentType': 'text', 
+                    'contentType': 'html', 
                     'content': email.body
                 }
             }

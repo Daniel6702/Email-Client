@@ -22,6 +22,7 @@ class WindowController:
 
     def show_editor(self):
         self.editor_window = EditorWindow()
+        self.editor_window.mail_signal_from_editor.connect(self.main_window.get_mail_from_editor)
         self.editor_window.show()
 
 if __name__ == "__main__":

@@ -24,7 +24,7 @@ class FlaskAppWrapper(object):
     def __init__(self, name):
         # Initialize SSL context with certificate data for HTTPS requests
         self.context = ssl.SSLContext(ssl.PROTOCOL_TLSv1_2)
-        self.context.load_cert_chain(certfile='Certificates\certificate.crt', keyfile='Certificates\private_key.key')
+        self.context.load_cert_chain(certfile='Certificates\\certificate.crt', keyfile='Certificates\\private_key.key')
         self.app = Flask(name)
         self.flask_thread = threading.Thread(target=self.run)
         self.flask_thread.start()

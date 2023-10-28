@@ -11,6 +11,7 @@ from UI_Elements.email_view_area import EmailView
 
 class MainWindow(QMainWindow):
     open_editor_window = pyqtSignal()
+    test_signal = pyqtSignal(list)
     def __init__(self, appController):
         super(MainWindow, self).__init__()
         self.appController = appController
@@ -23,7 +24,8 @@ class MainWindow(QMainWindow):
         #Generate Layouts
         grid_layout = QGridLayout()
         self.email_list_area = EmailListArea()
-        self.search_area = SearchArea(self.open_editor_window)
+        self.test_signal.connect(self.email_list_area.add_emails_to_list)
+        self.search_area = SearchArea(self.open_editor_window,self.appController, self.test_signal)
         self.folder_area = FolderArea(self.appController)
         self.email_view_area = EmailView()
 
@@ -50,11 +52,15 @@ class MainWindow(QMainWindow):
     def get_clicked_email(self,mail):
         self.email_view_area.updateEmailView(mail)
 
+    def get_mail_from_editor(self,mail):
+        if type(mail) is not str:
+            self.appController.send_email(mail)
+
     def initialize_ui(self):
         self.setWindowTitle("Smail")
         screen = QDesktopWidget().screenGeometry()
         self.setGeometry(screen.left(), screen.top(), screen.width(), screen.height())
-        icon = QIcon("Images\icon_logo.png")
+        icon = QIcon("Images\\icon_logo.png")
         self.setWindowIcon(icon)
 
     #toggle button for the background
