@@ -21,7 +21,6 @@ class ClientController:
             endpoint='/oauth2callback'
         
         if app != None:
-            print("google4")
             app.add_endpoint(endpoint=endpoint, endpoint_name=str(random.randint(0,100)), handler=flask_app.oauth2callback(self))
 
         self.logged_in = False
@@ -42,6 +41,10 @@ class ClientController:
 
     def send_email(self,email):
         self.client.send_email(email)
+
+    def save_email(self,email):
+        print("4")
+        self.client.save_email(email)
 
     #Emails are retrieved as a list of email objects
     def get_emails(self,folder_id="Inbox", query="", number_of_mails = 10):

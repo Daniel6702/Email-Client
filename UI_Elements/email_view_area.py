@@ -17,7 +17,7 @@ class EmailView(QVBoxLayout):
         self.from_user.setText("From: ")
         self.to_user.setText("To: ")
         self.subject.setText("Subject: ")
-        self.browser.setHtml("<html><body><p>No email content to display</p></body></html>")
+        self.browser.setHtml("<html><body><p>No email content to display. Select an email</p></body></html>")
 
         # Add the components to the layout
         self.addWidget(self.from_user)

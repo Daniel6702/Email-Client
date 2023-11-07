@@ -5,16 +5,15 @@ from PyQt5.QtWidgets import QWidget, QVBoxLayout, QLabel, QLineEdit, QTextEdit, 
 from email_util import Email, print_email
 from datetime import datetime
 import os
-
-
-
+from dataclasses import dataclass
 
 class EditorWindow(QWidget):
     mail_signal_from_editor = pyqtSignal(object)
 
-    def __init__(self):
+    def __init__(self, draft_email: Email = None):
         super().__init__()
         self.initial_layout()
+        self.draft = draft_email
 
         # Main layout
         main_layout = QVBoxLayout()
@@ -22,29 +21,54 @@ class EditorWindow(QWidget):
         # Recipient line
         recipient_label = QLabel("Modtagere")
         self.recipient_line_edit = QLineEdit()
+        if self.draft and isinstance(self.draft.to_email, list):
+            self.recipient_line_edit.setText(", ".join(self.draft.to_email))
+        elif self.draft and isinstance(self.draft.to_email, str):
+            self.recipient_line_edit.setText(self.draft.to_email)
         main_layout.addWidget(recipient_label)
         main_layout.addWidget(self.recipient_line_edit)
 
         # Subject line
         subject_label = QLabel("Emne")
         self.subject_line_edit = QLineEdit()
+        if self.draft:
+            self.subject_line_edit.setText(self.draft.subject)
         main_layout.addWidget(subject_label)
         main_layout.addWidget(self.subject_line_edit)
 
         # Mail body
         self.mail_body_edit = QTextEdit()
+        if self.draft:
+            self.mail_body_edit.setHtml(self.draft.body)
         main_layout.addWidget(self.mail_body_edit)
 
         # Attachments list
         self.attachments_list = QListWidget()
         self.attachments_list.setStyleSheet("QListWidget { border: none; }")
         self.attachments_list.setFixedHeight(1)
+        if self.draft:
+            for attachment in draft_email.attachments:
+                file_name = attachment.get('file_name')
+                item = QListWidgetItem(file_name)
+                item.setData(Qt.UserRole, file_name) 
+                self.attachments_list.addItem(item)
+                item_height = 20
+                total_height = item_height * self.attachments_list.count()
+                self.attachments_list.setFixedHeight(total_height)
         main_layout.addWidget(self.attachments_list)
 
-        # Send button
+        # Send and Save button
+        temp_layout = QHBoxLayout()
+    
         send_button = QPushButton("Send")
         send_button.clicked.connect(self.send_email)
-        main_layout.addWidget(send_button)
+  
+        save_button = QPushButton("Save")
+        save_button.clicked.connect(self.save_email)
+
+        temp_layout.addWidget(send_button,4)
+        temp_layout.addWidget(save_button,1)
+        main_layout.addLayout(temp_layout)
 
         '''Toolbar'''
         formatting_toolbar = QToolBar(self)
@@ -147,7 +171,7 @@ class EditorWindow(QWidget):
                 item.setData(Qt.UserRole, file_path) 
                 self.attachments_list.addItem(item)
 
-            item_height = 18
+            item_height = 20
             total_height = item_height * self.attachments_list.count()
             self.attachments_list.setFixedHeight(total_height)
 
@@ -168,6 +192,8 @@ class EditorWindow(QWidget):
         paths = []
         for index in range(self.attachments_list.count()):
             item = self.attachments_list.item(index)
+            if self.draft and item.text() in [attachment.get('file_name') for attachment in self.draft.attachments]:
+                continue
             file_path = item.data(Qt.UserRole)
             paths.append(file_path)
         return paths
@@ -196,20 +222,34 @@ class EditorWindow(QWidget):
         for file_path in attachments_paths:
             attachment_dict = self.generate_attachment_dict(file_path)
             attachments.append(attachment_dict)
+        if self.draft:
+            attachments.extend(self.draft.attachments)
+            id = self.draft.id
+        else:
+            id = None   
+
+        ##add the recipients to the subject        
         email = Email(from_email="me",
                       to_email=recipients,
                       subject=subject,
                       body=body_html,
                       datetime_info = {'date': str(datetime.now().date()),
                                         'time': str(datetime.now().time())},
-                      attachments=attachments)
+                      attachments=attachments,
+                      id=id)
         return email
     
     def save_email(self):
         email = self.generate_email()
-        #email_util.save_email_to_file(email, "Drafts")
+        email_signal = EmailSignal(email, "save")
+        self.mail_signal_from_editor.emit(email_signal)
     
     def send_email(self):
         email = self.generate_email()
-        self.mail_signal_from_editor.emit(email)
-        
+        email_signal = EmailSignal(email, "send")
+        self.mail_signal_from_editor.emit(email_signal)
+
+@dataclass
+class EmailSignal:
+    email: Email
+    action: str

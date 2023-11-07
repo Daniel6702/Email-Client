@@ -4,18 +4,19 @@ from PyQt5.QtCore import QUrl, Qt, pyqtSignal, QSettings
 from PyQt5.QtWebEngineWidgets import QWebEngineView
 from PyQt5.QtGui import *
 
-from UI_Elements.email_folder_area import FolderArea
+from UI_Elements.email_folder_area import FolderArea, FolderSignal
 from UI_Elements.email_list_area import EmailListArea
 from UI_Elements.search_area import SearchArea
 from UI_Elements.email_view_area import EmailView
 
 class MainWindow(QMainWindow):
-    open_editor_window = pyqtSignal()
+    open_editor_window = pyqtSignal(object)
+    open_settings_window = pyqtSignal()
     test_signal = pyqtSignal(list)
     def __init__(self, appController):
         super(MainWindow, self).__init__()
         self.appController = appController
-
+        
         #Initialize UI
         self.initialize_ui()
         main_widget = QWidget(self)
@@ -25,13 +26,13 @@ class MainWindow(QMainWindow):
         grid_layout = QGridLayout()
         self.email_list_area = EmailListArea()
         self.test_signal.connect(self.email_list_area.add_emails_to_list)
-        self.search_area = SearchArea(self.open_editor_window,self.appController, self.test_signal)
+        self.search_area = SearchArea(self.open_editor_window,self.open_settings_window,self.appController, self.test_signal)
         self.folder_area = FolderArea(self.appController)
         self.email_view_area = EmailView()
 
         #Connect Signals
         self.email_list_area.email_clicked.connect(self.get_clicked_email)
-        self.folder_area.email_signal.connect(self.update_mails)
+        self.folder_area.email_signal.connect(self.get_folder_signal)
 
         #Create Grid
         grid_layout.setColumnStretch(0, 1)
@@ -46,15 +47,25 @@ class MainWindow(QMainWindow):
         main_widget.setLayout(grid_layout)
         self.show()
 
-    def update_mails(self, emails):
+    def get_folder_signal(self, folder_signal: FolderSignal) -> None:
+        self.current_folder = folder_signal.folder_name
+        emails = folder_signal.emails
         self.email_list_area.add_emails_to_list(emails)
 
-    def get_clicked_email(self,mail):
-        self.email_view_area.updateEmailView(mail)
+    def get_clicked_email(self,mail: Email):
+        print("CLICKED EMAIL:", mail.to_email)
+        if self.current_folder in ["Drafts", "Draft", "DRAFT", "draft", "DRAFTS", "drafts"]:
+            self.open_editor_window.emit(mail)
+        else:
+            self.email_view_area.updateEmailView(mail)
 
-    def get_mail_from_editor(self,mail):
-        if type(mail) is not str:
-            self.appController.send_email(mail)
+    def get_mail_from_editor(self,mail_signal):
+        email = mail_signal.email
+        print("Mail signal:", email.to_email)
+        if mail_signal.action == "send":
+            self.appController.send_email(email)
+        elif mail_signal.action == "save":
+            self.appController.save_email(email)
 
     def initialize_ui(self):
         self.setWindowTitle("Smail")

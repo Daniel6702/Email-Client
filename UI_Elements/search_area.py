@@ -5,10 +5,11 @@ from PyQt5.QtGui import *
 class SearchArea(QVBoxLayout):
     dark_mode_signal = pyqtSignal()
     test_signal = pyqtSignal(list)
-    def __init__(self,new_mail_signal, appController, signal):
+    def __init__(self,new_mail_signal, open_settings_signal, appController, signal):
         super().__init__()
         self.setup_layout()
         self.new_mail_signal = new_mail_signal
+        self.open_settings_signal = open_settings_signal
         self.appController = appController
         self.signal = signal
 
@@ -22,7 +23,6 @@ class SearchArea(QVBoxLayout):
         self.searchbar.setPlaceholderText("Search")
         self.searchbar.returnPressed.connect(self.search_update)
         
-
         # Adds clickable icons
         self.dark_mode_icon = QIcon("Images\\icon_moon.png")
         self.light_mode_icon = QIcon("Images\\icon_sun.png")
@@ -32,18 +32,10 @@ class SearchArea(QVBoxLayout):
         new_mail_button.setObjectName("new_mail_button") 
         new_mail_button.clicked.connect(self.new_mail_button)
 
-        settings_tab = QPushButton(QIcon("Images\\icon_gear.png"), "Settings")
-        self.light_dark = QPushButton(self.dark_mode_icon, "Barbie mode")
-        self.light_dark.clicked.connect(self.toggleDarkMode)
-
-        menu = QMenu(self.searchbar)  # Parented to self.searchbar to avoid error
-        menu.addAction('Filter')
-        menu.addSeparator()
-        dark_mode_action = menu.addAction('Dark Mode')
-        dark_mode_action.triggered.connect(self.toggleDarkMode)
-        menu.addSeparator()
-        menu.addAction('Log Out')
-        settings_tab.setMenu(menu)
+        settings_button = QPushButton(QIcon("Images\\icon_gear.png"), "Settings")
+        settings_button.setObjectName("Settings") 
+        settings_button.clicked.connect(self.settings_button_open)
+       
 
         # Add the search bar widgets to the search layout
         search_layout.addWidget(self.searchbar)
@@ -52,23 +44,21 @@ class SearchArea(QVBoxLayout):
         icons_layout = QHBoxLayout()
         icons_layout.addWidget(new_mail_button)
         icons_layout.addWidget(contact_tab)
-        icons_layout.addWidget(settings_tab)
-        icons_layout.addWidget(self.light_dark)
-
+        icons_layout.addWidget(settings_button)
+    
         # Add the search layout and icons layout to the vertical search bar layout
         search_bar_layout.addLayout(search_layout)
         search_bar_layout.addLayout(icons_layout)
         self.addLayout(search_bar_layout)
-
 
     def search_update(self):
         search_criteria = self.searchbar.text()
         emails = self.appController.get_emails(query=search_criteria)
         self.signal.emit(emails)
     
-        
-    
     def new_mail_button(self):
-        self.new_mail_signal.emit()
+        self.new_mail_signal.emit(None)
         
-    
+    def settings_button_open(self):
+        print("Open settings")
+        self.open_settings_signal.emit()

@@ -163,17 +163,61 @@ class GmailService():
             print("Message sent: %s" % message['id'])
         except Exception as e:
             print(f"An error occurred: {e}")
+    '''
+    def save_email(self, email: email_util.Email):
+        user_id = self.user.email
+        message_body = self.create_message(email)
+        try:
+            message = {'message': message_body}
+            draft = self.service.users().drafts().create(userId=user_id, body=message).execute()
+            print('Draft id: %s\nDraft message: %s' % (draft['id'], draft['message']))
+            return draft
+        except Exception as error:
+            print('An error occurred: %s' % error)
+            return None
+    '''
+        
+    def save_email(self, email: email_util.Email):
+        print(email.to_email)
+        user_id = self.user.email
+        message = self.create_message(email)
+        try:
+            draft_id = None
+            if email.id:
+                draft_id = self.get_draft_id_from_message_id(user_id, email.id)
 
+            if draft_id:
+                updated_draft = self.service.users().drafts().update(userId=user_id, id=draft_id, body={'message': message}).execute()
+                print(f'Draft updated: {updated_draft["id"]}')
+                return updated_draft
+            else:
+                draft = self.service.users().drafts().create(userId=user_id, body={'message': message}).execute()
+                print(f'Draft created: {draft["id"]}')
+                return draft
+
+        except Exception as error:
+            print(f'An error occurred: {error}')
+            return None
+
+    def get_draft_id_from_message_id(self, user_id, message_id):
+        try:
+            drafts = self.service.users().drafts().list(userId=user_id).execute().get('drafts', [])
+            for draft in drafts:
+                if 'message' in draft and draft['message']['id'] == message_id:
+                    return draft['id']
+            return None
+        except Exception as error:
+            print(f'An error occurred: {error}')
+            return None
+        
     def create_message(self, email):
         message = MIMEMultipart()
         message['to'] = ', '.join(email.to_email) 
         message['subject'] = email.subject
 
         if self.is_html(email.body):
-            # Body contains HTML tags, assume it's HTML
             part = MIMEText(email.body, 'html')
         else:
-            # Assume body is plain text
             part = MIMEText(email.body, 'plain')
 
         message.attach(part)
@@ -211,7 +255,7 @@ class GmailService():
         for message in messages:
             message_data = self.get_message('me', message['id'])
             from_email, to_email, subject, body, date_sent, attachments = self.extract_data_from_message(message_data)
-            email = email_util.Email(from_email, to_email, subject, body, date_sent, attachments)
+            email = email_util.Email(from_email, to_email, subject, body, date_sent, attachments, id=message['id'])
             email_list.append(email)
 
         return email_list
@@ -331,6 +375,7 @@ class OutlookService():
         
         self.scopes = ["https://graph.microsoft.com/Mail.Send",
                        "https://graph.microsoft.com/Mail.Read",
+                       "https://graph.microsoft.com/Mail.ReadWrite",
                        "https://graph.microsoft.com/User.Read"]
         
         self.user = None
@@ -363,18 +408,19 @@ class OutlookService():
             webbrowser.open(auth_url)
         else:
             refresh_token = user.credentials['credentials']
-
             result = self.app.acquire_token_by_refresh_token(
                 refresh_token=refresh_token,
                 scopes=self.scopes,
             )
-
             if 'access_token' in result:
                 self.result = result
                 self.user = self.get_user_info()
                 temp = {'credentials': result.get('refresh_token')}
                 self.user.credentials = temp
                 self.logged_in = True
+            else:
+                print("Token acquisition failed:")
+                print(result)
 
             return  # Successfully logged in using refresh token
         
@@ -468,17 +514,19 @@ class OutlookService():
         email_list = []
         emails_data = response.json()["value"]
         for data in emails_data:
-            from_email, to_email, subject, body, datetime_info, attachments = self.extract_data_from_message(data)
-            email = email_util.Email(from_email, to_email, subject, body, datetime_info, attachments)
+            from_email, to_email, subject, body, datetime_info, attachments, email_id = self.extract_data_from_message(data)
+            email = email_util.Email(from_email, to_email, subject, body, datetime_info, attachments, id=email_id)
             email_list.append(email)
         return email_list 
 
-
     def extract_data_from_message(self, email_data):
         from_email_info = email_data.get("from", {}).get("emailAddress", {})
-        from_email = from_email_info.get("address", from_email_info.get("name", None)).lower()
+        from_email = from_email_info.get("address", from_email_info.get("name", None))
+        if from_email:
+            from_email.lower()
         to_email = self.user.email
         subject = email_data["subject"]
+        email_id = email_data['id']
         
         #Get body
         body_content_type = email_data["body"]["contentType"]
@@ -500,7 +548,7 @@ class OutlookService():
         #Get attachments    
         attachments = self.get_attachments(email_data)
         
-        return from_email, to_email, subject, body_content, datetime_info, attachments
+        return from_email, to_email, subject, body_content, datetime_info, attachments, email_id
 
     def get_attachments(self, email_data):
         attachments = []
@@ -523,7 +571,49 @@ class OutlookService():
             'name': attachment['file_name'],
         }
         return data_body
+    
+    def save_email(self, email: email_util.Email) -> None:
+        to_recipients = [
+            {
+                'emailAddress': {
+                    'address': email_address
+                }
+            }
+            for email_address in email.to_email
+        ]
+        headers = {
+            'Authorization': 'Bearer ' + self.result['access_token'],
+            'Content-Type': 'application/json',
+        }
+        message = {
+            "subject": email.subject,
+            "importance": "Low",
+            "body": {
+                "contentType": "HTML",
+                "content": email.body
+            },
+            "toRecipients": to_recipients,
+            "ccRecipients": to_recipients
+        }
+        if email.attachments:
+            message['attachments'] = [self.draft_attachment(attachment) for attachment in email.attachments]
+        if email.id:
+            url = f'https://graph.microsoft.com/v1.0/me/messages/{email.id}'
+            response = requests.patch(url, headers=headers, data=json.dumps(message))
+            operation = "update"
+        else:
+            url = 'https://graph.microsoft.com/v1.0/me/messages'
+            response = requests.post(url, headers=headers, data=json.dumps(message))
+            operation = "save"
 
+        if response.status_code in (201, 200):
+            print(f"Draft {operation}d successfully.")
+            draft_message_id = response.json().get('id')
+            print(f"Draft ID: {draft_message_id}")
+        else:
+            print(f"Failed to {operation} draft.")
+            print(f"Status Code: {response.status_code}, Response: {response.text}")
+        
     def send_email(self, email):
         to_recipients = [
             {
@@ -533,7 +623,6 @@ class OutlookService():
             }
             for email_address in email.to_email
         ]
-        print(to_recipients)
         request_body = {
             'message': {
                 'toRecipients': to_recipients,

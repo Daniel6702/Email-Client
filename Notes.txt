@@ -1,14 +1,11 @@
 TODO List:
-implement queries for receiving emails (IN PROGRESS)
 delete emails
-folder system
-Email Sync & Caching
+save emails
 implement logging
-login to two clients at once
-email id
 
 BUGS:
 Date and Time 
+recepients field when opening drafts
 
 Requirements:
 pip install google-auth-oauthlib

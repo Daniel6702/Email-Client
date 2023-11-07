@@ -1,9 +1,16 @@
 from PyQt5.QtWidgets import QListWidget, QLabel, QVBoxLayout, QHBoxLayout, QWidget, QGridLayout, QPushButton, QWidget, QListWidgetItem
 from PyQt5.QtCore import pyqtSignal,Qt
 from PyQt5.QtGui import *
+from dataclasses import dataclass
+
+@dataclass
+class FolderSignal:
+    emails: list
+    folder_id: str
+    folder_name: str
 
 class FolderArea(QVBoxLayout):
-    email_signal = pyqtSignal(list)
+    email_signal = pyqtSignal(object)
 
     def __init__(self, client):
         super().__init__()
@@ -25,9 +32,8 @@ class FolderArea(QVBoxLayout):
 
     def handle_item_clicked(self, item):
         folder_id = item.data(Qt.UserRole)
-        self.get_emails(folder_id)
-
-    def get_emails(self, folder_id):
         print("Getting emails from folder:", folder_id)
         emails = self.client.get_emails(folder_id, query="", number_of_mails=10)
-        self.email_signal.emit(emails)
+        signal = FolderSignal(emails, folder_id, item.text())
+        self.email_signal.emit(signal)
+        

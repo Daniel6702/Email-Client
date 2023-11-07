@@ -9,13 +9,14 @@ from typing import List
 
 #Base email object
 class Email:
-    def __init__(self, from_email, to_email, subject, body, datetime_info, attachments=None):
+    def __init__(self, from_email, to_email, subject, body, datetime_info, attachments=None, id=None):
         self.from_email = from_email
         self.to_email = to_email        #list of email adresses
         self.subject = subject
         self.body = body                #HTML or text
         self.datetime_info = datetime_info        #dict  datetime_info = {'date': 2023-09-18, 'time': 15:43:56.111501}. måske ændres til ISO 8601 format hvis det giver problemer
         self.attachments = attachments
+        self.id = id
 '''
 Attachments are stored as a list of dicts
 attachment = {
