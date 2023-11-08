@@ -5,6 +5,9 @@ from PyQt5.QtGui import *
 import flask_app
 import email_util
 import time
+from EmailService.models.email_client import EmailClient
+from EmailService.factories.gmail_service_factory import GmailServiceFactory
+from EmailService.factories.outlook_service_factory import OutlookServiceFactory
 '''
 The primary purpose of the login screen is to generate and return a 'client' object.
 '''
@@ -182,23 +185,18 @@ class LoginScreen(QWidget):
         return logo_label 
 
     def new_login_google(self):
-        self.new_user_login_process("google")
+        self.start_login_process("google", None)
 
     def new_login_outlook(self):
-        self.new_user_login_process("outlook")
+        self.start_login_process("outlook", None)
 
-    def new_user_login_process(self, client_type):
-        self.switch_to_loading_screen()
-        user = ""
-        if self.remember_me_checkbox.isChecked():
-            user = "new_user_saved"
-        else:
-            user = "new_user"
-        app = flask_app.FlaskAppWrapper('redirect_server')
-        self.start_login_process(client_type, user, app)
-    
-    def start_login_process(self,client_type, user, app = None):
-        self.switch_to_loading_screen()
-        client = client_controller.ClientController(client_type, app)
-        client.login(user)
+    def start_login_process(self,client_type, user):
+        if client_type == "google":
+            factory = GmailServiceFactory()
+        elif client_type == "outlook":
+            factory = OutlookServiceFactory()
+        client = EmailClient(factory)
+        client.login(user=user, save_user=self.remember_me_checkbox.isChecked())
         self.login_successful.emit(client)
+
+

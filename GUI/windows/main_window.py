@@ -4,10 +4,10 @@ from PyQt5.QtCore import QUrl, Qt, pyqtSignal, QSettings
 from PyQt5.QtWebEngineWidgets import QWebEngineView
 from PyQt5.QtGui import *
 
-from UI_Elements.email_folder_area import FolderArea, FolderSignal
-from UI_Elements.email_list_area import EmailListArea
-from UI_Elements.search_area import SearchArea
-from UI_Elements.email_view_area import EmailView
+from GUI.layouts.email_folder_area import FolderArea, FolderSignal
+from GUI.layouts.email_list_area import EmailListArea
+from GUI.layouts.search_area import SearchArea
+from GUI.layouts.email_view_area import EmailView
 
 class MainWindow(QMainWindow):
     open_editor_window = pyqtSignal(object)
@@ -53,7 +53,7 @@ class MainWindow(QMainWindow):
         self.email_list_area.add_emails_to_list(emails)
 
     def get_clicked_email(self,mail: Email):
-        print("CLICKED EMAIL:", mail.to_email)
+        print("CLICKED EMAIL:", mail.subject)
         if self.current_folder in ["Drafts", "Draft", "DRAFT", "draft", "DRAFTS", "drafts"]:
             self.open_editor_window.emit(mail)
         else:
@@ -61,11 +61,10 @@ class MainWindow(QMainWindow):
 
     def get_mail_from_editor(self,mail_signal):
         email = mail_signal.email
-        print("Mail signal:", email.to_email)
         if mail_signal.action == "send":
-            self.appController.send_email(email)
+            self.appController.send_mail(email)
         elif mail_signal.action == "save":
-            self.appController.save_email(email)
+            self.appController.save_mail(email)
 
     def initialize_ui(self):
         self.setWindowTitle("Smail")

@@ -5,7 +5,7 @@ implement logging
 
 BUGS:
 Date and Time 
-recepients field when opening drafts
+recepients field when opening (or saving) drafts (only outlook i think)
 
 Requirements:
 pip install google-auth-oauthlib

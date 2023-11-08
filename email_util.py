@@ -8,6 +8,7 @@ import json
 from typing import List
 
 #Base email object
+'''
 class Email:
     def __init__(self, from_email, to_email, subject, body, datetime_info, attachments=None, id=None):
         self.from_email = from_email
@@ -17,6 +18,16 @@ class Email:
         self.datetime_info = datetime_info        #dict  datetime_info = {'date': 2023-09-18, 'time': 15:43:56.111501}. måske ændres til ISO 8601 format hvis det giver problemer
         self.attachments = attachments
         self.id = id
+'''
+@dataclass
+class Email:
+    from_email: str
+    to_email: List[str]
+    subject: str
+    body: str
+    datetime_info: dict
+    attachments: List[dict] = field(default_factory=list)
+    id: str = None
 '''
 Attachments are stored as a list of dicts
 attachment = {
