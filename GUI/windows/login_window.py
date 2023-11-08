@@ -1,4 +1,3 @@
-import client_controller
 from PyQt5.QtWidgets import QStackedWidget,QApplication, QListWidget, QLabel, QMainWindow,QFrame, QDesktopWidget, QSplitter, QCheckBox, QFormLayout, QLineEdit, QVBoxLayout, QHBoxLayout, QWidget, QGridLayout, QPushButton, QWidget, QLayout
 from PyQt5.QtCore import QUrl, Qt, pyqtSignal, QSettings,QSize, QEasingCurve, QPropertyAnimation, QRect, QPoint
 from PyQt5.QtGui import *

@@ -1,11 +1,22 @@
 TODO List:
-delete emails
-save emails
 implement logging
+implement settings in settings window
+interact with html content (open urls, etc)
+preview attachments (80% DONE)
+decrypt/encrypt json user file
+gui for email management (delete mail, move email, create folder, delete folder, edit folder)
+forward emails
+dark mode styling (qss file)
+outlook search function
+email sorting
+spamfilter
+pop up info windows
 
 BUGS:
-Date and Time 
+Date and Time for sent and recieved emails dont match (time zones problem i think)
 recepients field when opening (or saving) drafts (only outlook i think)
+gmail only retrieves one attachment sometimes
+cant zoom in pdf viewer (and throws weird js errors)
 
 Requirements:
 pip install google-auth-oauthlib

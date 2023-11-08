@@ -53,7 +53,9 @@ class EditorWindow(QWidget):
                 item.setData(Qt.UserRole, file_name) 
                 self.attachments_list.addItem(item)
                 item_height = 20
-                total_height = item_height * self.attachments_list.count()
+                total_height = item_height * self.attachments_list.count() + 5
+                if total_height > 200:
+                    total_height = 200
                 self.attachments_list.setFixedHeight(total_height)
         main_layout.addWidget(self.attachments_list)
 

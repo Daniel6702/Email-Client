@@ -13,6 +13,7 @@ class MainWindow(QMainWindow):
     open_editor_window = pyqtSignal(object)
     open_settings_window = pyqtSignal()
     test_signal = pyqtSignal(list)
+    open_attachment_window = pyqtSignal(dict)
     def __init__(self, appController):
         super(MainWindow, self).__init__()
         self.appController = appController
@@ -28,7 +29,7 @@ class MainWindow(QMainWindow):
         self.test_signal.connect(self.email_list_area.add_emails_to_list)
         self.search_area = SearchArea(self.open_editor_window,self.open_settings_window,self.appController, self.test_signal)
         self.folder_area = FolderArea(self.appController)
-        self.email_view_area = EmailView()
+        self.email_view_area = EmailView(self.open_attachment_window)
 
         #Connect Signals
         self.email_list_area.email_clicked.connect(self.get_clicked_email)
@@ -68,6 +69,7 @@ class MainWindow(QMainWindow):
 
     def initialize_ui(self):
         self.setWindowTitle("Smail")
+        self.setWindowState(Qt.WindowMaximized)
         screen = QDesktopWidget().screenGeometry()
         self.setGeometry(screen.left(), screen.top(), screen.width(), screen.height())
         icon = QIcon("Images\\icon_logo.png")
