@@ -134,7 +134,7 @@ class WebEnginePage(QWebEnginePage):
     def run_scripts_on_load(self):
         print("Injecting JavaScript for click interception...")
         js = '''
-            document.addEventListener('click', function(event) {
+            document.addEventListener('click', function(event) {s
                 var element = event.target;
                 while (element != null && element.tagName != 'A') {
                     element = element.parentElement;

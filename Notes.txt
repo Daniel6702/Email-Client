@@ -1,9 +1,8 @@
 TODO List:
 implement logging
 implement settings in settings window
-interact with html content (open urls, etc)
+interact with html content (open urls, etc) (100% DONE)
 preview attachments (80% DONE)
-decrypt/encrypt json user file
 gui for email management (delete mail, move email, create folder, delete folder, edit folder)
 forward emails
 dark mode styling (qss file)

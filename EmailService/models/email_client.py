@@ -1,10 +1,12 @@
 from ..services.service_interfaces import EmailService
 from ..factories.email_service_factory import EmailServiceFactory
-from email_util import Email, User, Folder, add_user_to_file, update_user_in_file
+from email_util import Email, User, Folder
+from user_manager import UserDataManager
 
 class EmailClient(EmailService):
-    def __init__(self, service_factory: EmailServiceFactory):
+    def __init__(self, service_factory: EmailServiceFactory, user_manager: UserDataManager):
         self.service_factory = service_factory
+        self.user_manager = user_manager
         self.login_service = service_factory.create_login_service()
 
     def initialize_services(self, session):
@@ -22,17 +24,14 @@ class EmailClient(EmailService):
         self.user = self.get_user()
         
         if save_user and user is None:
-            add_user_to_file(self.user, 'Certificates\\users.json')
+            self.user_manager.add_user(self.user)
         else:
-            self.update_user()
+            self.user_manager.update_user(self.user)
 
     def get_user(self) -> User:
         if not hasattr(self, 'user'):
             self.user = self.get_user_service.get_user()
         return self.user
-    
-    def update_user(self):
-        update_user_in_file(self.user, 'Certificates\\users.json')
 
     def send_mail(self, email: Email):
         self.send_mail_service.send_mail(email)

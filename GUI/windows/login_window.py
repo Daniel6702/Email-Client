@@ -7,6 +7,8 @@ import time
 from EmailService.models.email_client import EmailClient
 from EmailService.factories.gmail_service_factory import GmailServiceFactory
 from EmailService.factories.outlook_service_factory import OutlookServiceFactory
+from user_manager import UserDataManager
+import threading
 '''
 The primary purpose of the login screen is to generate and return a 'client' object.
 '''
@@ -15,6 +17,8 @@ class LoginScreen(QWidget):
     def __init__(self, parent=None):
         super(LoginScreen, self).__init__(parent)
         self.layout = QVBoxLayout(self)
+        self.user_manager = UserDataManager()
+        self.users = self.user_manager.get_users()
 
         '''load initial window settings'''
         self.initial_layout()
@@ -34,7 +38,7 @@ class LoginScreen(QWidget):
         self.stacked_widget.addWidget(self.loading_widget)
 
         '''Check if there are any users saved. If so, switch to existing user login layout. Else, switch to new user login layout'''
-        if email_util.load_users_from_file('Certificates\\users.json') != []:
+        if len(self.users) > 0:
             self.switch_to_existing_user_login_layout()
         else:
             self.switch_to_new_user_login_layout()
@@ -120,13 +124,12 @@ class LoginScreen(QWidget):
         login_line2.setObjectName('login_line')
 
         '''Generate user buttons'''
-        users = email_util.load_users_from_file('Certificates\\users.json')
         buttons = []
         def make_user_button_function(user):
             def function():
                 return self.start_login_process(user.client_type, user)
             return function
-        for user in users:
+        for user in self.users:
             button = QPushButton(user.name+" ("+user.client_type+")")
             button.clicked.connect(make_user_button_function(user))
             buttons.append(button)
@@ -189,13 +192,23 @@ class LoginScreen(QWidget):
     def new_login_outlook(self):
         self.start_login_process("outlook", None)
 
-    def start_login_process(self,client_type, user):
-        if client_type == "google":
-            factory = GmailServiceFactory()
-        elif client_type == "outlook":
-            factory = OutlookServiceFactory()
-        client = EmailClient(factory)
-        client.login(user=user, save_user=self.remember_me_checkbox.isChecked())
-        self.login_successful.emit(client)
+    def start_login_process(self, client_type, user):
+        self.switch_to_loading_screen()
+
+        def login_thread(client_type, user):
+            if client_type == "google":
+                factory = GmailServiceFactory()
+            elif client_type == "outlook":
+                factory = OutlookServiceFactory()
+            else:
+                return  # Optionally handle the case where client_type is invalid
+
+            client = EmailClient(factory, self.user_manager)
+            client.login(user=user, save_user=self.remember_me_checkbox.isChecked())
+            self.login_successful.emit(client)  # This should be emitted in the main thread
+
+        # Create a new thread to handle the login process
+        login_process_thread = threading.Thread(target=login_thread, args=(client_type, user))
+        login_process_thread.start()
 
 
