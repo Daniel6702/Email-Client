@@ -105,19 +105,6 @@ class OutlookFolderService(FolderService):
             print(f"An error occurred: {e}")
             return None
 
-    def delete_email(self, email: Email):
-        headers = {
-            "Authorization": f"Bearer {self.result['access_token']}"
-        }
 
-        endpoint_url = f"https://graph.microsoft.com/v1.0/me/messages/{email.id}"
-
-        try:
-            response = requests.delete(endpoint_url, headers=headers)
-            response.raise_for_status()
-            print(f"Email with ID {email.id} deleted successfully.")
-        except requests.exceptions.RequestException as e:
-            print(f"An error occurred: {e}")
-            return None
 
     

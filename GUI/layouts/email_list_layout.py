@@ -5,18 +5,19 @@ from email_util import Email
 
 class EmailListArea(QVBoxLayout):
     email_clicked = pyqtSignal(Email)
+
     def __init__(self):
         super().__init__()
         self.setup_email_list()
 
     def setup_email_list(self):
-        label = QLabel("mails:")
+        label = QLabel("Emails:")
         self.addWidget(label)
         self.list_widget = QListWidget()
         self.addWidget(self.list_widget)
         self.list_widget.itemClicked.connect(self.handle_item_clicked)
 
-    def add_emails_to_list(self, mails):
+    def add_emails_to_list(self, mails: list[Email]):
         self.list_widget.clear()
         for mail in mails:
             email_item_text = f"Subject: {mail.subject}\nFrom: {mail.from_email}\nDate: {mail.datetime_info['date']} {mail.datetime_info['time'].split('.')[0]}"
@@ -24,11 +25,16 @@ class EmailListArea(QVBoxLayout):
             self.list_widget.addItem(item)
             item.setData(Qt.UserRole, mail)
 
-    def handle_item_clicked(self, item):
+    def handle_item_clicked(self, item: QListWidgetItem):
         mail = item.data(Qt.UserRole)
         self.email_clicked.emit(mail)
-
-        
+    
+    def remove_email_from_list(self, mail: Email):
+        for index in range(self.list_widget.count()):
+            item = self.list_widget.item(index)
+            if item.data(Qt.UserRole) == mail:
+                self.list_widget.takeItem(index)
+                break
 
 
 '''

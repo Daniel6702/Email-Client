@@ -135,6 +135,9 @@ class EditorWindow(QWidget):
         main_layout.addWidget(formatting_toolbar)
         self.setLayout(main_layout)
 
+    def closeEvent(self, event):
+        self.draft = None
+
     def update_font_size_display(self):
         current_font = self.mail_body_edit.currentFont()
         current_size = current_font.pointSize()

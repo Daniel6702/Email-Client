@@ -64,10 +64,3 @@ class GmailFolderService(FolderService):
         except Exception as error:
             print(f'An error occurred: {error}')
             return None
-        
-    def delete_email(self, email: Email):
-        try:
-            self.service.users().messages().delete(userId='me', id=email.id).execute()
-            print(f'Email with id: {email.id} has been deleted.')
-        except Exception as error:
-            print(f'An error occurred: {error}')

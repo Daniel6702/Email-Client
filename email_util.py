@@ -28,6 +28,7 @@ class Email:
     datetime_info: dict
     attachments: List[dict] = field(default_factory=list)
     id: str = None
+    is_read: bool = False
 '''
 Attachments are stored as a list of dicts
 attachment = {

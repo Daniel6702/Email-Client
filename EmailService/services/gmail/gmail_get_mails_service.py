@@ -17,21 +17,22 @@ class GmailGetMailsService(GetMailsService):
             response = self.service.users().messages().list(userId='me', q=query, maxResults = max_results, includeSpamTrash = False).execute()
             messages = response.get('messages', [])
         except Exception as e:
-            return []
             print(f"An error occurred: {e}")
+    
 
         #Extracts the data from each message and returns a list of Email objects
         email_list = []
         for message in messages:
             message_data = self.get_message_data('me', message['id'])
-            from_email, to_email, subject, body, date_sent, attachments = self.extract_data_from_message(message_data)
+            from_email, to_email, subject, body, date_sent, attachments, is_read = self.extract_data_from_message(message_data)
             email = Email(from_email=from_email, 
                           to_email=to_email, 
                           subject=subject, 
                           body=body, 
                           datetime_info=date_sent, 
                           attachments=attachments, 
-                          id=message['id'])
+                          id=message['id'],
+                          is_read=is_read)
             email_list.append(email)
 
         return email_list
@@ -72,6 +73,8 @@ class GmailGetMailsService(GetMailsService):
 
         subject = next((header['value'] for header in headers if header['name'].lower() == 'subject'), None)
 
+        is_read = 'UNREAD' not in message_data.get('labelIds', [])
+
         datetime_info = self.extract_date_and_time(message_data)
 
         payload = message_data.get('payload', {})
@@ -80,7 +83,7 @@ class GmailGetMailsService(GetMailsService):
         html_content = self.extract_email_content(parts)
         attachments_list = self.extract_attachments(message_data['id'], parts)
 
-        return from_email, to_email, subject, html_content, datetime_info, attachments_list
+        return from_email, to_email, subject, html_content, datetime_info, attachments_list, is_read
             
     def extract_email_content(self, parts): #Extract the html content of the email body
         html_content = ""

@@ -50,8 +50,8 @@ class OutlookGetMailsService(GetMailsService):
         email_list = []
         emails_data = response.json()["value"]
         for data in emails_data:
-            from_email, to_email, subject, body, datetime_info, attachments, email_id = self.extract_data_from_message(data)
-            email = Email(from_email, to_email, subject, body, datetime_info, attachments, id=email_id)
+            from_email, to_email, subject, body, datetime_info, attachments, email_id, is_read = self.extract_data_from_message(data)
+            email = Email(from_email, to_email, subject, body, datetime_info, attachments, id=email_id, is_read=is_read)
             email_list.append(email)
         return email_list 
 
@@ -66,6 +66,7 @@ class OutlookGetMailsService(GetMailsService):
             to_email = to_emails[0]
         else:
             to_email = None
+        is_read = email_data.get("isRead", False)
 
         subject = email_data["subject"]
         email_id = email_data['id']
@@ -90,7 +91,7 @@ class OutlookGetMailsService(GetMailsService):
         #Get attachments    
         attachments = self.get_attachments(email_data)
         
-        return from_email, to_email, subject, body_content, datetime_info, attachments, email_id
+        return from_email, to_email, subject, body_content, datetime_info, attachments, email_id, is_read
 
     def get_attachments(self, email_data: dict) -> list[dict]:
         attachments = []

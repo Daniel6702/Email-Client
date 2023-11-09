@@ -62,8 +62,23 @@ class FolderService(ABC):
     def update_folder(self, folder: Folder, new_folder_name: str) -> Folder:
         pass
 
+###############################
+
+class MailManagementService(ABC):
     @abstractmethod
     def delete_email(self, email: Email):
+        pass
+    
+    @abstractmethod
+    def mark_email_as_read(self, email: Email):
+        pass
+
+    @abstractmethod
+    def mark_email_as_unread(self, email: Email):
+        pass
+
+    @abstractmethod
+    def mark_email_as(self, email: Email, is_read: bool):
         pass
 
 ###############################
@@ -119,3 +134,16 @@ class EmailService(ABC):
     @abstractmethod
     def update_folder(self, folder: Folder, new_folder_name: str) -> Folder:
         pass    
+
+    @abstractmethod
+    def mark_email_as_read(self, email: Email):
+        pass
+
+    @abstractmethod
+    def mark_email_as(self, email: Email, is_read: bool):
+        pass
+
+    @abstractmethod
+    def mark_email_as_unread(self, email: Email):
+        pass
+

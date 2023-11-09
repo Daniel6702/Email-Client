@@ -58,7 +58,7 @@ class UserDataManager:
         with open(self.file_path, 'wb') as file:
             file.write(encrypted_users)
 
-    def delete_user_from_file(self, user: User):
+    def delete_user(self, user: User):
         users = self.get_users()
         users = [user for user in users if user.email != user.email]
         

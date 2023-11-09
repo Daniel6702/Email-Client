@@ -5,6 +5,8 @@ from ..services.gmail.gmail_send_mail_service import GmailSendMailService
 from ..services.gmail.gmail_get_mails_service import GmailGetMailsService
 from ..services.gmail.gmail_draft_service import GmailDraftService
 from ..services.gmail.gmail_folder_service import GmailFolderService
+from ..services.gmail.gmail_mail_management_service import GmailMailManagementService
+
 
 class GmailServiceFactory(EmailServiceFactory):
     def create_login_service(self):
@@ -24,3 +26,6 @@ class GmailServiceFactory(EmailServiceFactory):
     
     def create_folder_service(self, session):
         return GmailFolderService(session)
+    
+    def create_mail_management_service(self, session):
+        return GmailMailManagementService(session)

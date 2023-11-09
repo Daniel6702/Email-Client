@@ -113,7 +113,7 @@ QCheckBox::indicator:checked {
 
 QToolButton#toolbar_button {
     background-color: #ffc8deff;
-    color: #fff;
+    color: #000;
     border-radius: 5px;
     border: 2px solid #619ffb;
     padding: 5px 5px;

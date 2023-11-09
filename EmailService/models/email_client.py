@@ -15,6 +15,7 @@ class EmailClient(EmailService):
         self.get_mails_service = self.service_factory.create_get_mails_service(session)
         self.draft_service = self.service_factory.create_draft_service(session)
         self.folder_service = self.service_factory.create_folder_service(session)
+        self.mail_management_service = self.service_factory.create_mail_management_service(session)
    
     def login(self, user: User, save_user: bool):
         self.login_service.login(user)
@@ -37,7 +38,11 @@ class EmailClient(EmailService):
         self.send_mail_service.send_mail(email)
 
     def get_mails(self, folder_id: str, query: str, max_results: int) -> list[Email]:
-        return self.get_mails_service.get_mails(folder_id, query, max_results)
+        emails = self.get_mails_service.get_mails(folder_id, query, max_results)
+        for email in emails:
+            #fix
+            email.to_email = self.get_user().email
+        return emails
     
     def save_mail(self, email: Email):
         self.draft_service.save_mail(email)
@@ -58,4 +63,16 @@ class EmailClient(EmailService):
         return self.folder_service.update_folder(folder, new_folder_name)
     
     def delete_mail(self, email: Email):
-        self.folder_service.delete_email(email)
+        self.mail_management_service.delete_mail(email)
+
+    def mark_email_as_read(self, email: Email):
+        self.mail_management_service.mark_email_as_read(email)
+
+    def mark_email_as_unread(self, email: Email):
+        self.mail_management_service.mark_email_as_unread(email)
+
+    def mark_email_as(self, email: Email, is_read: bool):
+        self.mail_management_service.mark_email_as(email, is_read)
+
+    def logout(self):
+        self.user_manager.delete_user(self.get_user())

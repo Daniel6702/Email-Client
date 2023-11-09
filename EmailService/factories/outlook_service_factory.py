@@ -5,6 +5,7 @@ from ..services.outlook.outlook_get_mails_service import OutlookGetMailsService
 from ..services.outlook.outlook_get_user_service import OutlookGetUserService
 from ..services.outlook.outlook_login_service import OutlookLoginService
 from ..services.outlook.outlook_send_mail_service import OutlookSendMailService
+from ..services.outlook.outlook_mail_management_service import OutlookMailManagementService
 
 class OutlookServiceFactory(EmailServiceFactory):
     def create_login_service(self):
@@ -24,3 +25,6 @@ class OutlookServiceFactory(EmailServiceFactory):
     
     def create_folder_service(self, session):
         return OutlookFolderService(session)
+    
+    def create_mail_management_service(self, session):
+        return OutlookMailManagementService(session)
