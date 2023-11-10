@@ -20,10 +20,10 @@
 
 # Known bugs
 - Date and Time for sent and recieved emails dont match (time zones problem i think)
-- recepients field when opening (or saving) drafts (only outlook i think)
-- gmail only retrieves one attachment sometimes
-- cant zoom in pdf viewer (and throws weird js errors)
-- attachment preview for videos isnt working
+- Recepients field when opening (or saving) drafts (only outlook i think)
+- Gmail only retrieves one attachment sometimes
+- Cant zoom in pdf viewer (and throws weird js errors)
+- Attachment preview for videos isnt working
 
 # Requirements
 - google-auth-oauthlib
