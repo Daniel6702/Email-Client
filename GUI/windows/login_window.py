@@ -1,5 +1,5 @@
 from PyQt5.QtWidgets import QStackedWidget,QApplication, QListWidget, QLabel, QMainWindow,QFrame, QDesktopWidget, QSplitter, QCheckBox, QFormLayout, QLineEdit, QVBoxLayout, QHBoxLayout, QWidget, QGridLayout, QPushButton, QWidget, QLayout
-from PyQt5.QtCore import QUrl, Qt, pyqtSignal, QSettings,QSize, QEasingCurve, QPropertyAnimation, QRect, QPoint
+from PyQt5.QtCore import QUrl, Qt, pyqtSignal, QSettings,QSize, QEasingCurve, QPropertyAnimation, QRect, QPoint, QThread
 from PyQt5.QtGui import *
 import flask_app
 import email_util
@@ -9,6 +9,7 @@ from EmailService.factories.gmail_service_factory import GmailServiceFactory
 from EmailService.factories.outlook_service_factory import OutlookServiceFactory
 from user_manager import UserDataManager
 import threading
+import logging
 '''
 The primary purpose of the login screen is to generate and return a 'client' object.
 '''
@@ -193,6 +194,7 @@ class LoginScreen(QWidget):
         self.start_login_process("outlook", None)
 
     def start_login_process(self, client_type, user):
+        logging.info("Starting login process")
         self.switch_to_loading_screen()
 
         def login_thread(client_type, user):
@@ -205,10 +207,10 @@ class LoginScreen(QWidget):
 
             client = EmailClient(factory, self.user_manager)
             client.login(user=user, save_user=self.remember_me_checkbox.isChecked())
+            logging.info("Login Successful")
             self.login_successful.emit(client)  # This should be emitted in the main thread
 
         # Create a new thread to handle the login process
         login_process_thread = threading.Thread(target=login_thread, args=(client_type, user))
         login_process_thread.start()
-
 

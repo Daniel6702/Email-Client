@@ -3,11 +3,15 @@ from .windows.main_window import MainWindow
 from .windows.editor_window import EditorWindow
 from .windows.settings_window import SettingsWindow
 from .windows.attachment_window import AttachmentWindow
+from .windows.log_window import LogWindow	
+from Testing.logging import setup_logger
 
 class WindowController:
-    def __init__(self, app):
+    def __init__(self, app, logging: bool = True):
         self.app = app
         self.show_login()
+        if logging:
+            self.show_logging()
         
     def show_login(self):
         self.login_window = LoginScreen()
@@ -34,3 +38,8 @@ class WindowController:
     def show_settings(self):
         self.settings_window = SettingsWindow()
         self.settings_window.show()
+
+    def show_logging(self):
+        self.logging_window = LogWindow()
+        self.logging_window.show()
+        setup_logger(self.logging_window)
