@@ -1,22 +1,35 @@
 # Todo List
-- [x] Implement is_read retrieval in get_mails service and add this attribute to the email data class (without breaking everything)
+
+### Code
+- [x] Implement is_read retrieval in get_mails service and add this attribute to the email data class
 - [x] Create management service for each provider to handle delete/read/unread/
 - [ ] Implement asynchronous email retrieval in the background
-- [ ] Implement logging (remove all print statements throught out the code and add them to some kind of logging service, perhabs visible in seperate window)
-- [ ] Implement settings in settings window
-- [ ] Preview attachments (80% DONE, video not working)
-- [ ] GUI for email management (delete mail, move email, create folder, delete folder, edit folder) (50%)
+- [ ] Implement logging (remove all print statements ,add to logging window)
+- [ ] Clean up code (email_util, main_window)
+- [ ] Perhaps make dedicated pyqt signal hub thing instead of having it all connected to the main window, such that it only need to handle ui stuff
+
+### Attachments
+- [x] Preview PDFs
+- [ ] View embedded videos
+
+### GUI
+- [x] Email management
+- [ ] Folder management
 - [ ] Dark mode styling (qss file)
 - [ ] Split styling file into different files for each part of app
+- [ ] Pop up info windows (waiting for emails, email sent, email deleted, etc)
+- [ ] Windows notifications
+- [ ] Improve GUI (make it not look terrible)
+
+### Email management
 - [ ] Outlook search function
 - [ ] Email sorting
 - [ ] Spamfilter
-- [ ] Pop up info windows (waiting for emails, email sent, email deleted, etc)
-- [ ] Windows notifications
-- [ ] Clean up (email_util, main_window)
-- [ ] Give email view area its own folder and split into multiple files (email_view_area, web_engine, ToolBarMenu, and one other ive forgotton) DONE
-- [ ] Perhaps make dedicated pyqt signal hub thing instead of having it all connected to the main window, such that it only need to handle ui stuff
-- [ ] Improve GUI (make it not look terrible)
+- [x] Give email view area its own folder and split into multiple files (email_view_area, web_engine, ToolBarMenu, and one other ive forgotton)
+- [ ] Implement settings in settings window
+
+### Testing
+- [ ] ...
 
 # Known bugs
 - Date and Time for sent and recieved emails dont match (time zones problem i think)
@@ -33,15 +46,15 @@
 - PyQt5
 - PyQtWebEngine
 
-## Package Installation
+### Package Installation
 ```
 pip install google-auth-oauthlib google-api-python-client msal Flask PyQt5 PyQtWebEngine bs4 keyring cryptography
 ```
 
 # Test Emails
-## Outlook
+### Outlook
 - Mail: dacasoftdev_test@hotmail.com
 - Kode: DACAtest
-## Gmail
+### Gmail
 - Mail: dacasoftdev.test@gmail.com
 - Kode: DACAtest
