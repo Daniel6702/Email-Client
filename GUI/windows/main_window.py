@@ -3,12 +3,15 @@ from PyQt5.QtWidgets import QApplication, QListWidget, QListWidgetItem, QLabel, 
 from PyQt5.QtCore import QUrl, Qt, pyqtSignal, QSettings
 from PyQt5.QtWebEngineWidgets import QWebEngineView
 from PyQt5.QtGui import *
+import logging
 
 from GUI.layouts.email_folder_layout import FolderArea
 from GUI.layouts.email_list_layout import EmailListArea
 from GUI.layouts.search_layout import SearchArea
 from GUI.layouts.email_view_area.email_view_layout import EmailView
 from EmailService.models.email_client import EmailClient
+
+PAGE_SIZE = 15
 
 class MainWindow(QMainWindow):
     open_editor_window = pyqtSignal(object)
@@ -79,23 +82,27 @@ class MainWindow(QMainWindow):
             self.email_client.move_email_to_folder(self.current_folder, self.delete_folder, email)
 
     def get_folder_signal(self, folder: Folder) -> None:
+        logging.info(f"Folder Selected: {folder.name}")
         self.current_folder = folder
-        emails = self.email_client.get_mails(folder.id, "", 15)
+        logging.info(f"Retrieving {PAGE_SIZE} emails from {folder.id}")
+        emails = self.email_client.get_mails(folder.id, "", PAGE_SIZE)
         self.email_list_area.add_emails_to_list(emails)
 
     def get_clicked_email(self,mail: Email):
-        print("CLICKED EMAIL:", mail.subject)
+        logging.info(f"Email Selected: {mail.subject}")
         if self.current_folder.name in ["Drafts", "Draft", "DRAFT", "draft", "DRAFTS", "drafts"]:
             self.open_editor_window.emit(mail)
         else:
             self.email_view_area.updateEmailView(mail)
 
-    def get_mail_from_editor(self,mail_signal):
-        email = mail_signal.email
-        if mail_signal.action == "send":
+    def get_mail_from_editor(self,email: Email, action: str):
+        if action == "send":
             self.email_client.send_mail(email)
-        elif mail_signal.action == "save":
-            self.email_client.save_mail(email)
+        elif action == "save":
+            self.email_client.save_draft(email)
+        elif action == "update":
+            self.email_client.update_draft(email)
+
 
     def initialize_ui(self):
         self.setWindowTitle("Smail")

@@ -17,6 +17,7 @@ clean up (email_util, main_window)
 give email view area its own folder and split into multiple files (email_view_area, web_engine, ToolBarMenu, and one other ive forgotton) DONE
 perhabs make dedicated pyqt signal hub thing instead of having it all connected to the main window, such that it only need to handle ui stuff
 Improve GUI (make it not look terrible)
+gui controller (signals and connected functions in seperate class not in main window)
 
 BUGS:
 Date and Time for sent and recieved emails dont match (time zones problem i think)
@@ -32,6 +33,7 @@ pip install msal
 pip install Flask
 pip install PyQt5
 pip install PyQtWebEngine
+pip install keyring
 
 Test emails:
 Til outlook:

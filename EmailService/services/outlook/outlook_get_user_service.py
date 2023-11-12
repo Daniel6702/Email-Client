@@ -2,6 +2,7 @@ from ..service_interfaces import GetUserService
 from ...util import OutlookSession 
 from email_util import User
 import requests
+import logging
 
 class OutlookGetUserService(GetUserService):
     def __init__(self, session: OutlookSession):
@@ -20,6 +21,8 @@ class OutlookGetUserService(GetUserService):
             name = user_data.get("displayName", None)
             credentials = {'credentials': self.result.get('refresh_token')}
             user = User(name = name, email = email, client_type="outlook", credentials=credentials)
+            logging.info(f"Successfully retrieved user data from Outlook")
             return user
         except requests.RequestException as e:
+            logging.error(f"An error occurred: {e}")
             raise Exception(f"Request failed: {e}")

@@ -194,7 +194,6 @@ class LoginScreen(QWidget):
         self.start_login_process("outlook", None)
 
     def start_login_process(self, client_type, user):
-        logging.info("Starting login process")
         self.switch_to_loading_screen()
 
         def login_thread(client_type, user):
@@ -207,7 +206,6 @@ class LoginScreen(QWidget):
 
             client = EmailClient(factory, self.user_manager)
             client.login(user=user, save_user=self.remember_me_checkbox.isChecked())
-            logging.info("Login Successful")
             self.login_successful.emit(client)  # This should be emitted in the main thread
 
         # Create a new thread to handle the login process

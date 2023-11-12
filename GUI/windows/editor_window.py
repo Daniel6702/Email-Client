@@ -8,7 +8,7 @@ import os
 from dataclasses import dataclass
 
 class EditorWindow(QWidget):
-    mail_signal_from_editor = pyqtSignal(object)
+    mail_signal_from_editor = pyqtSignal(Email, str)
 
     def __init__(self, draft_email: Email = None):
         super().__init__()
@@ -246,13 +246,16 @@ class EditorWindow(QWidget):
     
     def save_email(self):
         email = self.generate_email()
-        email_signal = EmailSignal(email, "save")
-        self.mail_signal_from_editor.emit(email_signal)
+        if self.draft:
+            self.mail_signal_from_editor.emit(email, "update")
+        else:
+            self.mail_signal_from_editor.emit(email, "save")
+        self.close()
     
     def send_email(self):
         email = self.generate_email()
-        email_signal = EmailSignal(email, "send")
-        self.mail_signal_from_editor.emit(email_signal)
+        self.mail_signal_from_editor.emit(email, "send", False)
+        self.close()
 
 @dataclass
 class EmailSignal:

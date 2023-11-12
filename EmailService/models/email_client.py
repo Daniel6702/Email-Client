@@ -1,9 +1,8 @@
-from ..services.service_interfaces import EmailService
 from ..factories.email_service_factory import EmailServiceFactory
 from email_util import Email, User, Folder
 from user_manager import UserDataManager
 
-class EmailClient(EmailService):
+class EmailClient():
     def __init__(self, service_factory: EmailServiceFactory, user_manager: UserDataManager):
         self.service_factory = service_factory
         self.user_manager = user_manager
@@ -22,8 +21,8 @@ class EmailClient(EmailService):
         self.login_service.login_event.wait()
         session = self.login_service.get_session()
         self.initialize_services(session)
+
         self.user = self.get_user()
-        
         if save_user and user is None:
             self.user_manager.add_user(self.user)
         else:
@@ -39,13 +38,14 @@ class EmailClient(EmailService):
 
     def get_mails(self, folder_id: str, query: str, max_results: int) -> list[Email]:
         emails = self.get_mails_service.get_mails(folder_id, query, max_results)
-        for email in emails:
-            #fix
-            email.to_email = self.get_user().email
+        [email.__setattr__('to_email', self.user.email) for email in emails if email.to_email is None]
         return emails
     
-    def save_mail(self, email: Email):
-        self.draft_service.save_mail(email)
+    def save_draft(self, email: Email):
+        self.draft_service.save_draft(email)
+    
+    def update_draft(self, email: Email):
+        self.draft_service.update_draft(email)
 
     def get_folders(self) -> list[Folder]:
         return self.folder_service.get_folders()
@@ -63,7 +63,7 @@ class EmailClient(EmailService):
         return self.folder_service.update_folder(folder, new_folder_name)
     
     def delete_mail(self, email: Email):
-        self.mail_management_service.delete_mail(email)
+        self.mail_management_service.delete_email(email)
 
     def mark_email_as_read(self, email: Email):
         self.mail_management_service.mark_email_as_read(email)

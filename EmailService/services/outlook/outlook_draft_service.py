@@ -3,18 +3,29 @@ from ...util import OutlookSession
 from email_util import Email
 import requests
 import json
+import logging
 
 class OutlookDraftService(DraftService):
     def __init__(self, session: OutlookSession):
         self.result = session.result
 
-    def save_mail(self, email: Email) -> None:
+    def save_draft(self, email: Email) -> None:
+        headers, message = self.prepare_message(email)
+        url = 'https://graph.microsoft.com/v1.0/me/messages'
+        response = requests.post(url, headers=headers, data=json.dumps(message))
+
+        self.handle_response(response, "save")
+
+    def update_draft(self, email: Email) -> None:
+        headers, message = self.prepare_message(email)
+        url = f'https://graph.microsoft.com/v1.0/me/messages/{email.id}'
+        response = requests.patch(url, headers=headers, data=json.dumps(message))
+
+        self.handle_response(response, "update")
+
+    def prepare_message(self, email: Email):
         to_recipients = [
-            {
-                'emailAddress': {
-                    'address': email_address
-                }
-            }
+            {'emailAddress': {'address': email_address}}
             for email_address in email.to_email
         ]
         headers = {
@@ -33,19 +44,12 @@ class OutlookDraftService(DraftService):
         }
         if email.attachments:
             message['attachments'] = [self.draft_attachment(attachment) for attachment in email.attachments]
-        if email.id:
-            url = f'https://graph.microsoft.com/v1.0/me/messages/{email.id}'
-            response = requests.patch(url, headers=headers, data=json.dumps(message))
-            operation = "update"
-        else:
-            url = 'https://graph.microsoft.com/v1.0/me/messages'
-            response = requests.post(url, headers=headers, data=json.dumps(message))
-            operation = "save"
+        
+        return headers, message
 
+    def handle_response(self, response, operation: str) -> None:
         if response.status_code in (201, 200):
-            print(f"Draft {operation}d successfully.")
             draft_message_id = response.json().get('id')
-            print(f"Draft ID: {draft_message_id}")
+            logging.info(f"Successfully {operation}d draft with id: {draft_message_id}")
         else:
-            print(f"Failed to {operation} draft.")
-            print(f"Status Code: {response.status_code}, Response: {response.text}")
+            logging.error(f"Failed to {operation} draft. Error: {response.text}")

@@ -36,7 +36,11 @@ class GetMailsService(ABC):
 
 class DraftService(ABC):
     @abstractmethod
-    def save_mail(self, email: Email, folder_id: str):
+    def save_draft(self, email: Email):
+        pass
+
+    @abstractmethod
+    def update_draft(self, email: Email):
         pass
 
 ###############################
@@ -89,61 +93,3 @@ class GetUserService(ABC):
         pass
 
 ###############################
-
-class EmailService(ABC):
-    @abstractmethod
-    def login(self):
-        pass
-
-    @abstractmethod
-    def get_user(self) -> User:
-        pass
-
-    @abstractmethod
-    def get_mails(self, folder_id: str, query: str, max_results: int) -> list[Email]:
-        pass
-
-    @abstractmethod
-    def send_mail(self, email: Email):
-        pass
-
-    @abstractmethod
-    def save_mail(self, email: Email):
-        pass
-
-    @abstractmethod
-    def get_folders(self) -> list[Folder]:
-        pass
-
-    @abstractmethod
-    def delete_mail(self, email: Email):
-        pass
-
-    @abstractmethod
-    def create_folder(self, folder: Folder, parent_folder: Folder) -> Folder:
-        pass
-
-    @abstractmethod
-    def move_email_to_folder(self, from_folder: Folder, to_folder: Folder, email: Email):
-        pass
-
-    @abstractmethod
-    def delete_folder(self, folder: Folder):
-        pass
-
-    @abstractmethod
-    def update_folder(self, folder: Folder, new_folder_name: str) -> Folder:
-        pass    
-
-    @abstractmethod
-    def mark_email_as_read(self, email: Email):
-        pass
-
-    @abstractmethod
-    def mark_email_as(self, email: Email, is_read: bool):
-        pass
-
-    @abstractmethod
-    def mark_email_as_unread(self, email: Email):
-        pass
-

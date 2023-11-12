@@ -1,6 +1,7 @@
 from ...util import GmailSession 
 from ..service_interfaces import MailManagementService
 from email_util import Email
+import logging
 
 class GmailMailManagementService(MailManagementService):
     def __init__(self, session: GmailSession):
@@ -9,9 +10,9 @@ class GmailMailManagementService(MailManagementService):
     def delete_email(self, email: Email):
         try:
             self.service.users().messages().delete(userId='me', id=email.id).execute()
-            print(f'Email with id: {email.id} has been deleted.')
+            logging.info(f"Email with ID {email.id} deleted successfully.")
         except Exception as error:
-            print(f'An error occurred: {error}')
+            logging.error(f"An error occurred: {error}")
 
     def mark_email_as_unread(self, email: Email):
         self.mark_email_as(email, is_read=False)
@@ -30,6 +31,6 @@ class GmailMailManagementService(MailManagementService):
                 id=email.id,
                 body=body
             ).execute()
-            print(f"Email with ID {email.id} has marked is_read as {is_read} successfully.")
+            logging.info(f"Email with ID {email.id} has marked is_read as {is_read} successfully.")
         except Exception as e:
-            print(f"An error occurred: {e}")
+            logging.error(f"An error occurred: {e}")

@@ -5,6 +5,7 @@ import requests
 import base64
 from datetime import datetime, timedelta
 from html import escape
+import logging
 
 class OutlookGetMailsService(GetMailsService):
     def __init__(self, session: OutlookSession):
@@ -44,7 +45,10 @@ class OutlookGetMailsService(GetMailsService):
         try:
             response = requests.get(endpoint_url, headers=headers, params=query_parameters, timeout=30)
             response.raise_for_status()
+            logging.info(f"Successfully retrieved email data from Outlook")
+
         except requests.RequestException as e:
+            logging.error(f"An error occurred: {e}")
             raise Exception(f"Request failed: {e}")
 
         email_list = []
@@ -53,6 +57,7 @@ class OutlookGetMailsService(GetMailsService):
             from_email, to_email, subject, body, datetime_info, attachments, email_id, is_read = self.extract_data_from_message(data)
             email = Email(from_email, to_email, subject, body, datetime_info, attachments, id=email_id, is_read=is_read)
             email_list.append(email)
+        logging.info(f"Successfully parsed email data from Outlook")
         return email_list 
 
     def extract_data_from_message(self, email_data: dict) -> tuple[str, str, str, str, dict, list[dict], str]:

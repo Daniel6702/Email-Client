@@ -2,7 +2,7 @@ from ..service_interfaces import FolderService
 from ...util import OutlookSession 
 from email_util import Email, Folder
 import requests
-import json
+import logging
 
 class OutlookFolderService(FolderService):
     def __init__(self, session: OutlookSession):
@@ -29,10 +29,10 @@ class OutlookFolderService(FolderService):
 
                 for folder in folders:
                     _get_email_folders(folder.id, folder)
-
                 return folders if parent is None else parent.children
             except requests.RequestException as e:
-                raise Exception(f"Request failed: {e}")
+                logging.error(f"An error occurred: {e}")
+        logging.info("Getting folders from Outlook")
         return _get_email_folders()
 
 
@@ -51,9 +51,11 @@ class OutlookFolderService(FolderService):
         try:
             response = requests.post(endpoint_url, headers=headers, json=payload)
             response.raise_for_status() 
-            return response.json()
+            folder = Folder(name=response.json()['displayName'], id=response.json()['id'], children = [])
+            logging.info(f"Folder with ID {folder.id} created successfully.")
+            return folder
         except requests.exceptions.RequestException as e:
-            print(f"An error occurred: {e}")
+            logging.error(f"An error occurred: {e}")
             return None
 
     def move_email_to_folder(self, from_folder: Folder = None, to_folder: Folder = None, email: Email = None):
@@ -68,10 +70,9 @@ class OutlookFolderService(FolderService):
         try:
             response = requests.post(endpoint_url, headers=headers, json=payload)
             response.raise_for_status()
-            return response.json()
+            logging.info(f"Email with ID {email.id} moved successfully.")
         except requests.exceptions.RequestException as e:
-            print(f"An error occurred: {e}")
-            return None
+            logging.error(f"An error occurred: {e}")
 
     def delete_folder(self, folder: Folder):
         headers = {
@@ -83,10 +84,9 @@ class OutlookFolderService(FolderService):
         try:
             response = requests.delete(endpoint_url, headers=headers)
             response.raise_for_status()
-            print(f"Folder with ID {folder.id} deleted successfully.")
+            logging.info(f"Folder with ID {folder.id} deleted successfully.")
         except requests.exceptions.RequestException as e:
-            print(f"An error occurred: {e}")
-            return None
+            logging.error(f"An error occurred: {e}")
 
     def update_folder(self, folder: Folder, new_folder_name: str) -> Folder:
         headers = {
@@ -100,9 +100,11 @@ class OutlookFolderService(FolderService):
         try:
             response = requests.patch(endpoint_url, headers=headers, json=payload)
             response.raise_for_status()
-            return response.json()
+            folder = Folder(name=response.json()['displayName'], id=response.json()['id'], children = [])
+            logging.info(f"Folder with ID {folder.id} updated successfully.")
+            return folder
         except requests.exceptions.RequestException as e:
-            print(f"An error occurred: {e}")
+            logging.error(f"An error occurred: {e}")
             return None
 
 

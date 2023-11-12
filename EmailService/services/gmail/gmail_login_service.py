@@ -7,6 +7,7 @@ from google.auth.transport.requests import Request
 from webbrowser import open
 import threading
 from flask import request
+import logging
 
 from ...util import GmailSession
 from ..service_interfaces import LoginService
@@ -16,6 +17,7 @@ class GmailLoginService(LoginService):
     login_event = threading.Event()
 
     def new_login(self):
+        logging.info("Starting Gmail login process")
         app = FlaskAppWrapper('redirect_server')
         app.add_endpoint(endpoint='/oauth2callback', 
                          endpoint_name='gmail_callback', 
@@ -49,6 +51,7 @@ class GmailLoginService(LoginService):
         self.build_service(credentials)
 
     def login_user(self, user: User):
+        logging.info(f"Starting Gmail login process for user {user.email}")
         credentials = Credentials.from_authorized_user_info(user.credentials)
         if credentials.expired:
             try:
@@ -62,6 +65,7 @@ class GmailLoginService(LoginService):
         self.session.credentials = credentials
         self.session.gmail_service = build('gmail', 'v1', credentials=credentials)
         self.session.people_service = build('people', 'v1', credentials=credentials)
+        logging.info(f"Successfully logged in")
         self.login_event.set()
 
     def get_session(self):

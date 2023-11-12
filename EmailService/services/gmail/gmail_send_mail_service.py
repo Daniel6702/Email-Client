@@ -4,6 +4,7 @@ from email.mime.text import MIMEText
 from email.mime.base import MIMEBase
 import base64
 from email import encoders
+import logging
 
 from ..service_interfaces import SendMailService
 from ...util import GmailSession 
@@ -17,9 +18,9 @@ class GmailSendMailService(SendMailService):
         user_id = email.from_email
         try:
             message = self.service.users().messages().send(userId=user_id, body=message).execute()
-            print("Message sent: %s" % message['id'])
+            logging.info(f'Message sent: {message["id"]}')
         except Exception as e:
-            print(f"An error occurred: {e}")
+            logging.error(f'An error occurred: {e}')
 
     def create_message(self, email: Email) -> dict:
         message = MIMEMultipart()

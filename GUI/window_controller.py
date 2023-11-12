@@ -5,6 +5,7 @@ from .windows.settings_window import SettingsWindow
 from .windows.attachment_window import AttachmentWindow
 from .windows.log_window import LogWindow	
 from Testing.logging import setup_logger
+import logging
 
 class WindowController:
     def __init__(self, app, logging: bool = True):
@@ -14,11 +15,13 @@ class WindowController:
             self.show_logging()
         
     def show_login(self):
+        logging.info("Showing login window")
         self.login_window = LoginScreen()
         self.login_window.login_successful.connect(self.show_main)
         self.login_window.show()
         
     def show_main(self, client_obj):
+        logging.info("Showing main window")
         self.main_window = MainWindow(client_obj)
         self.main_window.open_editor_window.connect(self.show_editor)
         self.main_window.open_settings_window.connect(self.show_settings)
@@ -27,15 +30,18 @@ class WindowController:
         self.login_window.close()
     
     def show_editor(self, draft_email=None):
+        logging.info("Showing editor window")
         self.editor_window = EditorWindow(draft_email)
         self.editor_window.mail_signal_from_editor.connect(self.main_window.get_mail_from_editor)
         self.editor_window.show()
 
     def show_attachment(self, attachment: dict):
+        logging.info("Showing attachment window")
         self.attachment_window = AttachmentWindow(attachment)
         self.attachment_window.show()
 
     def show_settings(self):
+        logging.info("Showing settings window")
         self.settings_window = SettingsWindow()
         self.settings_window.show()
 

@@ -1,6 +1,7 @@
 from ...util import GmailSession 
 from email_util import Folder, Email
 from ..service_interfaces import FolderService
+import logging  
 
 class GmailFolderService(FolderService):
     def __init__(self, session: GmailSession):
@@ -13,6 +14,8 @@ class GmailFolderService(FolderService):
         folders = []
         for label in labels:
             folders.append(Folder(name=label['name'], id=label['id']))
+
+        logging.info(f'Successfully retrieved folders. Found {len(folders)} folders')
         
         return folders
     
@@ -28,11 +31,11 @@ class GmailFolderService(FolderService):
         }
         try:
             label = self.service.users().labels().create(userId='me', body=new_label).execute()
-            print('Label with id: %s created.' % label['id'])
             folder.id = label['id']
+            logging.info(f'Folder with ID {folder.id} created successfully.')
             return folder
         except Exception as error:
-            print(f'An error occurred: {error}')
+            logging.error(f'An error occurred: {error}')
             return None
         
     def move_email_to_folder(self, from_folder: Folder, to_folder: Folder, email: Email):
@@ -42,25 +45,24 @@ class GmailFolderService(FolderService):
                 'removeLabelIds': [from_folder.id]
             }
             message = self.service.users().messages().modify(userId='me', id=email.id, body=body).execute()
-            print(f'Message with id: {email.id} moved to label with id: {to_folder.id}')
-            return message
+            logging.info(f'Message with id: {email.id} moved to label with id: {to_folder.id}')
         except Exception as error:
-            print(f'An error occurred: {error}')
-            return None
+            logging.error(f'An error occurred: {error}')
 
     def delete_folder(self, folder: Folder):
         try:
             self.service.users().labels().delete(userId='me', id=folder.id).execute()
-            print(f'Label with id: {folder.id} deleted.')
+            logging.info(f'Label with id: {folder.id} deleted.')
         except Exception as error:
-            print(f'An error occurred: {error}')
+            logging.error(f'An error occurred: {error}')
 
     def update_folder(self, folder: Folder, new_folder_name: str) -> Folder:
         try:
             label = {'name': new_folder_name}
             updated_label = self.service.users().labels().update(userId='me', id=folder.id, body=label).execute()
             folder.name = updated_label['name']
+            logging.info(f'Label with id: {folder.id} updated.')
             return folder
         except Exception as error:
-            print(f'An error occurred: {error}')
+            logging.error(f'An error occurred: {error}')
             return None

@@ -2,6 +2,7 @@ from email_util import User
 from googleapiclient.errors import HttpError
 from ...util import GmailSession
 from ..service_interfaces import GetUserService
+import logging
 
 class GmailGetUserService(GetUserService):
     def __init__(self, session: GmailSession):
@@ -19,7 +20,9 @@ class GmailGetUserService(GetUserService):
             name_data = person.get("names", [])[0]
             name = name_data.get("displayName", None)
             user = User(name = name, email = email, client_type="google", credentials=self.credentials.to_json())
+            logging.info(f"Successfully retrieved user data from Gmail: {user.email}")
             return user
 
         except HttpError as e:
+            logging.error(f"An error occurred: {e}")
             raise Exception(f"Request failed: {e}")

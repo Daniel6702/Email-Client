@@ -31,7 +31,9 @@ class UserDataManager:
         if key is None:
             key = UserDataManager.generate_key()
             UserDataManager.store_key(key)
-        return key.encode('utf-8')
+            return key
+        else:
+            return key
 
     def encrypt_data(self, data):
         return self.cipher_suite.encrypt(data.encode('utf-8'))
@@ -84,7 +86,17 @@ class UserDataManager:
         try:
             with open(self.file_path, 'rb') as file:
                 encrypted_data = file.read()
+
+            # Check if the file is empty after reading
+            if not encrypted_data:
+                return []
+
             decrypted_data = self.cipher_suite.decrypt(encrypted_data).decode('utf-8')
+
+            # Check if decryption results in an empty string
+            if not decrypted_data:
+                return []
+
             data = json.loads(decrypted_data)
 
             users = []

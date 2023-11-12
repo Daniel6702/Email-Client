@@ -2,6 +2,7 @@ from ...util import OutlookSession
 from ..service_interfaces import MailManagementService
 from email_util import Email
 import requests
+import logging
 
 class OutlookMailManagementService(MailManagementService):
     def __init__(self, session: OutlookSession):
@@ -17,10 +18,9 @@ class OutlookMailManagementService(MailManagementService):
         try:
             response = requests.delete(endpoint_url, headers=headers)
             response.raise_for_status()
-            print(f"Email with ID {email.id} deleted successfully.")
+            logging.info(f"Email with ID {email.id} deleted successfully.")
         except requests.exceptions.RequestException as e:
-            print(f"An error occurred: {e}")
-            return None
+            logging.error(f"An error occurred: {e}")
         
     def mark_email_as_unread(self, email: Email):
         self.mark_email_as(email, is_read=False)
@@ -41,7 +41,6 @@ class OutlookMailManagementService(MailManagementService):
         try:
             response = requests.patch(endpoint_url, headers=headers, json=payload)
             response.raise_for_status()
-            print(f"Email with ID {email.id} marked is_read as {is_read} successfully.")
+            logging.info(f"Email with ID {email.id} marked is_read as {is_read} successfully.")
         except requests.exceptions.RequestException as e:
-            print(f"An error occurred: {e}")
-            return None
+            logging.error(f"An error occurred: {e}")
