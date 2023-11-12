@@ -35,6 +35,9 @@ pip install PyQt5
 pip install PyQtWebEngine
 pip install keyring
 
+# Command for installing all packages
+pip install google-auth-oauthlib google-api-python-client msal Flask PyQt5 PyQtWebEngine bs4 keyring cryptography
+
 Test emails:
 Til outlook:
 mail: dacasoftdev_test@hotmail.com

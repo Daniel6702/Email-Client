@@ -103,7 +103,7 @@ class UserDataManager:
             for user_data in data:
                 # Convert the JSON string in 'credentials' back to a dictionary if needed
                 if isinstance(user_data.get('credentials', {}), str):
-                    credentials_str = user_data['credentials'].strip('\'"')  # Strip quotes if any
+                    credentials_str = user_data['credentials'].strip('"')  # Strip quotes if any
                     try:
                         user_data['credentials'] = json.loads(credentials_str)
                     except json.JSONDecodeError as e:
