@@ -1,9 +1,9 @@
-from .windows.login_window import LoginScreen
-from .windows.main_window import MainWindow
-from .windows.editor_window import EditorWindow
-from .windows.settings_window import SettingsWindow
-from .windows.attachment_window import AttachmentWindow
-from .windows.log_window import LogWindow	
+from Views.windows.login_window import LoginScreen
+from Views.windows.main_window import MainWindow
+from Views.windows.editor_window import EditorWindow
+from Views.windows.settings_window import SettingsWindow
+from Views.windows.attachment_window import AttachmentWindow
+from Views.windows.log_window import LogWindow
 from Testing.logging import setup_logger
 import logging
 
@@ -32,7 +32,7 @@ class WindowController:
     def show_editor(self, draft_email=None):
         logging.info("Showing editor window")
         self.editor_window = EditorWindow(draft_email)
-        self.editor_window.mail_signal_from_editor.connect(self.main_window.get_mail_from_editor)
+        self.editor_window.mail_signal_from_editor.connect(self.main_window.get_email_from_editor.emit)
         self.editor_window.show()
 
     def show_attachment(self, attachment: dict):

@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from email_util import Email, User, Folder
+from ..models import Email, Folder, User
 
 ###############################
 

@@ -3,15 +3,13 @@ from PyQt5.QtCore import pyqtSignal
 from PyQt5.QtGui import *
 
 class SearchArea(QVBoxLayout):
-    dark_mode_signal = pyqtSignal()
-    test_signal = pyqtSignal(list)
-    def __init__(self,new_mail_signal, open_settings_signal, appController, signal):
+    search_signal = pyqtSignal(str)
+    new_mail_signal = pyqtSignal(object)
+    open_settings_signal = pyqtSignal()
+
+    def __init__(self):
         super().__init__()
         self.setup_layout()
-        self.new_mail_signal = new_mail_signal
-        self.open_settings_signal = open_settings_signal
-        self.appController = appController
-        self.signal = signal
 
     def toggleDarkMode(self):
         self.dark_mode_signal.emit()
@@ -53,12 +51,10 @@ class SearchArea(QVBoxLayout):
 
     def search_update(self):
         search_criteria = self.searchbar.text()
-        emails = self.appController.get_emails(query=search_criteria)
-        self.signal.emit(emails)
+        self.search_signal.emit(search_criteria)
     
     def new_mail_button(self):
         self.new_mail_signal.emit(None)
         
     def settings_button_open(self):
-        print("Open settings")
         self.open_settings_signal.emit()

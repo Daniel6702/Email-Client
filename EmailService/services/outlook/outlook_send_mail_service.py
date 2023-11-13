@@ -1,6 +1,6 @@
 from ..service_interfaces import SendMailService
 from ...util import OutlookSession 
-from email_util import Email
+from ...models import Email
 import requests
 import base64
 import logging

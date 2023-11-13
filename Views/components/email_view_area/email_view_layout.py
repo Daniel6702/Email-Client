@@ -1,18 +1,18 @@
 from PyQt5.QtWidgets import QListWidget, QLabel, QLineEdit, QVBoxLayout, QGridLayout
 from PyQt5.QtCore import pyqtSignal, Qt
 from PyQt5.QtGui import *
-from email_util import Email
+from EmailService.models import Email
 from PyQt5.QtWebEngineWidgets import QWebEngineView
-from GUI.layouts.email_view_area.tool_bar_menu import ToolBarMenu
-from GUI.layouts.email_view_area.web_engine_page import WebEnginePage
+from Views.components.email_view_area.tool_bar_menu import ToolBarMenu
+from Views.components.email_view_area.web_engine_page import WebEnginePage
 
 class EmailView(QVBoxLayout):
-    def __init__(self, open_attachment_window: pyqtSignal(dict), open_email_editor_window: pyqtSignal(Email), delete_email_signal: pyqtSignal(Email), mark_email_as: pyqtSignal(Email, bool), parent=None):
+    open_attachment_window = pyqtSignal(dict)
+    open_email_editor_window = pyqtSignal(Email)
+    delete_email_signal = pyqtSignal(Email)
+    mark_email_as = pyqtSignal(Email, bool)
+    def __init__(self):
         super().__init__()
-        self.delete_email_signal = delete_email_signal
-        self.open_attachment_window = open_attachment_window
-        self.open_email_editor_window = open_email_editor_window
-        self.mark_email_as = mark_email_as
         self.current_email = None
         self.setupUIComponents()
 
@@ -26,7 +26,10 @@ class EmailView(QVBoxLayout):
         self.subject.setText("Subject: ")
 
         #Toolbar
-        self.toolbar = ToolBarMenu(self.current_email, self.open_email_editor_window, self.delete_email_signal, self.mark_email_as)
+        self.toolbar = ToolBarMenu(self.current_email)
+        self.toolbar.open_email_editor_window.connect(self.open_email_editor_window.emit)
+        self.toolbar.delete_email_signal.connect(self.delete_email_signal.emit)
+        self.toolbar.mark_email_as.connect(self.mark_email_as.emit)
         self.toolbar.setVisible(False)
 
         #Email body

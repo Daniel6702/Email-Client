@@ -9,7 +9,7 @@ import logging
 from flask_app import FlaskAppWrapper
 from ...util import OutlookSession
 from ..service_interfaces import LoginService
-from email_util import User
+from ...models import User
 
 class OutlookLoginService(LoginService):
     session = OutlookSession(result=None,credentials=None)

@@ -1,6 +1,6 @@
 from ...util import GmailSession 
 from ..service_interfaces import MailManagementService
-from email_util import Email
+from ...models import Email
 import logging
 
 class GmailMailManagementService(MailManagementService):

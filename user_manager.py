@@ -1,6 +1,6 @@
 import json
 from cryptography.fernet import Fernet
-from email_util import User
+from EmailService.models.user import User
 from dataclasses import asdict
 import keyring
 

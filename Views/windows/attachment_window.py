@@ -3,8 +3,8 @@ from PyQt5.QtCore import pyqtSignal,Qt, QUrl, QTimer, QEvent
 from PyQt5.QtGui import *
 from PyQt5.QtWidgets import QWidget, QVBoxLayout, QLabel, QLineEdit, QTextEdit, QToolBar, QAction, QApplication, QDesktopWidget
 from PyQt5.QtWebEngineWidgets import QWebEngineSettings, QWebEngineView, QWebEnginePage
-from GUI.layouts.audio_player import AudioPlayerWidget
-from GUI.layouts.video_player import VideoPlayerWidget
+from Views.components.audio_player import AudioPlayerWidget
+from Views.components.video_player import VideoPlayerWidget
 
 import tempfile
 import os

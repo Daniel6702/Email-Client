@@ -1,7 +1,7 @@
 from PyQt5.QtWidgets import QApplication, QListWidget, QListWidgetItem, QLabel, QMenu, QMainWindow, QDesktopWidget, QSplitter, QCheckBox, QFormLayout, QLineEdit, QVBoxLayout, QHBoxLayout, QWidget, QGridLayout, QPushButton, QWidget
 from PyQt5.QtCore import pyqtSignal,Qt
 from PyQt5.QtGui import *
-from email_util import Email
+from EmailService.models import Email
 
 class EmailListArea(QVBoxLayout):
     email_clicked = pyqtSignal(Email)

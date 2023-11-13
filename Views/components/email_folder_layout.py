@@ -2,7 +2,7 @@ from PyQt5.QtWidgets import QListWidget, QLabel, QVBoxLayout, QHBoxLayout, QWidg
 from PyQt5.QtCore import pyqtSignal,Qt
 from PyQt5.QtGui import *
 from dataclasses import dataclass, field
-from email_util import Email, Folder
+from EmailService.models import Folder
 from typing import List
 
 class FolderArea(QVBoxLayout):

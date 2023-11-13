@@ -4,13 +4,16 @@
 - [x] Implement is_read retrieval in get_mails service and add this attribute to the email data class
 - [x] Create management service for each provider to handle delete/read/unread/
 - [ ] Implement asynchronous email retrieval in the background
-- [ ] Implement logging (remove all print statements ,add to logging window)
-- [ ] Clean up code (email_util, main_window)
+- [x] Implement logging (remove all print statements ,add to logging window)
+- [x] Clean up code (email_util, main_window)
 - [ ] Perhaps make dedicated pyqt signal hub thing instead of having it all connected to the main window, such that it only need to handle ui stuff
+- [ ] Create seperate search services for each client type
 
 ### Attachments
 - [x] Preview PDFs
 - [ ] View embedded videos
+- [x] Images (png, jpg, gif,)
+- [x] Sound (mp3, wav)
 
 ### GUI
 - [x] Email management

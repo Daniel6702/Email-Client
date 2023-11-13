@@ -1,6 +1,6 @@
 from ..service_interfaces import DraftService
 from ...util import OutlookSession 
-from email_util import Email
+from ...models import Email
 import requests
 import json
 import logging

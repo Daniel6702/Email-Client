@@ -1,6 +1,6 @@
 from ..service_interfaces import GetUserService
 from ...util import OutlookSession 
-from email_util import User
+from ...models import User
 import requests
 import logging
 

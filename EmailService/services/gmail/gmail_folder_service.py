@@ -1,5 +1,5 @@
 from ...util import GmailSession 
-from email_util import Folder, Email
+from ...models import Email, Folder
 from ..service_interfaces import FolderService
 import logging  
 

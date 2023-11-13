@@ -1,18 +1,17 @@
 from PyQt5.QtWidgets import QToolBar, QAction
 from PyQt5.QtCore import pyqtSignal
-from email_util import Email
+from EmailService.models import Email
 from datetime import datetime
 import copy
-import logging
 
 class ToolBarMenu(QToolBar):
-    def __init__(self, email: Email, open_email_editor_window: pyqtSignal(Email), delete_email_signal: pyqtSignal(Email), mark_email_as: pyqtSignal(Email, bool), parent=None):
+    open_email_editor_window = pyqtSignal(Email)
+    delete_email_signal = pyqtSignal(Email)
+    mark_email_as = pyqtSignal(Email, bool)
+    def __init__(self, email: Email, parent=None):
         super().__init__(parent)
         self.setStyleSheet("QToolBar {spacing: 10px;}")
         self.current_email = email
-        self.open_email_editor_window = open_email_editor_window
-        self.delete_email_signal = delete_email_signal
-        self.mark_email_as = mark_email_as
         
         # Forward Action  (Opens editor window with the current email as a template)
         self.forward_action = QAction("Forward", self)

@@ -74,10 +74,3 @@ class VideoPlayerWidget(QWidget):
         self.player.stop()
         self.temp_file.close()
         event.accept()
-
-
-# You would call the VIDEO function with the bytes of the video file you want to play.
-# For example:
-# with open('path_to_video_file.mp4', 'rb') as f:
-#     video_data = f.read()
-# VIDEO(video_data)

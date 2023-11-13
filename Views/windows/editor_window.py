@@ -2,7 +2,7 @@ from PyQt5.QtWidgets import QApplication,QFileDialog, QListWidget, QListWidgetIt
 from PyQt5.QtCore import pyqtSignal,Qt
 from PyQt5.QtGui import *
 from PyQt5.QtWidgets import QWidget, QVBoxLayout, QLabel, QLineEdit, QTextEdit, QToolBar, QAction, QApplication, QDesktopWidget
-from email_util import Email, print_email
+from EmailService.models import Email
 from datetime import datetime
 import os
 from dataclasses import dataclass

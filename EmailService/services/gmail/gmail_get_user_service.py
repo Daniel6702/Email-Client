@@ -1,4 +1,4 @@
-from email_util import User
+from ...models import User
 from googleapiclient.errors import HttpError
 from ...util import GmailSession
 from ..service_interfaces import GetUserService

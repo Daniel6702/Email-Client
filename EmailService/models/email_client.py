@@ -1,5 +1,7 @@
 from ..factories.email_service_factory import EmailServiceFactory
-from email_util import Email, User, Folder
+from ..models.email import Email
+from ..models.folder import Folder
+from ..models.user import User
 from user_manager import UserDataManager
 
 class EmailClient():

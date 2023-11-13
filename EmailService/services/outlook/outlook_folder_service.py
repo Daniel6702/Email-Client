@@ -1,6 +1,6 @@
 from ..service_interfaces import FolderService
 from ...util import OutlookSession 
-from email_util import Email, Folder
+from ...models import Email, Folder
 import requests
 import logging
 

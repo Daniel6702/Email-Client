@@ -1,4 +1,5 @@
-from email_util import Email, text_to_html
+import html
+from ...models import Email
 import base64
 from email.utils import parsedate_to_datetime
 from datetime import timedelta
@@ -12,7 +13,7 @@ from ...util import GmailSession
 class GmailGetMailsService(GetMailsService):
     def __init__(self, session: GmailSession):
         self.service = session.gmail_service
-
+    '''
     def get_mails(self, folder_id: str ='INBOX', query: str = "", max_results: int = 10) -> Generator[Email, None, None]: #Test for improving loading time
         query = f'in:{folder_id} {query}'
         try:
@@ -31,6 +32,25 @@ class GmailGetMailsService(GetMailsService):
                 logging.error(f"Error processing message {message['id']}: {e}")
 
         logging.info("Successfully parsed email data from Gmail")
+    '''
+
+    def get_mails(self, folder_id: str ='INBOX', query: str = "", max_results: int = 10) -> list[Email]:
+        query = f'in:{folder_id} {query}'
+        try:
+            response = self.service.users().messages().list(userId='me', q=query, maxResults = max_results, includeSpamTrash = False).execute()
+            messages = response.get('messages', [])
+            logging.info(f"Successfully retrieved email id's from Gmail")
+        except Exception as e:
+            logging.error(f"An error occurred: {e}")
+            raise Exception(f"Request failed: {e}")    
+
+        email_list = []
+        for message in messages:
+            message_data = self.get_message_data('me', message['id'])
+            email = Email(*self.extract_data_from_message(message_data))
+            email_list.append(email)
+        logging.info(f"Successfully parsed email data from Gmail")
+        return email_list
         
     def get_message_data(self, user_id: str, message_id: str) -> dict:
         try:
@@ -108,7 +128,7 @@ class GmailGetMailsService(GetMailsService):
                 text_content += data
                 
         if not html_content and text_content:
-            html_content = text_to_html(text_content)
+            html_content = self.text_to_html(text_content)
 
         return html_content
 
@@ -143,25 +163,20 @@ class GmailGetMailsService(GetMailsService):
 
         return attachments_list
     
+    def text_to_html(self,text):
+        escaped_text = html.escape(text)
+        return f"""
+                <!DOCTYPE html>
+                <html>
+                <body>
+                    <p>{escaped_text}</p>
+                </body>
+                </html>
+                """
+    
 
 
 
-    '''
-    def get_mails(self, folder_id: str ='INBOX', query: str = "", max_results: int = 10) -> list[Email]:
-        query = f'in:{folder_id} {query}'
-        try:
-            response = self.service.users().messages().list(userId='me', q=query, maxResults = max_results, includeSpamTrash = False).execute()
-            messages = response.get('messages', [])
-            logging.info(f"Successfully retrieved email id's from Gmail")
-        except Exception as e:
-            logging.error(f"An error occurred: {e}")s
-            raise Exception(f"Request failed: {e}")    
+    
 
-        email_list = []
-        for message in messages:
-            message_data = self.get_message_data('me', message['id'])
-            email = Email(*self.extract_data_from_message(message_data))
-            email_list.append(email)
-        logging.info(f"Successfully parsed email data from Gmail")
-        return email_list
-    '''
+    

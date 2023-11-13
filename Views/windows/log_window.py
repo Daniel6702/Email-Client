@@ -1,7 +1,7 @@
 import logging
-from PyQt5.QtWidgets import QApplication, QMainWindow, QTextEdit, QVBoxLayout, QWidget, QPushButton, QCheckBox, QHBoxLayout, QDesktopWidget
+from PyQt5.QtWidgets import QMainWindow, QTextEdit, QVBoxLayout, QWidget, QPushButton, QCheckBox, QHBoxLayout, QDesktopWidget
 from PyQt5.QtCore import pyqtSlot
-from PyQt5.QtGui import QTextCursor, QColor, QIcon
+from PyQt5.QtGui import QColor, QIcon
 
 class LogWindow(QMainWindow):
     def __init__(self):
