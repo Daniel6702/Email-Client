@@ -10,3 +10,7 @@ class GmailSession:
 class OutlookSession:
     result: dict
     credentials: dict
+
+@dataclass
+class TestSession:
+    credentials: str

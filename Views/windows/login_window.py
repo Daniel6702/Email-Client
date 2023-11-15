@@ -4,6 +4,8 @@ from PyQt5.QtGui import *
 from EmailService.models.email_client import EmailClient
 from EmailService.factories.gmail_service_factory import GmailServiceFactory
 from EmailService.factories.outlook_service_factory import OutlookServiceFactory
+from EmailService.factories.test_service_factory import TestServiceFactory
+
 from user_manager import UserDataManager
 import threading
 '''
@@ -162,6 +164,11 @@ class LoginScreen(QWidget):
         layout.addLayout(grid)
         layout.addWidget(new_user_button,0, Qt.AlignCenter)
 
+        #TEMPORARY
+        self.developer_mode_checkbox = QCheckBox("Developer Mode")
+        self.developer_mode_checkbox.setStyleSheet("QCheckBox { color: black; }")
+        layout.addWidget(self.developer_mode_checkbox)
+
     def switch_to_existing_user_login_layout(self):
         self.previous_index = self.stacked_widget.currentIndex()
         self.stacked_widget.setCurrentIndex(0)
@@ -214,6 +221,9 @@ class LoginScreen(QWidget):
                 factory = OutlookServiceFactory()
             else:
                 return  # Optionally handle the case where client_type is invalid
+            
+            if self.developer_mode_checkbox.isChecked(): #TEMPORARY
+                factory = TestServiceFactory()
 
             client = EmailClient(factory, self.user_manager)
             client.login(user=user, save_user=self.remember_me_checkbox.isChecked())

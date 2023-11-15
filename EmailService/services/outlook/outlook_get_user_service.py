@@ -4,6 +4,9 @@ from ...models import User
 import requests
 import logging
 
+from dataclasses import asdict
+import json
+
 class OutlookGetUserService(GetUserService):
     def __init__(self, session: OutlookSession):
         self.result = session.result
@@ -22,6 +25,15 @@ class OutlookGetUserService(GetUserService):
             credentials = {'credentials': self.result.get('refresh_token')}
             user = User(name = name, email = email, client_type="outlook", credentials=credentials)
             logging.info(f"Successfully retrieved user data from Outlook")
+
+
+            user_dict = asdict(user)
+            with open("EmailService\\services\\test_service\\test_service_mock_data.json", "r") as f:
+                existing_data = json.load(f)
+            existing_data['user'] = user_dict
+            with open("EmailService\\services\\test_service\\test_service_mock_data.json", "w") as f:
+                json.dump(existing_data, f, indent=4)
+
             return user
         except requests.RequestException as e:
             logging.error(f"An error occurred: {e}")

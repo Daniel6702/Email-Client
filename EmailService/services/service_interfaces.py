@@ -18,6 +18,10 @@ class LoginService(ABC):
     def login_user(self, user: User):
         pass
 
+    @abstractmethod
+    def get_session(self):
+        pass
+
 ###############################
 
 class SendMailService(ABC):

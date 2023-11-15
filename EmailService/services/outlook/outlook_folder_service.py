@@ -32,9 +32,8 @@ class OutlookFolderService(FolderService):
                 return folders if parent is None else parent.children
             except requests.RequestException as e:
                 logging.error(f"An error occurred: {e}")
-        logging.info("Getting folders from Outlook")
+        logging.info("Getting folders from Outlook")     
         return _get_email_folders()
-
 
     def create_folder(self, folder: Folder, parent_folder: Folder = None) -> Folder:
         headers = {

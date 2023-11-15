@@ -8,6 +8,7 @@
 - [x] Clean up code (email_util, main_window)
 - [ ] Perhaps make dedicated pyqt signal hub thing instead of having it all connected to the main window, such that it only need to handle ui stuff
 - [ ] Create seperate search services for each client type
+- [ ] Retrieve date and time from gmail
 
 ### Attachments
 - [x] Preview PDFs
