@@ -7,12 +7,12 @@ class MainWindowController():
     def __init__(self, main_window, email_client: EmailClient):
         self.main_window = main_window
         self.email_client = email_client
+        self.setup_connections()
         self.current_folder = None
         folders = self.email_client.get_folders()
         self.delete_folder = self.get_delete_folder(folders)
         self.main_window.folder_area.add_folders(folders)
-        self.setup_connections()
-
+        
     def setup_connections(self):
         self.main_window.folder_area.folder_selected.connect(self.on_folder_selected)
         self.main_window.email_list_area.email_clicked.connect(self.on_email_clicked)

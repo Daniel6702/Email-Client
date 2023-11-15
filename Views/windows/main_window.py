@@ -35,9 +35,9 @@ class MainWindow(QMainWindow):
 
         #Create Grid
         grid_layout = QGridLayout()
-        grid_layout.setColumnStretch(0, 1)
-        grid_layout.setColumnStretch(1, 3) 
-        grid_layout.setColumnStretch(2, 6)  
+        grid_layout.setColumnStretch(0, 2)
+        grid_layout.setColumnStretch(1, 5)
+        grid_layout.setColumnStretch(2, 7)
         grid_layout.addLayout(self.search_area, 0, 0, 1, 2)
         grid_layout.addLayout(self.email_list_area, 1, 1)
         grid_layout.addLayout(self.folder_area, 1, 0)

@@ -1,4 +1,4 @@
-from PyQt5.QtWidgets import QStackedWidget,QApplication, QListWidget, QLabel, QMainWindow,QFrame, QDesktopWidget, QSplitter, QCheckBox, QFormLayout, QLineEdit, QVBoxLayout, QHBoxLayout, QWidget, QGridLayout, QPushButton, QWidget, QLayout
+from PyQt5.QtWidgets import QSpacerItem,QSizePolicy,QStackedWidget,QApplication, QListWidget, QLabel, QMainWindow,QFrame, QDesktopWidget, QSplitter, QCheckBox, QFormLayout, QLineEdit, QVBoxLayout, QHBoxLayout, QWidget, QGridLayout, QPushButton, QWidget, QLayout
 from PyQt5.QtCore import QUrl, Qt, pyqtSignal, QSettings,QSize, QEasingCurve, QPropertyAnimation, QRect, QPoint, QThread
 from PyQt5.QtGui import *
 from EmailService.models.email_client import EmailClient
@@ -50,9 +50,23 @@ class LoginScreen(QWidget):
         
         self.setLayout(self.layout)
 
-    def loading_screen_layout(self,parent_widget):
+    def loading_screen_layout(self, parent_widget):
         layout = QVBoxLayout(parent_widget)
-        label = QLabel("Loading...")
+        gif_container = QWidget()
+        gif_layout = QVBoxLayout(gif_container)
+        gif_label = QLabel()
+        movie = QMovie('Images\\loading.gif')
+        gif_label.setMovie(movie)
+        movie.start()
+        movie.setScaledSize(QSize(150, 150))
+        gif_label.setAlignment(Qt.AlignCenter)
+        gif_layout.addWidget(gif_label)
+        layout.addWidget(gif_container, 0, Qt.AlignCenter)
+        label = QLabel("Loading... Please wait")
+        label.setObjectName("loading_label")
+        label.setAlignment(Qt.AlignCenter)
+        spacer = QSpacerItem(20, 40, QSizePolicy.Minimum, QSizePolicy.Expanding)
+        layout.addItem(spacer)
         layout.addWidget(label, 0, Qt.AlignCenter)
 
     def start_animation(self):
@@ -75,7 +89,8 @@ class LoginScreen(QWidget):
         
         '''Add remember me checkbox'''
         self.remember_me_checkbox = QCheckBox("Remember Me")
-        self.remember_me_checkbox.setMaximumWidth(145)
+        self.remember_me_checkbox.setObjectName("remember_me_checkbox")
+        #self.remember_me_checkbox.setMaximumWidth(160)
         layout.addWidget(self.remember_me_checkbox)
 
         '''Add login buttons'''

@@ -6,6 +6,8 @@ from Views.windows.attachment_window import AttachmentWindow
 from Views.windows.log_window import LogWindow
 from Testing.logging import setup_logger
 import logging
+import os
+import re
 
 class WindowController:
     def __init__(self, app, logging: bool = True):
@@ -13,7 +15,7 @@ class WindowController:
         self.show_login()
         if logging:
             self.show_logging()
-        
+
     def show_login(self):
         logging.info("Showing login window")
         self.login_window = LoginScreen()

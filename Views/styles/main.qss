@@ -1,0 +1,33 @@
+
+
+
+QPushButton#new_mail_button {
+  background-color: %SECONDARY_COLOR%;
+  color: %TEXT_COLOR%;
+  font-weight: 600;
+  border-radius: 8px;
+  border: 2px solid %BORDER_COLOR%;
+  padding: 6px 18px;
+  margin-top: 5px;
+  outline: none;
+}
+QPushButton:hover#new_mail_button {
+  background-color: %PRIMARY_COLOR%;
+  color: %TEXT_COLOR%;
+  font-weight: 600;
+  border-radius: 8px;
+  border: 2px solid %SECONDARY_COLOR%;
+  padding: 6px 18px;
+  margin-top: 5px;
+  outline: none;
+}
+QPushButton:pressed#new_mail_button {
+  background-color: %ACCENT_COLOR%;
+  color: %TEXT_COLOR%;
+  font-weight: 600;
+  border-radius: 8px;
+  border: 2px solid %PRIMARY_COLOR%;
+  padding: 6px 18px;
+  margin-top: 5px;
+  outline: none;
+}

@@ -1,0 +1,67 @@
+QLabel#from_label {
+  background-color: %APP_BACKGROUND_COLOR%;
+  color: %TEXT_COLOR_SECONDARY%;
+  border: 0px solid %BORDER_COLOR%;
+  padding: 0px; 
+  margin: 0px;
+  border-radius: 0px;
+  font-weight: 600;
+  font-size: 16px;
+}
+QLabel#subject_label {
+  background-color: %APP_BACKGROUND_COLOR%;
+  color: %TEXT_COLOR_SECONDARY%;
+  border: 0px solid %BORDER_COLOR%;
+  padding: 0px; 
+  margin: 0px;
+  border-radius: 0px;
+  font-size: 14px;
+  font-weight: 400;
+}
+QLabel#body_label {
+  background-color: %APP_BACKGROUND_COLOR%;
+  color: %TEXT_COLOR_SECONDARY%;
+  border: 0px solid %BORDER_COLOR%;
+  padding: 0px; 
+  margin: 0px;
+  border-radius: 0px;
+  font-size: 12px;
+  font-weight: 200;
+}
+
+QPushButton#list_button {
+  background-color: %APP_BACKGROUND_COLOR%;
+  color: %TEXT_COLOR_SECONDARY%;
+  border: 2px solid %BORDER_COLOR%;
+  padding: 0px; 
+  margin: 0px;
+  border-radius: 0px;
+}
+QPushButton:hover#list_button {
+  background-color: %SECONDARY_COLOR%;
+  color: %TEXT_COLOR%;
+  border: 2px solid %BORDER_COLOR%;
+  padding: 0px; 
+  margin: 0px;
+  border-radius: 0px;
+}
+QPushButton:pressed#list_button {
+  background-color: %PRIMARY_COLOR%;
+  color: %TEXT_COLOR%;
+  border: 2px solid %BORDER_COLOR%;
+  padding: 0px; 
+  margin: 0px;
+  border-radius: 0px;
+}
+
+
+
+QListWidget#email_list::item:hover {
+  border: 2px solid #2f5661;
+  color: %TEXT_COLOR%;
+}
+
+QListWidget#email_list::item:selected {
+  border: 3px solid #229cbe;
+  color: %TEXT_COLOR%;
+}

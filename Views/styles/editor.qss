@@ -1,0 +1,32 @@
+QToolButton#toolbar_button {
+    background-color: %BACKGROUND_COLOR%;
+    color: %TEXT_COLOR_SECONDARY%;
+    border-radius: 5px;
+    border: 2px solid %ACCENT_COLOR%;
+    padding: 6px 10px;
+    font-weight: 500;
+}
+
+QToolButton:hover#toolbar_button {
+    background-color: %SECONDARY_COLOR%;
+    color: %TEXT_COLOR%;
+    border-radius: 5px;
+    border: 2px solid %ACCENT_COLOR%;
+    padding: 6px 10px;
+}
+
+QToolButton:checked#toolbar_button {
+    background-color: %PRIMARY_COLOR%;
+    color: %TEXT_COLOR%;
+    border-radius: 5px;
+    border: 2px solid %BORDER_COLOR%;
+    padding: 6px 10px;
+}
+
+QToolButton:pressed#toolbar_button {
+    background-color: %PRIMARY_COLOR%;
+    color: %TEXT_COLOR%;
+    border-radius: 5px;
+    border: 2px solid %BORDER_COLOR%;
+    padding: 6px 10px;
+}

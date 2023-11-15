@@ -1,0 +1,62 @@
+QWidget {
+    background-color: %APP_BACKGROUND_COLOR%;
+}
+
+QPushButton {
+  background-color: %PRIMARY_COLOR%;
+  color: %TEXT_COLOR%;
+  font-weight: 600;
+  border-radius: 8px;
+  border: 2px solid %ACCENT_COLOR%;
+  padding: 8px 16px;
+  margin-top: 5px;
+  text-align: center;
+}
+QPushButton:hover {
+  background-color: qlineargradient(x1:0, y1:0, x2:1, y2:1,
+                                    stop:0 %PRIMARY_COLOR%, stop:1 %SECONDARY_COLOR%);
+  border: 2px solid %ACCENT_COLOR%;
+}
+QPushButton:pressed {
+  background-color: qlineargradient(x1:0, y1:0, x2:1, y2:1,
+                                    stop:0 %ACCENT_COLOR%, stop:1 %SECONDARY_COLOR%);
+  border: 2px solid %BORDER_COLOR%;
+}
+
+QCheckBox {
+    background-color: %BACKGROUND_COLOR%;
+    color: %TEXT_COLOR%;
+    font-weight: 600;
+    border-radius: 8px;
+    border: 1px solid %BORDER_COLOR%;
+    padding: 5px 15px;
+    margin-top: 10px;
+    outline: 0px;
+}
+QCheckBox::indicator {
+    width: 20px;
+    height: 20px;
+}
+QCheckBox::indicator:checked {
+    /*image here*/
+}
+
+
+QLineEdit {
+  background-color: %BACKGROUND_COLOR%;
+  color: %TEXT_COLOR_SECONDARY%;
+  border: 2px solid %ACCENT_COLOR%;
+  padding: 6px 12px;
+  border-radius: 4px;
+  selection-background-color: %PRIMARY_COLOR%;
+  selection-color: %TEXT_COLOR%;
+}
+
+
+QLabel {
+  color: %TEXT_COLOR_SECONDARY%;
+  margin: 5px; 
+  font-weight: 600;
+  font-size: 12px; 
+  padding: 2px;
+}

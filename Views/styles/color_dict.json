@@ -1,0 +1,14 @@
+{
+    "lightmode": {
+        "PRIMARY_COLOR": "#20399e",
+        "SECONDARY_COLOR": "#3a6073",
+        "ACCENT_COLOR": "#0f3357",
+        "BORDER_COLOR": "#000",
+        "BACKGROUND_COLOR": "#f2f2f2",
+        "APP_BACKGROUND_COLOR": "#f0f0f0",
+        "TEXT_COLOR": "#fff",
+        "TEXT_COLOR_SECONDARY": "#000"
+    },
+    "darkmode": {
+    }
+}

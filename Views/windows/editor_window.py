@@ -19,7 +19,7 @@ class EditorWindow(QWidget):
         main_layout = QVBoxLayout()
 
         # Recipient line
-        recipient_label = QLabel("Modtagere")
+        recipient_label = QLabel("Recipient(s)")
         self.recipient_line_edit = QLineEdit()
         if self.draft and isinstance(self.draft.to_email, list):
             self.recipient_line_edit.setText(", ".join(self.draft.to_email))
@@ -29,7 +29,7 @@ class EditorWindow(QWidget):
         main_layout.addWidget(self.recipient_line_edit)
 
         # Subject line
-        subject_label = QLabel("Emne")
+        subject_label = QLabel("Subject")
         self.subject_line_edit = QLineEdit()
         if self.draft:
             self.subject_line_edit.setText(self.draft.subject)

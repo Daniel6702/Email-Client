@@ -10,7 +10,6 @@ class Folder:
     def __str__(self):
         return f"Name: {self.name}\nID: {self.id}\nChildren: {self.children}"
 
-
 def print_folder_hierarchy(folders, indent=0):
     for folder in folders:
         print('  ' * indent + folder.name)
