@@ -14,6 +14,7 @@ PAGE_SIZE = 15
 class MainWindow(QMainWindow):
     open_editor_window = pyqtSignal(object)
     open_settings_window = pyqtSignal()
+    open_contacts_window = pyqtSignal()
     open_attachment_window = pyqtSignal(dict)
     get_email_from_editor = pyqtSignal(object, str)
     def __init__(self, email_client: EmailClient):

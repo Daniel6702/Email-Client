@@ -4,6 +4,7 @@ from Views.windows.editor_window import EditorWindow
 from Views.windows.settings_window import SettingsWindow
 from Views.windows.attachment_window import AttachmentWindow
 from Views.windows.log_window import LogWindow
+from Views.windows.contact_window import ContactWindow
 from Testing.logging_handler import setup_logger
 import logging
 import os
@@ -27,6 +28,7 @@ class WindowController:
         self.main_window = MainWindow(client_obj)
         self.main_window.open_editor_window.connect(self.show_editor)
         self.main_window.open_settings_window.connect(self.show_settings)
+        self.main_window.open_contacts_window.connect(self.show_contacts)
         self.main_window.open_attachment_window.connect(self.show_attachment)
         self.main_window.show()
         self.login_window.close()
@@ -45,6 +47,11 @@ class WindowController:
     def show_settings(self):
         logging.info("Showing settings window")
         self.settings_window = SettingsWindow()
+        self.settings_window.show()
+
+    def show_contacts(self):
+        logging.info("Showing contacts window")
+        self.settings_window = ContactWindow()
         self.settings_window.show()
 
     def show_logging(self):
