@@ -55,9 +55,27 @@ class ToolBarMenu(QToolBar):
 
     # Define the functions that will be called when the toolbar buttons are clicked
     def forward(self):
-        mail = copy.copy(self.current_email)
-        mail.from_email = 'me'
-        mail.to_email = ''
+        date_value = self.current_email.datetime_info['date']
+        time_value = datetime.strptime(self.current_email.datetime_info['time'], '%H:%M:%S.%f')
+        
+        formatted_time_value = time_value.strftime('%H:%M:%S')
+        
+        mail = Email(from_email='me',
+                     to_email= '',
+                     subject=None,
+                     body=f'<br> <br> ---- Forwarded Email ---- <br>'
+                     f'From: {self.current_email.from_email} <br>'
+                     f'Date/time: {date_value} - {formatted_time_value} <br>'
+                     f'To: {self.current_email.to_email} <br>'
+                     f'Subject: {self.current_email.subject} <br>'
+                     f'{self.current_email.body}',
+                     datetime_info = {'date': str(datetime.now().date()),
+                                      'time': str(datetime.now().time())},
+                     attachments= self.current_email.attachments,
+                     id=None)
+        # mail = copy.copy(self.current_email)
+        # mail.from_email = 'me'
+        # mail.to_email = ''
         self.open_email_editor_window.emit(mail)
 
     def answer(self):
