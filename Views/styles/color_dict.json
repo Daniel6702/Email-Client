@@ -10,5 +10,23 @@
         "TEXT_COLOR_SECONDARY": "#000"
     },
     "darkmode": {
+        "PRIMARY_COLOR": "#1a1a1a",
+        "SECONDARY_COLOR": "#333333",
+        "ACCENT_COLOR": "#0bda51",
+        "BORDER_COLOR": "#555",
+        "BACKGROUND_COLOR": "#000",
+        "APP_BACKGROUND_COLOR": "#111",
+        "TEXT_COLOR": "#fff",
+        "TEXT_COLOR_SECONDARY": "#ccc"
+    },
+    "barbiemode": {
+        "PRIMARY_COLOR": "#ff69b4",
+        "SECONDARY_COLOR": "#da70d6",
+        "ACCENT_COLOR": "#ffd700",
+        "BORDER_COLOR": "#ff1493",
+        "BACKGROUND_COLOR": "#fff0f5",
+        "APP_BACKGROUND_COLOR": "#ffe4e1",
+        "TEXT_COLOR": "#000",
+        "TEXT_COLOR_SECONDARY": "#9400d3"
     }
 }

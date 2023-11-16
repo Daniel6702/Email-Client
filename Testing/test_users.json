@@ -1,0 +1,16 @@
+[
+    {
+        "name": "DACA",
+        "email": "dacasoftdev.test@gmail.com",
+        "client_type": "google",
+        "credentials": "{\"token\": \"ya29.a0AfB_byAu8xnF6ypBu0ZfODT2TIVRjChiVsXwnfR9eTvL1cwkLB9td1X4wkQNnVzhSTOjWsQMvC4PAwSZJfEzfLwmzgXC9n8fhaQg868uCl7ZlIW5wBsVYjQfJt4ERv6v73mMzhisbmlsJ30-awrHiJhThM5mZxwQMXySaCgYKAagSARMSFQHGX2MiWpr9EZxRHN9VgipoJnyCkQ0171\", \"refresh_token\": \"1//0ccdwXmhWyHPkCgYIARAAGAwSNwF-L9Irc4PC3zYXB5986vVPovBgGtsfqmnoC45BNxt_B_FLisjp7eBbDr7c3dPrk8SWVyf-V-0\", \"token_uri\": \"https://oauth2.googleapis.com/token\", \"client_id\": \"292747207172-ji8kc1isegb95v08bdo62bnu19a8gk3m.apps.googleusercontent.com\", \"client_secret\": \"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\", \"expiry\": \"2023-11-16T08:28:10.795810Z\"}"
+    },
+    {
+        "name": "DACA Software Solutions",
+        "email": "DACASoftDev_test@hotmail.com",
+        "client_type": "outlook",
+        "credentials": {
+            "credentials": "M.C105_BL2.-CZTe36e*cACcswnxaeiWELiLaoF!XZKsceZjMVfVGnT!OVx6xH9d7rcRX3fjQ3w7sgDjmP5xRIr!8nb*7sIZelBAjIVg7ubX4ow8L9Jdd3YapB9exlq*J5g2uNG50IFtobEiMdvyiI7BxkO6Mi8o7zOfWtEu0!U8Q0zP1RaFTxrysB!swNla42!mBXD7KWYoQ*RX0hvw6a7lSxSJq7OGjfHQqzKXNho07S4A!!RnvIH0596OlbDHSWRoubtbeu4l6cvZdtrYBr6dYceDWl5VCbN4TEuutYLrAkZ0*zqwG4*NwoLcRlaRK5JbfsNQVJD1fTkXT95mawLgFO1QxhGeIiB6208ny*RcWreOvsnhn7btYycOgcPtFCp9620ut2W*0v!!adHTEjvFx0t3VElE7to$"
+        }
+    }
+]

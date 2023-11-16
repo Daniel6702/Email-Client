@@ -4,7 +4,7 @@ from Views.windows.editor_window import EditorWindow
 from Views.windows.settings_window import SettingsWindow
 from Views.windows.attachment_window import AttachmentWindow
 from Views.windows.log_window import LogWindow
-from Testing.logging import setup_logger
+from Testing.logging_handler import setup_logger
 import logging
 import os
 import re

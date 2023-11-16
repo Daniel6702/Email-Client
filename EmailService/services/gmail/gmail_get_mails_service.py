@@ -79,7 +79,7 @@ class GmailGetMailsService(GetMailsService):
                 to_email = header['value']
                 break
         return to_email
-    
+        
     def extract_sender(self, message_data: dict) -> str:
         headers = message_data['payload']['headers']
         return next((header['value'] for header in headers if header['name'] == 'From'), None).strip()

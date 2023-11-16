@@ -5,6 +5,6 @@ from Views.styles.style_manager import StyleManager
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
-    style = StyleManager(app).set_style('lightmode')
+    style = StyleManager(app).set_style('barbiemode')
     window_controller = WindowController(app)
     sys.exit(app.exec_())

@@ -1,58 +1,105 @@
-import unittest
+import sys
+from pathlib import Path
+root_path = Path(__file__).resolve().parent.parent
+sys.path.append(str(root_path))
+from EmailService.models.email_client import EmailClient
+from EmailService.factories.gmail_service_factory import GmailServiceFactory
+from EmailService.factories.outlook_service_factory import OutlookServiceFactory
+from EmailService.models import User, Email
+from user_manager import UserDataManager
+import json
 from datetime import datetime
-import email_util
-import client_controller
-from time import sleep
-import flask_app
+import time
+from html.parser import HTMLParser
 
-class SendRecieveEmailTest(unittest.TestCase):
-    client = None  
+user_manager = UserDataManager('Testing\\test_users.bin')
+with open('Testing\\test_users.json', 'r') as f:
+    users = json.load(f)
 
-    def setUp(self):
-        self.client = SendRecieveEmailTest.client
+gmail_user = User.from_dict(users[0])
+gmail_client = EmailClient(GmailServiceFactory(), user_manager)
+gmail_client.login(gmail_user, False)
 
-    def test_email_received(self):
-        email_sent = email_util.get_test_email(self.client.client_type)
-        self.client.send_email(email_sent)
-        print("Email sent!")
-        
-        sleep(5)
-        
-        email_received = self.client.get_emails(number_of_mails=1)[0]
-        print("Email received!")
+outlook_user = User.from_dict(users[1])
+outlook_client = EmailClient(OutlookServiceFactory(), user_manager)
+outlook_client.login(outlook_user, False)
 
-        # Check if email received is the same as email sent
-        self.assertEqual(email_received.from_email, email_sent.from_email)
-        self.assertEqual(email_received.to_email, email_sent.to_email[0])
-        self.assertEqual(email_received.subject, email_sent.subject)
-        self.assertTrue(email_util.visually_similar(email_received.body, email_util.text_to_html(email_sent.body)))
+mock_outlook_email = Email(from_email=outlook_user.email,
+                   to_email=[outlook_user.email],
+                   subject='Test Email',
+                   body='This is a test email',
+                   datetime_info = {'date': str(datetime.now().date()),
+                                    'time': str(datetime.now().time())},
+                   attachments=[],
+                   id=None,
+                   is_read=False)
 
-        datetime1 = datetime.strptime(email_received.datetime_info['date'] + ' ' + email_received.datetime_info['time'], '%Y-%m-%d %H:%M:%S.%f')
-        datetime2 = datetime.strptime(email_sent.datetime_info['date'] + ' ' + email_sent.datetime_info['time'], '%Y-%m-%d %H:%M:%S.%f')
-        self.assertTrue(abs((datetime1 - datetime2).total_seconds()) < 120)
+mock_gmail_email = Email(from_email=gmail_user.email,
+                   to_email=[gmail_user.email],
+                   subject='Test Email',
+                   body='This is a test email',
+                   datetime_info = {'date': str(datetime.now().date()),
+                                    'time': str(datetime.now().time())},
+                   attachments=[],
+                   id=None,
+                   is_read=False)
 
-        self.assertEqual(str(email_received.attachments[0].get('file_name')), 'Notes.txt')
+class HTMLTextExtractor(HTMLParser):
+    def __init__(self):
+        super().__init__()
+        self.result = []
 
+    def handle_data(self, data):
+        self.result.append(data)
 
-def suite_setup(client_outlook, client_google):
-    # Load tests for outlook client
-    SendRecieveEmailTest.client = client_outlook
-    test1 = unittest.TestLoader().loadTestsFromTestCase(SendRecieveEmailTest)
+    def get_text(self):
+        return "".join(self.result)
+
+def extract_text_from_html(html):
+    parser = HTMLTextExtractor()
+    parser.feed(html)
+    return parser.get_text()
+
+def compare_emails(sent_email, received_email):
+    mismatches = []
+
+    if sent_email.from_email != received_email.from_email:
+        mismatches.append(f"Sender mismatch: sent '{sent_email.from_email}', received '{received_email.from_email}'")
+
+    if sent_email.to_email[0] != received_email.to_email:
+        mismatches.append(f"Recipients mismatch: sent '{sent_email.to_email[0]}', received '{received_email.to_email}'")
+
+    if sent_email.subject != received_email.subject:
+        mismatches.append(f"Subject mismatch: sent '{sent_email.subject}', received '{received_email.subject}'")
+
+    sent_body_text = extract_text_from_html(sent_email.body)
+    received_body_text = extract_text_from_html(received_email.body)
     
-    # Load tests for google client
-    SendRecieveEmailTest.client = client_google
-    test2 = unittest.TestLoader().loadTestsFromTestCase(SendRecieveEmailTest)
-    
-    combined_suite = unittest.TestSuite([test1, test2])
-    return combined_suite
+    if sent_body_text.strip() != received_body_text.strip():
+        mismatches.append("Body content mismatch")
 
-if __name__ == '__main__':
-    users = email_util.load_users_from_file('Certificates\\users.json')
-    client_google = client_controller.ClientController('google')
-    client_google.login(users[0])
-    client_outlook = client_controller.ClientController('outlook') 
-    client_outlook.login(users[1])
+    return mismatches
 
-    test_suite = suite_setup(client_outlook,client_google)
-    runner = unittest.TextTestRunner()
-    runner.run(test_suite)
+gmail_client.send_mail(mock_gmail_email)
+outlook_client.send_mail(mock_outlook_email)
+time.sleep(5)
+received_outlook_email = outlook_client.get_mails(folder_id="", query="",max_results=1)[0]
+received_gmail_email = gmail_client.get_mails(folder_id="", query="",max_results=1)[0]
+
+mismatches1 = compare_emails(mock_gmail_email, received_gmail_email)
+mismatches2 = compare_emails(mock_outlook_email, received_outlook_email)
+
+if mismatches1:
+    print("Differences found:")
+    for mismatch in mismatches1:
+        print(mismatch)
+
+print("\n")
+
+if mismatches2:
+    print("Differences found:")
+    for mismatch in mismatches2:
+        print(mismatch)
+
+if not mismatches1 and not mismatches2:
+    print("TEST PASSED")

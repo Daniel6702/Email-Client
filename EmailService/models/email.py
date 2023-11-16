@@ -20,7 +20,7 @@ class Email:
             "\nEmail Info:\n",
             f"Email ID: {self.id or 'N/A'}",
             f"From: {self.from_email}",
-            f"To: {', '.join(self.to_email)}",
+            f"To: {self.to_email}",
             f"Subject: {self.subject}",
             f"Date and Time: {self.datetime_info}",
             f"Is Read: {'Yes' if self.is_read else 'No'}",
