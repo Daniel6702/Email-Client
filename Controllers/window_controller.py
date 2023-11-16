@@ -9,13 +9,16 @@ from Testing.logging_handler import setup_logger
 import logging
 import os
 import re
+from Views.styles.style_manager import StyleManager
 
 class WindowController:
     def __init__(self, app, logging: bool = True):
         self.app = app
+        self.style = StyleManager(app).set_style('barbiemode')
         self.show_login()
         if logging:
             self.show_logging()
+
 
     def show_login(self):
         logging.info("Showing login window")
@@ -58,3 +61,17 @@ class WindowController:
         self.logging_window = LogWindow()
         self.logging_window.show()
         setup_logger(self.logging_window)
+
+
+    def change_style(self, style_name):
+        logging.info(f"Changing style to: {style_name}")
+        self.style.set_style(style_name)
+
+        # Additional logic if needed, e.g., updating UI components
+
+        # You might also want to propagate the style change to other windows
+        if hasattr(self, 'main_window'):
+            self.main_window.update_style(style_name)
+
+        if hasattr(self, 'editor_window'):
+            self.editor_window.update_style(style_name)

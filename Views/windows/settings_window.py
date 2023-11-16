@@ -6,7 +6,7 @@ from datetime import datetime
 import os
 
 class SettingsWindow(QWidget):
-    settings_signal = pyqtSignal(object)
+    style_signal = pyqtSignal(object)
 
     def __init__(self):
         super().__init__()
@@ -47,17 +47,14 @@ class SettingsWindow(QWidget):
         main_layout.setColumnStretch(1, 3)  # Make the left column take 1/4 of the window
 
         # Right layout for content
-        content_layout = QVBoxLayout()
-
-        # Right layout for content
-        content_layout = QVBoxLayout()
+        self.content_layout = QVBoxLayout()
         # Placeholder labels for content
         self.content_label = QLabel("Select an option on the left to view content.")
 
         # Add content labels to the right layout
 
         # Set the right layout for content
-        main_layout.addLayout(content_layout, 0, 1)
+        main_layout.addLayout(self.content_layout, 0, 1)
 
         self.setLayout(main_layout)
 
@@ -77,8 +74,36 @@ class SettingsWindow(QWidget):
         print("Show Notification Settings")
 
     def display_settings(self):
-        # Implement the functionality for display settings here
-        print("Show Display Settings")
+    # Clear the existing content layout
+        self.clear_content_layout()
+
+        # Create a new widget for display settings
+        display_widget = QWidget()
+
+        # Layout for display settings
+        display_layout = QVBoxLayout()
+
+        # Add buttons for different display options
+        button1 = QPushButton("Light mode")
+        button2 = QPushButton("Dark mode")
+        button3 = QPushButton("Barbiemode")
+
+        # Connect buttons to functions if needed
+        button1.clicked.connect(self.light_mode_option)
+        button2.clicked.connect(self.dark_mode_option)
+        button3.clicked.connect(self.barbie_mode_option)
+
+        # Add buttons to the layout
+        display_layout.addWidget(button1)
+        display_layout.addWidget(button2)
+        display_layout.addWidget(button3)
+
+        # Set the layout for the display widget
+        display_widget.setLayout(display_layout)
+
+        # Add the display widget to the content layout
+        self.content_layout.addWidget(display_widget)
+
 
     def rules_settings(self):
         # Implement the functionality for rules settings here
@@ -94,3 +119,28 @@ class SettingsWindow(QWidget):
     def logout_settings(self):
         # Emit the settings_signal with the "logout" action
         self.settings_signal.emit("logout")
+
+
+
+
+    def light_mode_option(self):
+         self.style_signal.emit("lightmode")
+    def dark_mode_option(self):
+        self.style_signal.emit("darkmode")
+    def barbie_mode_option(self):
+         self.style_signal.emit("barbiemode")
+
+
+    def clear_content_layout(self):
+        # Check if the content layout has any items
+        if self.content_layout.count() > 0:
+            # Create a list to store items for removal
+            items_to_remove = []
+
+            # Add items to the removal list
+            for i in range(self.content_layout.count()):
+                items_to_remove.append(self.content_layout.itemAt(i).widget())
+
+            # Clear the layout
+            for item in items_to_remove:
+                item.setParent(None)

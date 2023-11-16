@@ -54,7 +54,7 @@ class ContactWindow(QWidget):
           # Set the stretch factor for the columns in the QGridLayout
         main_layout.setColumnStretch(0, 5)  # Left column
         main_layout.setColumnStretch(1, 5)  # Right column
-
+    
         self.setLayout(main_layout)
 
 
