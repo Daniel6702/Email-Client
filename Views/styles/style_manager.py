@@ -6,6 +6,7 @@ import json
 class StyleManager():
     def __init__(self, app):
         self.app = app
+        self.set_style('lightmode')
 
     def set_style(self, style):
         self.current_style = style

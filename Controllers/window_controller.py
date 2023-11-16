@@ -14,7 +14,7 @@ from Views.styles.style_manager import StyleManager
 class WindowController:
     def __init__(self, app, logging: bool = True):
         self.app = app
-        self.style = StyleManager(app).set_style('barbiemode')
+        self.style = StyleManager(app)
         self.show_login()
         if logging:
             self.show_logging()
@@ -49,7 +49,8 @@ class WindowController:
 
     def show_settings(self):
         logging.info("Showing settings window")
-        self.settings_window = SettingsWindow()
+        self.settings_window = SettingsWindow(style_manager = self.style)
+        self.settings_window.style_signal.connect(self.style.set_style)
         self.settings_window.show()
 
     def show_contacts(self):
@@ -66,10 +67,8 @@ class WindowController:
     def change_style(self, style_name):
         logging.info(f"Changing style to: {style_name}")
         self.style.set_style(style_name)
-
+        
         # Additional logic if needed, e.g., updating UI components
-
-        # You might also want to propagate the style change to other windows
         if hasattr(self, 'main_window'):
             self.main_window.update_style(style_name)
 
