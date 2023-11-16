@@ -24,6 +24,7 @@ class MainWindowController():
         self.main_window.email_view_area.open_email_editor_window.connect(self.main_window.open_editor_window.emit)
         self.main_window.email_view_area.mark_email_as.connect(self.email_client.mark_email_as)
         self.main_window.get_email_from_editor.connect(self.get_mail_from_editor)
+        self.main_window.search_area.open_contacts_signal.connect(self.main_window.open_contacts_window.emit)
 
     def on_folder_selected(self, folder: Folder):
         logging.info(f"Folder Selected: {folder.name}")
