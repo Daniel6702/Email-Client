@@ -16,13 +16,15 @@ class MainWindowController():
     def setup_connections(self):
         self.main_window.folder_area.folder_selected.connect(self.on_folder_selected)
         self.main_window.email_list_area.email_clicked.connect(self.on_email_clicked)
+        self.main_window.email_list_area.mark_email_as.connect(self.on_mark_email_as)
+        self.main_window.email_list_area.email_deleted.connect(self.on_email_delete)
         self.main_window.search_area.search_signal.connect(self.on_search)
         self.main_window.search_area.new_mail_signal.connect(self.main_window.open_editor_window.emit)
         self.main_window.search_area.open_settings_signal.connect(self.main_window.open_settings_window.emit)
         self.main_window.email_view_area.delete_email_signal.connect(self.on_email_delete)
         self.main_window.email_view_area.open_attachment_window.connect(self.main_window.open_attachment_window.emit)
         self.main_window.email_view_area.open_email_editor_window.connect(self.main_window.open_editor_window.emit)
-        self.main_window.email_view_area.mark_email_as.connect(self.email_client.mark_email_as)
+        self.main_window.email_view_area.mark_email_as.connect(self.on_mark_email_as)
         self.main_window.get_email_from_editor.connect(self.get_mail_from_editor)
         self.main_window.search_area.open_contacts_signal.connect(self.main_window.open_contacts_window.emit)
 
@@ -43,6 +45,10 @@ class MainWindowController():
                 return folder
             else:
                 pass
+
+    def on_mark_email_as(self, email: Email, is_read: bool):
+        self.email_client.mark_email_as(email, is_read)
+        self.main_window.email_list_area.mark_as_func(email, is_read)
 
     def on_email_delete(self, email: Email):
         empty_mail = Email(from_email="",to_email="",subject="",body="Select an email to view it here",datetime_info={},attachments=[], id="")

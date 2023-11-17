@@ -1,16 +1,10 @@
-from PyQt5.QtWidgets import QApplication, QListWidget, QListWidgetItem, QLabel, QMenu, QMainWindow, QDesktopWidget, QSplitter, QCheckBox, QFormLayout, QLineEdit, QVBoxLayout, QHBoxLayout, QWidget, QGridLayout, QPushButton, QWidget
-from PyQt5.QtCore import pyqtSignal,Qt
+from PyQt5.QtWidgets import QAbstractItemView,QSizePolicy,QApplication, QListWidget, QListWidgetItem, QLabel, QMenu, QMainWindow, QDesktopWidget, QSplitter, QCheckBox, QFormLayout, QLineEdit, QVBoxLayout, QHBoxLayout, QWidget, QGridLayout, QPushButton, QWidget
+from PyQt5.QtCore import pyqtSignal,Qt, QEvent, QSize
 from PyQt5.QtGui import *
 from EmailService.models import Email
 
-'''
-TODAY
-improve folder list and email list
-testing
-'''
-
 class EmailWidget(QWidget):
-    mark_as_read = pyqtSignal(Email)
+    mark_email_as = pyqtSignal(Email, bool)
     delete_email = pyqtSignal(Email)
 
     def __init__(self, email: Email, parent=None):
@@ -19,53 +13,102 @@ class EmailWidget(QWidget):
         self.init_ui()
     
     def init_ui(self):
+        self.background_widget = QWidget(self)
+        self.background_widget.setObjectName("background_widget")
         layout = QVBoxLayout()
+        layout.setContentsMargins(0, 0, 0, 0)  # Remove margins
+        layout.setSpacing(0)
 
-        # Email details layout
-        from_label = QLabel(f"From: {self.email.from_email}")
-        from_label.setObjectName("from_label")
-        subject_label = QLabel(f"Subject: {self.email.subject}")
-        subject_label.setObjectName("subject_label")
-        date_label = QLabel(f"Date: {self.email.datetime_info['date']}")
-        date_label.setObjectName("subject_label")
-        date_label.setAlignment(Qt.AlignRight)
-        body_label = QLabel(f"Body: {self.email.body[:50]}...")
-        body_label.setObjectName("body_label")
+ 
+        self.from_label = QLabel(f"From: {self.email.from_email}")
+        self.from_label.setObjectName("from_label")
+        self.subject_label = QLabel(f"Subject: {self.email.subject}")
+        self.subject_label.setObjectName("subject_label")
+        self.date_label = QLabel(f"Date: {self.email.datetime_info['date']}")
+        self.date_label.setObjectName("subject_label")
+        self.date_label.setAlignment(Qt.AlignRight)
+        self.body_label = QLabel(f"Body: {self.email.body[:50]}...")
+        self.body_label.setObjectName("body_label")
 
-        read_button = QPushButton("Mark as Read")
-        read_button.setObjectName("list_button")
-        read_button.clicked.connect(self.on_mark_as_read)
-        read_button.setMaximumWidth(100)
+        self.read_button = QPushButton()
+        self.read_button.setStatusTip("Mark as read")
+        self.read_button.setObjectName("list_button")
+        self.read_button.clicked.connect(self.on_mark_as)
+        self.read_button.setMaximumWidth(30)
 
-        delete_button = QPushButton("Delete")
-        delete_button.setObjectName("list_button")
-        delete_button.clicked.connect(self.on_delete_email)
-        delete_button.setMaximumWidth(100)
+        self.delete_button = QPushButton()
+        self.delete_button.setStatusTip("Delete email")
+        self.delete_button.setIcon(QIcon("Images\\trash.png"))
+        self.delete_button.setObjectName("list_button")
+        self.delete_button.clicked.connect(self.on_delete_email)
+        self.delete_button.setMaximumWidth(30)
 
         top_row = QHBoxLayout()
-        top_row.addWidget(from_label)
-        top_row.addWidget(read_button)
-        top_row.addWidget(delete_button)
-
+        top_row.addWidget(self.from_label)
+        top_row.addWidget(self.read_button)
+        top_row.addWidget(self.delete_button)
+        
         mid_row = QHBoxLayout()
-        mid_row.addWidget(subject_label)
-        mid_row.addWidget(date_label,0, Qt.AlignRight)
+        mid_row.addWidget(self.subject_label)
+        mid_row.addWidget(self.date_label,0, Qt.AlignRight)
 
         layout.addLayout(top_row)
         layout.addLayout(mid_row)
-        layout.addWidget(body_label)
+        layout.addWidget(self.body_label)
 
-        self.setLayout(layout)
+        #create checkbox
+        self.checkbox = QCheckBox()
+        self.checkbox.setObjectName("list_checkbox")
+        self.checkbox.setMaximumWidth(25)
+
+        temp = QHBoxLayout()
+        temp.addWidget(self.checkbox)
+        temp.addLayout(layout)
+
+        self.background_widget.setLayout(temp)        
+        main_layout = QVBoxLayout(self)
+        main_layout.addWidget(self.background_widget)
+        main_layout.setContentsMargins(0, 0, 0, 0)
+        main_layout.setSpacing(0)
+
+        self.setLayout(main_layout)
+
+        self.background_widget.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+
+    def mark_email_as_read(self,new_background=None):
+        self.read_button.setIcon(QIcon("Images\\mark_unread.png"))
+        self.email.is_read = True
+        if not new_background:
+            new_background = self.from_label.palette().color(QPalette.Background)
+        self.background_widget.setStyleSheet("background-color: rgb({},{},{});".format(new_background.red(), new_background.green(), new_background.blue()))
+        self.from_label.setStyleSheet("font-weight: normal; background-color: rgb({},{},{});".format(new_background.red(), new_background.green(), new_background.blue()))
+        self.subject_label.setStyleSheet("font-weight: normal; background-color: rgb({},{},{});".format(new_background.red(), new_background.green(), new_background.blue()))
+        self.date_label.setStyleSheet("font-weight: normal; background-color: rgb({},{},{});".format(new_background.red(), new_background.green(), new_background.blue()))
+        self.body_label.setStyleSheet("font-weight: normal; background-color: rgb({},{},{});".format(new_background.red(), new_background.green(), new_background.blue()))
+
+    def mark_email_as_unread(self,new_background=None):
+        self.read_button.setIcon(QIcon("Images\\mark_read.png"))
+        self.email.is_read = False
+        if not new_background:
+            new_background = self.from_label.palette().color(QPalette.Background)
+        self.background_widget.setStyleSheet("background-color: rgb({},{},{});".format(new_background.red(), new_background.green(), new_background.blue()))
+        self.from_label.setStyleSheet("font-weight: bold; background-color: rgb({},{},{});".format(new_background.red(), new_background.green(), new_background.blue()))
+        self.subject_label.setStyleSheet("font-weight: bold; background-color: rgb({},{},{});".format(new_background.red(), new_background.green(), new_background.blue()))
+        self.date_label.setStyleSheet("font-weight: bold; background-color: rgb({},{},{});".format(new_background.red(), new_background.green(), new_background.blue()))
+        self.body_label.setStyleSheet("font-weight: bold; background-color: rgb({},{},{});".format(new_background.red(), new_background.green(), new_background.blue()))
     
-    def on_mark_as_read(self):
-        self.mark_as_read.emit(self.email)
-
+    def on_mark_as(self):
+        if self.email.is_read:
+            self.mark_email_as.emit(self.email, False)
+        else:
+            self.mark_email_as.emit(self.email, True)
+        
     def on_delete_email(self):
         self.delete_email.emit(self.email)
 
 class EmailListArea(QVBoxLayout):
     email_clicked = pyqtSignal(Email)
-    email_marked_as_read = pyqtSignal(Email)
+    mark_email_as = pyqtSignal(Email, bool)
     email_deleted = pyqtSignal(Email)
 
     def __init__(self):
@@ -78,6 +121,8 @@ class EmailListArea(QVBoxLayout):
         self.addWidget(label)
         self.list_widget = QListWidget()
         self.list_widget.setObjectName("email_list")
+        self.list_widget.setHorizontalScrollMode(QAbstractItemView.ScrollPerPixel)
+        self.list_widget.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         self.addWidget(self.list_widget)
         self.list_widget.itemClicked.connect(self.handle_item_clicked)
         self.next_page_button = QPushButton("Next Page")
@@ -100,23 +145,51 @@ class EmailListArea(QVBoxLayout):
     def add_emails_to_list(self, mails: list[Email]):
         self.list_widget.clear()
         for mail in mails:
-            email_widget = EmailWidget(mail)
-            email_widget.setMaximumWidth(650)
-            email_widget.mark_as_read.connect(self.mark_as_read)
-            email_widget.delete_email.connect(self.delete_email)
+            self.add_email_to_list(mail)
+        for mail in mails:
+            self.mark_as_func(mail, mail.is_read)
+        
+    def add_email_to_list(self, mail: Email):
+        email_widget = EmailWidget(mail)
+        email_widget.mark_email_as.connect(self.mark_email_as)
+        email_widget.delete_email.connect(self.delete_email)
+        email_widget.setMaximumWidth(self.list_widget.width()+10)
 
-            item = QListWidgetItem()
-            item.setSizeHint(email_widget.sizeHint())
-            self.list_widget.addItem(item)
-            self.list_widget.setItemWidget(item, email_widget)
+        item = QListWidgetItem()
+        item.setSizeHint(email_widget.sizeHint())
+        self.list_widget.addItem(item)
+        self.list_widget.setItemWidget(item, email_widget)        
+
+    def mark_as_func(self, mail: Email, is_read: bool):
+        for index in range(self.list_widget.count()):
+            item = self.list_widget.item(index)
+            email_widget = self.list_widget.itemWidget(item)
+            if email_widget and email_widget.email == mail:
+                if is_read:
+                    new_color = QColor(250,250,250)
+                    email_widget.mark_email_as_read(new_color)
+                else:
+                    new_color = QColor(220,220,220)
+                    email_widget.mark_email_as_unread(new_color)
+                break
+
+    def update_email_in_list(self, mail: Email):
+        for index in range(self.list_widget.count()):
+            item = self.list_widget.item(index)
+            email_widget = self.list_widget.itemWidget(item)
+            if email_widget and email_widget.email == mail:
+                email_widget.email = mail
+                email_widget.from_label.setText(f"From: {mail.from_email}")
+                email_widget.subject_label.setText(f"Subject: {mail.subject}")
+                email_widget.date_label.setText(f"Date: {mail.datetime_info['date']}")
+                email_widget.body_label.setText(f"Body: {mail.body[:50]}...")
+                self.mark_as_func(mail, mail.is_read)
+                break
 
     def handle_item_clicked(self, item: QListWidgetItem):
         widget = self.list_widget.itemWidget(item)
         if hasattr(widget, 'email'):
             self.email_clicked.emit(widget.email)
-
-    def mark_as_read(self, mail: Email):
-        self.email_marked_as_read.emit(mail)
 
     def delete_email(self, mail: Email):
         self.email_deleted.emit(mail)

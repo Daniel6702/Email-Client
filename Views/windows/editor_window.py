@@ -254,7 +254,7 @@ class EditorWindow(QWidget):
     
     def send_email(self):
         email = self.generate_email()
-        self.mail_signal_from_editor.emit(email, "send", False)
+        self.mail_signal_from_editor.emit(email, "send")
         self.close()
 
 @dataclass
