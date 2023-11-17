@@ -33,7 +33,7 @@ class SendMailService(ABC):
 
 class GetMailsService(ABC):
     @abstractmethod
-    def get_mails(self, folder_id: str, query: str, max_results: int) -> list[Email]:
+    def get_mails(self, folder: Folder, query: str, max_results: int) -> list[Email]:
         pass
 
 ###############################

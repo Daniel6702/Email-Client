@@ -9,6 +9,7 @@ from googleapiclient.errors import HttpError
 
 from ..service_interfaces import GetMailsService
 from ...util import GmailSession 
+from ...models import Folder
 
 class GmailGetMailsService(GetMailsService):
     def __init__(self, session: GmailSession):
@@ -34,8 +35,8 @@ class GmailGetMailsService(GetMailsService):
         logging.info("Successfully parsed email data from Gmail")
     '''
 
-    def get_mails(self, folder_id: str ='INBOX', query: str = "", max_results: int = 10) -> list[Email]:
-        query = f'in:{folder_id} {query}'
+    def get_mails(self, folder: Folder = Folder("","INBOX",[]), query: str = "", max_results: int = 10) -> list[Email]:
+        query = f'in:{folder.id} {query}'
         try:
             response = self.service.users().messages().list(userId='me', q=query, maxResults = max_results, includeSpamTrash = False).execute()
             messages = response.get('messages', [])
@@ -47,7 +48,7 @@ class GmailGetMailsService(GetMailsService):
         email_list = []
         for message in messages:
             message_data = self.get_message_data('me', message['id'])
-            email = Email(*self.extract_data_from_message(message_data))
+            email = Email(*self.extract_data_from_message(message_data), folder = folder)
             email_list.append(email)
         logging.info(f"Successfully parsed email data from Gmail")
         return email_list

@@ -2,12 +2,14 @@ from PyQt5.QtWidgets import QToolBar, QAction
 from PyQt5.QtCore import pyqtSignal
 from EmailService.models import Email
 from datetime import datetime
-import copy
+from EmailService.models import Folder
 
 class ToolBarMenu(QToolBar):
     open_email_editor_window = pyqtSignal(Email)
     delete_email_signal = pyqtSignal(Email)
     mark_email_as = pyqtSignal(Email, bool)
+    move_email_to_folder = pyqtSignal(Email, Folder)
+    open_folder_window = pyqtSignal()
     def __init__(self, email: Email, parent=None):
         super().__init__(parent)
         self.setStyleSheet("QToolBar {spacing: 10px;}")
@@ -53,7 +55,20 @@ class ToolBarMenu(QToolBar):
         self.mark_as_unread_button = self.widgetForAction(self.mark_as_unread_action)
         self.mark_as_unread_button.setObjectName("toolbar_button")
 
-    # Define the functions that will be called when the toolbar buttons are clicked
+        #Move email to folder
+        self.move_to_folder_action = QAction("Move to folder", self)
+        self.move_to_folder_action.setStatusTip("Move to folder")
+        self.move_to_folder_action.triggered.connect(self.move_to_folder)
+        self.addAction(self.move_to_folder_action)  
+        self.move_to_folder_button = self.widgetForAction(self.move_to_folder_action)
+        self.move_to_folder_button.setObjectName("toolbar_button")
+
+    def on_folder_selected(self, folder: Folder):
+        self.move_email_to_folder.emit(self.current_email, folder)
+
+    def move_to_folder(self):
+        self.open_folder_window.emit()
+
     def forward(self):
         date_value = self.current_email.datetime_info['date']
         time_value = datetime.strptime(self.current_email.datetime_info['time'], '%H:%M:%S.%f')

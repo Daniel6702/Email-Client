@@ -2,6 +2,7 @@ from dataclasses import dataclass, field
 from typing import List
 import html
 from datetime import datetime
+from EmailService.models.folder import Folder
 
 @dataclass
 class Email:
@@ -13,6 +14,7 @@ class Email:
     attachments: List[dict] = field(default_factory=list)
     id: str = None
     is_read: bool = False
+    folder: Folder = None
 
     def __str__(self, body_limit: int = 500):
         email_info = [

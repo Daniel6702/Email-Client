@@ -1,6 +1,10 @@
 from abc import ABC, abstractmethod
+from ..services.user_manager.user_manager_service import UserDataManager
 
 class EmailServiceFactory(ABC):
+    def create_user_manager(self):
+        return UserDataManager()
+
     @abstractmethod
     def create_login_service(self):
         pass

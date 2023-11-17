@@ -6,22 +6,20 @@ from EmailService.models.email_client import EmailClient
 from EmailService.factories.gmail_service_factory import GmailServiceFactory
 from EmailService.factories.outlook_service_factory import OutlookServiceFactory
 from EmailService.models import User, Email
-from user_manager import UserDataManager
 import json
 from datetime import datetime
 import time
 from html.parser import HTMLParser
 
-user_manager = UserDataManager('Testing\\test_users.bin')
 with open('Testing\\test_users.json', 'r') as f:
     users = json.load(f)
 
 gmail_user = User.from_dict(users[0])
-gmail_client = EmailClient(GmailServiceFactory(), user_manager)
+gmail_client = EmailClient(GmailServiceFactory())
 gmail_client.login(gmail_user, False)
 
 outlook_user = User.from_dict(users[1])
-outlook_client = EmailClient(OutlookServiceFactory(), user_manager)
+outlook_client = EmailClient(OutlookServiceFactory())
 outlook_client.login(outlook_user, False)
 
 mock_outlook_email = Email(from_email=outlook_user.email,
@@ -63,10 +61,10 @@ def extract_text_from_html(html):
 def compare_emails(sent_email, received_email):
     mismatches = []
 
-    if sent_email.from_email != received_email.from_email:
+    if sent_email.from_email.lower() != received_email.from_email.lower():
         mismatches.append(f"Sender mismatch: sent '{sent_email.from_email}', received '{received_email.from_email}'")
 
-    if sent_email.to_email[0] != received_email.to_email:
+    if sent_email.to_email[0].lower() != received_email.to_email.lower():
         mismatches.append(f"Recipients mismatch: sent '{sent_email.to_email[0]}', received '{received_email.to_email}'")
 
     if sent_email.subject != received_email.subject:

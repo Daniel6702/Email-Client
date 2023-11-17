@@ -5,12 +5,16 @@ from EmailService.models import Email
 from PyQt5.QtWebEngineWidgets import QWebEngineView
 from Views.components.email_view_area.tool_bar_menu import ToolBarMenu
 from Views.components.email_view_area.web_engine_page import WebEnginePage
+from EmailService.models import Folder
 
 class EmailView(QVBoxLayout):
     open_attachment_window = pyqtSignal(dict)
     open_email_editor_window = pyqtSignal(Email)
     delete_email_signal = pyqtSignal(Email)
     mark_email_as = pyqtSignal(Email, bool)
+    open_folder_window = pyqtSignal()
+    move_email_to_folder = pyqtSignal(Email, Folder)
+    selected_folder = pyqtSignal(Folder)
     def __init__(self):
         super().__init__()
         self.current_email = None
@@ -30,6 +34,9 @@ class EmailView(QVBoxLayout):
         self.toolbar.open_email_editor_window.connect(self.open_email_editor_window.emit)
         self.toolbar.delete_email_signal.connect(self.delete_email_signal.emit)
         self.toolbar.mark_email_as.connect(self.mark_email_as.emit)
+        self.toolbar.move_email_to_folder.connect(self.move_email_to_folder.emit)
+        self.toolbar.open_folder_window.connect(self.open_folder_window.emit)
+        self.selected_folder.connect(self.toolbar.on_folder_selected)
         self.toolbar.setVisible(False)
 
         #Email body

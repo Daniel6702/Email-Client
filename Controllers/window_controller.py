@@ -5,6 +5,7 @@ from Views.windows.settings_window import SettingsWindow
 from Views.windows.attachment_window import AttachmentWindow
 from Views.windows.log_window import LogWindow
 from Views.windows.contact_window import ContactWindow
+from Views.windows.folder_selector_window import FolderWindow
 from Testing.logging_handler import setup_logger
 import logging
 import os
@@ -33,6 +34,7 @@ class WindowController:
         self.main_window.open_settings_window.connect(self.show_settings)
         self.main_window.open_contacts_window.connect(self.show_contacts)
         self.main_window.open_attachment_window.connect(self.show_attachment)
+        self.main_window.open_folder_selector_window.connect(self.show_folder_selector)
         self.main_window.show()
         self.login_window.close()
     
@@ -63,6 +65,11 @@ class WindowController:
         self.logging_window.show()
         setup_logger(self.logging_window)
 
+    def show_folder_selector(self, folders):
+        logging.info("Showing folder selector window")
+        self.folder_selector_window = FolderWindow(folders)
+        self.folder_selector_window.show()
+        self.folder_selector_window.on_folder_selected.connect(self.main_window.folder_selected.emit)
 
     def change_style(self, style_name):
         logging.info(f"Changing style to: {style_name}")

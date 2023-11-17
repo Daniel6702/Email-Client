@@ -5,8 +5,7 @@ from EmailService.models.email_client import EmailClient
 from EmailService.factories.gmail_service_factory import GmailServiceFactory
 from EmailService.factories.outlook_service_factory import OutlookServiceFactory
 from EmailService.factories.test_service_factory import TestServiceFactory
-
-from user_manager import UserDataManager
+from EmailService.services.user_manager.user_manager_service import UserDataManager
 import threading
 '''
 The primary purpose of the login screen is to generate and return a 'client' object.
@@ -225,7 +224,7 @@ class LoginScreen(QWidget):
             if self.developer_mode_checkbox.isChecked(): #TEMPORARY
                 factory = TestServiceFactory()
 
-            client = EmailClient(factory, self.user_manager)
+            client = EmailClient(factory)
             client.login(user=user, save_user=self.remember_me_checkbox.isChecked())
             self.login_successful.emit(client)  # This should be emitted in the main thread
 

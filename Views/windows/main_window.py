@@ -18,6 +18,8 @@ class MainWindow(QMainWindow):
     open_attachment_window = pyqtSignal(dict)
     get_email_from_editor = pyqtSignal(object, str)
     show_warning_signal = pyqtSignal(str, str, str)
+    folder_selected = pyqtSignal(object)
+    open_folder_selector_window = pyqtSignal(object)
     def __init__(self, email_client: EmailClient):
         super(MainWindow, self).__init__()
         self.show_warning_signal.connect(self.show_warning)

@@ -9,9 +9,9 @@ class MainWindowController():
         self.email_client = email_client
         self.setup_connections()
         self.current_folder = None
-        folders = self.email_client.get_folders()
-        self.delete_folder = self.get_delete_folder(folders)
-        self.main_window.folder_area.add_folders(folders)
+        self.folders = self.email_client.get_folders()
+        self.delete_folder = self.get_delete_folder(self.folders)
+        self.main_window.folder_area.add_folders(self.folders)
         
     def setup_connections(self):
         self.main_window.folder_area.folder_selected.connect(self.on_folder_selected)
@@ -25,14 +25,25 @@ class MainWindowController():
         self.main_window.email_view_area.open_attachment_window.connect(self.main_window.open_attachment_window.emit)
         self.main_window.email_view_area.open_email_editor_window.connect(self.main_window.open_editor_window.emit)
         self.main_window.email_view_area.mark_email_as.connect(self.on_mark_email_as)
+        self.main_window.email_view_area.open_folder_window.connect(self.open_folder_selector)
+        self.main_window.email_view_area.move_email_to_folder.connect(self.move_email_to_folder)
+        self.main_window.folder_selected.connect(self.main_window.email_view_area.selected_folder.emit)
         self.main_window.get_email_from_editor.connect(self.get_mail_from_editor)
         self.main_window.search_area.open_contacts_signal.connect(self.main_window.open_contacts_window.emit)
+
+    def move_email_to_folder(self, email: Email, folder: Folder):
+        self.email_client.move_email_to_folder(email.folder, folder, email)
+        if email.folder is not self.current_folder:
+            self.main_window.email_list_area.remove_email_from_list(email)
+
+    def open_folder_selector(self):
+        self.main_window.open_folder_selector_window.emit(self.folders)
 
     def on_folder_selected(self, folder: Folder):
         logging.info(f"Folder Selected: {folder.name}")
         self.current_folder = folder
         logging.info(f"Retrieving {PAGE_SIZE} emails from {folder.id}")
-        emails = self.email_client.get_mails(folder.id, "", PAGE_SIZE)
+        emails = self.email_client.get_mails(folder, "", PAGE_SIZE)
         self.main_window.email_list_area.add_emails_to_list(emails)
 
     def on_search(self, search_criteria: str):

@@ -6,12 +6,13 @@ import base64
 from datetime import datetime, timedelta
 from html import escape
 import logging
+from ...models import Folder
 
 class OutlookGetMailsService(GetMailsService):
     def __init__(self, session: OutlookSession):
         self.result = session.result
 
-    def get_mails(self, folder_id: str, query: str, max_results: int = 10) -> list[Email]:
+    def get_mails(self, folder: Folder = Folder("",None,[]), query: str = "", max_results: int = 10) -> list[Email]:
         try:
             access_token = self.result["access_token"]
         except KeyError:
@@ -19,8 +20,8 @@ class OutlookGetMailsService(GetMailsService):
         
         FIELDS_TO_RETRIEVE = "id,subject,from,receivedDateTime,body,attachments,isRead"
 
-        if folder_id:
-            endpoint_url = f"https://graph.microsoft.com/v1.0/me/mailFolders/{folder_id}/messages"
+        if folder.id:
+            endpoint_url = f"https://graph.microsoft.com/v1.0/me/mailFolders/{folder.id}/messages"
         else:
             endpoint_url = "https://graph.microsoft.com/v1.0/me/messages" 
 
