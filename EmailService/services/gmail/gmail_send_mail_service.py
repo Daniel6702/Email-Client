@@ -13,14 +13,16 @@ class GmailSendMailService(SendMailService):
     def __init__(self, session: GmailSession):
         self.service = session.gmail_service
 
-    def send_mail(self, email: Email):
+    def send_mail(self, email: Email) -> bool:
         message = self.create_message(email)
         user_id = email.from_email
         try:
             message = self.service.users().messages().send(userId=user_id, body=message).execute()
             logging.info(f'Message sent: {message["id"]}')
+            return True
         except Exception as e:
             logging.error(f'An error occurred: {e}')
+            return False
 
     def create_message(self, email: Email) -> dict:
         message = MIMEMultipart()

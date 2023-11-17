@@ -1,4 +1,4 @@
-from PyQt5.QtWidgets import QMainWindow, QDesktopWidget, QWidget, QGridLayout, QWidget
+from PyQt5.QtWidgets import QMessageBox, QMainWindow, QDesktopWidget, QWidget, QGridLayout, QWidget, QSpacerItem, QSizePolicy
 from PyQt5.QtCore import Qt, pyqtSignal
 from PyQt5.QtGui import *
 
@@ -17,8 +17,10 @@ class MainWindow(QMainWindow):
     open_contacts_window = pyqtSignal()
     open_attachment_window = pyqtSignal(dict)
     get_email_from_editor = pyqtSignal(object, str)
+    show_warning_signal = pyqtSignal(str, str, str)
     def __init__(self, email_client: EmailClient):
         super(MainWindow, self).__init__()
+        self.show_warning_signal.connect(self.show_warning)
                
         #Initialize UI
         self.initialize_ui()
@@ -47,6 +49,18 @@ class MainWindow(QMainWindow):
         #Show grid
         main_widget.setLayout(grid_layout)
         self.show()
+
+    def show_warning(self, title, message, informative_text=""):
+        msg = QMessageBox()
+        msg.setIcon(QMessageBox.Warning)
+        msg.setText(message)
+        msg.setInformativeText(informative_text)
+        msg.setWindowTitle(title)
+        spacer = QSpacerItem(500, 0, QSizePolicy.Minimum, QSizePolicy.Expanding)
+        layout = msg.layout()
+        layout.addItem(spacer, layout.rowCount(), 0, 1, layout.columnCount())
+
+        msg.exec_()
 
     def initialize_ui(self):
         self.setWindowTitle("Smail")

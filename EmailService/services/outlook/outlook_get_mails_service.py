@@ -17,7 +17,7 @@ class OutlookGetMailsService(GetMailsService):
         except KeyError:
             raise Exception("Access token is missing.")
         
-        FIELDS_TO_RETRIEVE = "id,subject,from,receivedDateTime,body,attachments"
+        FIELDS_TO_RETRIEVE = "id,subject,from,receivedDateTime,body,attachments,isRead"
 
         if folder_id:
             endpoint_url = f"https://graph.microsoft.com/v1.0/me/mailFolders/{folder_id}/messages"
@@ -54,51 +54,23 @@ class OutlookGetMailsService(GetMailsService):
         email_list = []
         emails_data = response.json()["value"]
         for data in emails_data:
-            from_email, to_email, subject, body, datetime_info, attachments, email_id, is_read = self.extract_data_from_message(data)
-            email = Email(from_email, to_email, subject, body, datetime_info, attachments, id=email_id, is_read=is_read)
+            email = Email(*self.extract_data_from_message(data))
             email_list.append(email)
         logging.info(f"Successfully parsed email data from Outlook")
         return email_list 
 
     def extract_data_from_message(self, email_data: dict) -> tuple[str, str, str, str, dict, list[dict], str]:
-        from_email_info = email_data.get("from", {}).get("emailAddress", {})
-        from_email = from_email_info.get("address", from_email_info.get("name", None))
-        if from_email:
-            from_email.lower()
-        to_recipients_info = email_data.get("toRecipients", [])
-        to_emails = [recipient.get("emailAddress", {}).get("address", "").lower() for recipient in to_recipients_info]
-        if to_emails and len(to_emails) > 0:
-            to_email = to_emails[0]
-        else:
-            to_email = None
-        is_read = email_data.get("isRead", False)
-
+        from_email = self.extract_from_email(email_data)
+        to_email = self.extract_to_email(email_data)
         subject = email_data["subject"]
         email_id = email_data['id']
-        
-        #Get body
-        body_content_type = email_data["body"]["contentType"]
-        body_content = email_data["body"]["content"]
-        if body_content_type == "text":
-            body_content = f"<html><body>{escape(body_content)}</body></html>"
-        
-        #Get date and time THIS DOESNT WORK
-        received_datetime_str = email_data.get("receivedDateTime", None)
-        if received_datetime_str:
-            received_datetime_obj = datetime.fromisoformat(received_datetime_str.rstrip("Z")) + timedelta(hours=2)
-            
-            date_formatted = received_datetime_obj.strftime('%Y-%m-%d')
-            time_formatted = received_datetime_obj.strftime('%H:%M:%S.%f')
-            datetime_info = {'date': date_formatted, 'time': time_formatted}
-        else:
-            datetime_info = {'date': None, 'time': None}
-        
-        #Get attachments    
-        attachments = self.get_attachments(email_data)
-        
+        is_read = email_data.get("isRead", False)
+        datetime_info = self.extract_date_and_time(email_data)
+        body_content = self.extract_email_content(email_data)
+        attachments = self.extract_attachments(email_data)
         return from_email, to_email, subject, body_content, datetime_info, attachments, email_id, is_read
 
-    def get_attachments(self, email_data: dict) -> list[dict]:
+    def extract_attachments(self, email_data: dict) -> list[dict]:
         attachments = []
         if "attachments" in email_data:
             for attachment_data in email_data["attachments"]:
@@ -111,6 +83,35 @@ class OutlookGetMailsService(GetMailsService):
                     })
         return attachments
     
+    def extract_from_email(self, email_data: dict) -> str:
+        return email_data.get("from", {}).get("emailAddress", {}).get("address", None).lower()
+    
+    def extract_to_email(self, email_data: dict) -> str:
+        to_recipients_info = email_data.get("toRecipients", [])
+        to_emails = [recipient.get("emailAddress", {}).get("address", "") for recipient in to_recipients_info]
+        if to_emails and len(to_emails) > 0:
+            return to_emails[0]
+        else:
+            return None
+        
+    def extract_date_and_time(self, email_data: dict) -> dict:
+        received_datetime_str = email_data.get("receivedDateTime", None)
+        if received_datetime_str:
+            received_datetime_obj = datetime.fromisoformat(received_datetime_str.rstrip("Z"))
+            received_datetime_obj += timedelta(hours=1)
+            date_formatted = received_datetime_obj.strftime('%Y-%m-%d')
+            time_formatted = received_datetime_obj.strftime('%H:%M:%S.%f')
+            datetime_info = {'date': date_formatted, 'time': time_formatted}
+        else:
+            datetime_info = {'date': None, 'time': None}
+        return datetime_info
+    
+    def extract_email_content(self, email_data: dict) -> str:
+        body_content_type = email_data["body"]["contentType"]
+        body_content = email_data["body"]["content"]
+        if body_content_type == "text":
+            body_content = f"<html><body>{escape(body_content)}</body></html>"
+        return body_content
 
     def translate_to_graph(self,query, base_endpoint="https://graph.microsoft.com/v1.0/me/messages"):
         parts = query.split()

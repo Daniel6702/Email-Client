@@ -26,7 +26,7 @@ class LoginService(ABC):
 
 class SendMailService(ABC):
     @abstractmethod
-    def send_mail(self, email: Email):
+    def send_mail(self, email: Email) -> bool:
         pass
 
 ###############################

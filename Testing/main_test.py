@@ -86,6 +86,12 @@ time.sleep(5)
 received_outlook_email = outlook_client.get_mails(folder_id="", query="",max_results=1)[0]
 received_gmail_email = gmail_client.get_mails(folder_id="", query="",max_results=1)[0]
 
+print(mock_gmail_email)
+print(received_gmail_email)
+print("\n")
+print(mock_outlook_email)
+print(received_outlook_email)
+
 mismatches1 = compare_emails(mock_gmail_email, received_gmail_email)
 mismatches2 = compare_emails(mock_outlook_email, received_outlook_email)
 

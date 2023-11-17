@@ -68,7 +68,9 @@ class MainWindowController():
 
     def get_mail_from_editor(self,email: Email, action: str):
         if action == "send":
-            self.email_client.send_mail(email)
+            respone = self.email_client.send_mail(email)
+            if respone is False:
+                self.main_window.show_warning_signal.emit("Error", "Email not sent", "likely invalid email address")
         elif action == "save":
             self.email_client.save_draft(email)
         elif action == "update":

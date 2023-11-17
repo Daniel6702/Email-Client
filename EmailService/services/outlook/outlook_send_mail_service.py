@@ -9,7 +9,7 @@ class OutlookSendMailService(SendMailService):
     def __init__(self, session: OutlookSession):
         self.result = session.result
 
-    def send_mail(self, email: Email):
+    def send_mail(self, email: Email) -> bool:
         to_recipients = [
             {
                 'emailAddress': {
@@ -47,14 +47,15 @@ class OutlookSendMailService(SendMailService):
             if response.status_code == 202:
                 to_email_list = ', '.join(email.to_email)
                 logging.info(f"Email successfully sent to: {to_email_list}")
+                return True
             else:
                 failed_recipients = ', '.join(email.to_email)
                 logging.error(f"Email not sent to: {failed_recipients}. Error: {response}")
-                raise Exception(f"Email not sent to: {failed_recipients}")
-
+                return False
+            
         except requests.exceptions.RequestException as e:
             logging.error(f"An error occurred: {e}")
-            raise Exception(f"An error occurred while sending the email: {e}")
+            return False
 
     def draft_attachment(self, attachment: dict) -> dict:
         file_data = base64.b64encode(attachment['file_data'])

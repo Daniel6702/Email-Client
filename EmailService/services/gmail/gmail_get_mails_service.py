@@ -139,27 +139,29 @@ class GmailGetMailsService(GetMailsService):
         attachments_list = []
 
         for part in parts:
-            if part['filename']:  
-                mimeType = part.get('mimeType', '')
-
-                if mimeType.startswith('application/') or mimeType in ['text/csv', 'text/plain']:
-                    if 'data' in part['body']:
-                        data = part['body']['data']
-                    else:
-                        att_id = part['body']['attachmentId']
+            if part['filename']:
+                # If 'data' is directly available in the body
+                if 'data' in part['body']:
+                    data = part['body']['data']
+                else:
+                    # If 'data' is not available, use the attachment ID to retrieve the attachment
+                    att_id = part['body'].get('attachmentId', '')
+                    if att_id:
                         att = self.service.users().messages().attachments().get(userId='me', messageId=message_id, id=att_id).execute()
                         data = att['data']
+                    else:
+                        continue  # Skip if there's no attachment ID
 
-                    file_data = base64.urlsafe_b64decode(data.encode('UTF-8'))
-                    file_name = part['filename']
+                file_data = base64.urlsafe_b64decode(data.encode('UTF-8'))
+                file_name = part['filename']
 
-                    attachment_info = {
-                        'file_data': file_data,
-                        'file_name': file_name,
-                        'attachment_id': att_id
-                    }
+                attachment_info = {
+                    'file_data': file_data,
+                    'file_name': file_name,
+                    'attachment_id': att_id
+                }
 
-                    attachments_list.append(attachment_info)
+                attachments_list.append(attachment_info)
 
         return attachments_list
     

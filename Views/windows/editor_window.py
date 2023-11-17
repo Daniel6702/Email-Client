@@ -219,7 +219,7 @@ class EditorWindow(QWidget):
         return attachment_dict
     
     def generate_email(self):
-        recipients = self.recipient_line_edit.text().split(",")
+        recipients = self.recipient_line_edit.text().replace(" ", "").split(",")
         subject = self.subject_line_edit.text()
         body_html = self.mail_body_edit.toHtml()
         attachments_paths = self.get_attachment_paths()

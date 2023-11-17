@@ -35,8 +35,8 @@ class EmailClient():
             self.user = self.get_user_service.get_user()
         return self.user
 
-    def send_mail(self, email: Email):
-        self.send_mail_service.send_mail(email)
+    def send_mail(self, email: Email) -> bool:
+        return self.send_mail_service.send_mail(email)
 
     def get_mails(self, folder_id: str, query: str, max_results: int) -> list[Email]:
         emails = self.get_mails_service.get_mails(folder_id, query, max_results)
