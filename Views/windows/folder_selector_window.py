@@ -26,7 +26,7 @@ class FolderWindow(QWidget):
         screen = QDesktopWidget().screenGeometry()
         x = (screen.width() - self.width()) // 2
         y = (screen.height() - self.height()) // 2
-        WINDOW_WIDTH, WINDOW_HEIGHT = 800, 300
+        WINDOW_WIDTH, WINDOW_HEIGHT = 300, 800
         self.setGeometry(x, y, WINDOW_WIDTH, WINDOW_HEIGHT)
         icon = QIcon("Images\\icon_logo.png")
         self.setWindowIcon(icon)

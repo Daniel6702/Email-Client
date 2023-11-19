@@ -21,6 +21,17 @@ class SearchArea(QVBoxLayout):
         self.searchbar = QLineEdit()
         self.searchbar.setPlaceholderText("Search")
         self.searchbar.returnPressed.connect(self.search_update)
+        search_layout.addWidget(self.searchbar)
+
+        self.filter_button = QPushButton("Filter")
+        self.filter_button.setObjectName("filter_button")
+        self.filter_button.clicked.connect(self.filter_button_open)
+        search_layout.addWidget(self.filter_button)
+
+        self.search_button = QPushButton("Search")
+        self.search_button.setObjectName("search_button")
+        self.search_button.clicked.connect(self.search_update)
+        search_layout.addWidget(self.search_button)
         
         # Adds clickable icons
         self.dark_mode_icon = QIcon("Images\\icon_moon.png")
@@ -37,9 +48,8 @@ class SearchArea(QVBoxLayout):
         settings_button.setObjectName("Settings") 
         settings_button.clicked.connect(self.settings_button_open)
        
-
         # Add the search bar widgets to the search layout
-        search_layout.addWidget(self.searchbar)
+        
 
         # Create a horizontal layout for the icons
         icons_layout = QHBoxLayout()
@@ -51,6 +61,9 @@ class SearchArea(QVBoxLayout):
         search_bar_layout.addLayout(search_layout)
         search_bar_layout.addLayout(icons_layout)
         self.addLayout(search_bar_layout)
+
+    def filter_button_open(self):
+        pass
 
     def search_update(self):
         search_criteria = self.searchbar.text()

@@ -6,9 +6,9 @@
 - [ ] Implement asynchronous email retrieval in the background
 - [x] Implement logging (remove all print statements ,add to logging window)
 - [x] Clean up code (email_util, main_window)
-- [ ] Perhaps make dedicated pyqt signal hub thing instead of having it all connected to the main window, such that it only need to handle ui stuff
-- [ ] Create seperate search services for each client type
-- [ ] Retrieve date and time from gmail
+- [/] Perhaps make dedicated pyqt signal hub thing instead of having it all connected to the main window, such that it only need to handle ui stuff
+- [x] Create seperate search services for each client type
+- [x] Retrieve date and time from gmail
 
 ### Attachments
 - [x] Preview PDFs
@@ -19,14 +19,14 @@
 ### GUI
 - [x] Email management
 - [ ] Folder management
-- [ ] Dark mode styling (qss file)
-- [ ] Split styling file into different files for each part of app
+- [x] Dark mode styling (qss file)
+- [x] Split styling file into different files for each part of app
 - [ ] Pop up info windows (waiting for emails, email sent, email deleted, etc)
 - [ ] Windows notifications
 - [ ] Improve GUI (make it not look terrible)
 
 ### Email management
-- [ ] Outlook search function
+- [x] Outlook search function
 - [ ] Email sorting
 - [ ] Spamfilter
 - [x] Give email view area its own folder and split into multiple files (email_view_area, web_engine, ToolBarMenu, and one other ive forgotton)

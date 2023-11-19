@@ -110,37 +110,51 @@ class EmailListArea(QVBoxLayout):
     email_clicked = pyqtSignal(Email)
     mark_email_as = pyqtSignal(Email, bool)
     email_deleted = pyqtSignal(Email)
+    new_page = pyqtSignal(int)
 
     def __init__(self):
         super().__init__()
+        self.current_page = 1
         self.setup_email_list()
-        self.current_page = 0
 
     def setup_email_list(self):
         label = QLabel("Emails:")
         self.addWidget(label)
+
         self.list_widget = QListWidget()
         self.list_widget.setObjectName("email_list")
         self.list_widget.setHorizontalScrollMode(QAbstractItemView.ScrollPerPixel)
         self.list_widget.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         self.addWidget(self.list_widget)
         self.list_widget.itemClicked.connect(self.handle_item_clicked)
-        self.next_page_button = QPushButton("Next Page")
-        self.next_page_button.setMaximumWidth(120)
-        self.next_page_button.clicked.connect(self.next_page)
+
+        bottom_layout = QHBoxLayout()
+
         self.previous_page_button = QPushButton("Previous Page")
         self.previous_page_button.setMaximumWidth(120)
         self.previous_page_button.clicked.connect(self.previous_page)
-        temp = QHBoxLayout()
-        temp.addWidget(self.previous_page_button)
-        temp.addWidget(self.next_page_button)
-        self.addLayout(temp)
+        bottom_layout.addWidget(self.previous_page_button)
+
+        self.page_number_label = QLabel(f"Page {self.current_page}")
+        bottom_layout.addWidget(self.page_number_label)
+
+        self.next_page_button = QPushButton("Next Page")
+        self.next_page_button.setMaximumWidth(120)
+        self.next_page_button.clicked.connect(self.next_page)
+        bottom_layout.addWidget(self.next_page_button)
+
+        self.addLayout(bottom_layout)
 
     def next_page(self):
         self.current_page += 1
+        self.page_number_label.setText(f"Page {self.current_page}")
+        self.new_page.emit(self.current_page)
 
-    def previous_page(self):
-        self.current_page -= 1
+    def previous_page(self): 
+        if self.current_page > 1:
+            self.current_page -= 1
+            self.page_number_label.setText(f"Page {self.current_page}")
+            self.new_page.emit(self.current_page)
 
     def add_emails_to_list(self, mails: list[Email]):
         self.list_widget.clear()

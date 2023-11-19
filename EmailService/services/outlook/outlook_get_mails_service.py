@@ -1,64 +1,61 @@
 from ..service_interfaces import GetMailsService
 from ...util import OutlookSession 
-from ...models import Email
 import requests
 import base64
 from datetime import datetime, timedelta
 from html import escape
 import logging
-from ...models import Folder
+import re
+from ...models import Folder, Filter, Email
 
 class OutlookGetMailsService(GetMailsService):
     def __init__(self, session: OutlookSession):
         self.result = session.result
 
-    def get_mails(self, folder: Folder = Folder("",None,[]), query: str = "", max_results: int = 10) -> list[Email]:
+    def get_mails(self, folder: Folder = Folder("", None, []), query: str = "", max_results: int = 10, page_number: int = 1) -> list[Email]:
+        folder_id = folder.id
+        print(folder_id)
+        
         try:
             access_token = self.result["access_token"]
         except KeyError:
             raise Exception("Access token is missing.")
-        
+
         FIELDS_TO_RETRIEVE = "id,subject,from,receivedDateTime,body,attachments,isRead"
 
-        if folder.id:
-            endpoint_url = f"https://graph.microsoft.com/v1.0/me/mailFolders/{folder.id}/messages"
-        else:
-            endpoint_url = "https://graph.microsoft.com/v1.0/me/messages" 
+        base_url = "https://graph.microsoft.com/v1.0/me"
+        endpoint_url = f"{base_url}/mailFolders/{folder_id}/messages" if folder_id else f"{base_url}/messages"
 
-        filter_query = ""
-
-        if query:
-            endpoint_url, filter_query = self.translate_to_graph(query, base_endpoint=endpoint_url)
+        # Calculate the number of items to skip
+        skip_count = (page_number - 1) * max_results
 
         query_parameters = {
             "$top": max_results,
+            "$skip": skip_count,
             "$select": FIELDS_TO_RETRIEVE,
-            "$expand": "attachments",
+            "$expand": "attachments"
         }
 
-        if filter_query:
-            query_parameters["$filter"] = filter_query
+        if query:
+            if query.startswith('search:'):
+                query_parameters["$search"] = query[len('search:'):]
+            elif query.startswith('filter:'):
+                query_parameters["$filter"] = query[len('filter:'):]
 
-        headers = {
-            "Authorization": f"Bearer {access_token}"
-        }
+        headers = {"Authorization": f"Bearer {access_token}"}
+
+        print("Endpoint: ", endpoint_url)
 
         try:
             response = requests.get(endpoint_url, headers=headers, params=query_parameters, timeout=30)
             response.raise_for_status()
-            logging.info(f"Successfully retrieved email data from Outlook")
+            data = response.json()
+            emails = [Email(*self.extract_data_from_message(item)) for item in data.get('value', [])]
 
+            return emails
         except requests.RequestException as e:
-            logging.error(f"An error occurred: {e}")
+            logging.error(f"Request failed: {e.response.text}")
             raise Exception(f"Request failed: {e}")
-
-        email_list = []
-        emails_data = response.json()["value"]
-        for data in emails_data:
-            email = Email(*self.extract_data_from_message(data))
-            email_list.append(email)
-        logging.info(f"Successfully parsed email data from Outlook")
-        return email_list 
 
     def extract_data_from_message(self, email_data: dict) -> tuple[str, str, str, str, dict, list[dict], str]:
         from_email = self.extract_from_email(email_data)
@@ -85,7 +82,10 @@ class OutlookGetMailsService(GetMailsService):
         return attachments
     
     def extract_from_email(self, email_data: dict) -> str:
-        return email_data.get("from", {}).get("emailAddress", {}).get("address", None).lower()
+        from_email = email_data.get("from", {}).get("emailAddress", {}).get("address", None)
+        if from_email:
+            from_email = from_email.lower()
+        return from_email
     
     def extract_to_email(self, email_data: dict) -> str:
         to_recipients_info = email_data.get("toRecipients", [])
@@ -113,41 +113,51 @@ class OutlookGetMailsService(GetMailsService):
         if body_content_type == "text":
             body_content = f"<html><body>{escape(body_content)}</body></html>"
         return body_content
+    
+    def create_filter_query(self, filter: Filter) -> str:
+        conditions = []
 
-    def translate_to_graph(self,query, base_endpoint="https://graph.microsoft.com/v1.0/me/messages"):
-        parts = query.split()
-        translated_parts = []
-        folder_endpoint = base_endpoint 
+        if filter.before_date:
+            conditions.append(f"receivedDateTime lt {filter.before_date.isoformat()}")
+        if filter.after_date:
+            conditions.append(f"receivedDateTime ge {filter.after_date.isoformat()}")
+        if filter.from_email:
+            conditions.append(f"from/emailAddress/address eq '{filter.from_email}'")
+        if filter.to_email:
+            conditions.append(f"toRecipients/any(t:t/emailAddress/address eq '{filter.to_email}')")
+        if filter.is_read is not None:
+            read_value = 'true' if filter.is_read else 'false'
+            conditions.append(f"isRead eq {read_value}")
+        if filter.has_attachment is not None:
+            attachment_value = 'true' if filter.has_attachment else 'false'
+            conditions.append(f"hasAttachments eq {attachment_value}")
+        if filter.contains:
+            for item in filter.contains:
+                conditions.append(f"(contains(subject, '{item}') or contains(body/content, '{item}'))")
+        if filter.not_contains:
+            for item in filter.not_contains:
+                conditions.append(f"(not contains(subject, '{item}') and not contains(body/content, '{item}'))")
 
-        for part in parts:
-            if part.startswith("from:"):
-                email = part.split("from:")[1]
-                translated_parts.append(f"from/emailAddress/address eq '{email}'")
-            elif part == "is:unread":
-                translated_parts.append("isRead eq false")
-            elif part == "is:read":
-                translated_parts.append("isRead eq true")
-            elif part == "has:attachment":
-                translated_parts.append("hasAttachments eq true")
-            elif part == "label:important":
-                translated_parts.append("importance eq 'high'")
-            elif part.startswith("after:"):
-                date = part.split("after:")[1].replace('/', '-')
-                translated_parts.append(f"receivedDateTime ge {date}T11:59:59Z")
-            elif part.startswith("before:"):
-                date = part.split("before:")[1].replace('/', '-')
-                translated_parts.append(f"receivedDateTime lt {date}T11:59:59Z")
-            elif part == "in:trash":
-                folder_endpoint = "https://graph.microsoft.com/v1.0/me/mailFolders/deleteditems/messages"
-            elif part == "in:spam":
-                folder_endpoint = "https://graph.microsoft.com/v1.0/me/mailFolders/junkemail/messages"
+        return " and ".join(conditions)
+        
+    def search(self, query: str, max_results: int = 10) -> list[Email]:
+        query = f'search:"{query}"'
+        emails = self.get_mails(folder=Folder("", None, []), query=query, max_results=max_results)
+        return emails
+    
+    def filter(self, filter: Filter, max_results: int = 10) -> list[Email]:
+        filter_query = f'filter:{self.create_filter_query(filter)}' 
+        emails = self.get_mails(folder=filter.folder, query=filter_query, max_results=max_results)
+        return emails
+    
+    def search_filter(self, search_query: str, filter_obj: Filter, max_results: int = 10) -> list[Email]:
+        search_result = self.search(search_query, max_results)
+        search_result_ids = {email.id for email in search_result}
 
-            #... (rest of your conditions)
-            # No changes needed in the conditions
+        filter_result = self.filter(filter_obj, max_results)
+        filter_result_ids = {email.id for email in filter_result}
 
-        # If there's any filtering to be done on top of the folder selection:
-        if translated_parts:
-            filter_query = "$filter=" + " and ".join(translated_parts)
-            return folder_endpoint, filter_query
-        else:
-            return folder_endpoint, ""
+        common_ids = search_result_ids.intersection(filter_result_ids)
+        combined_emails = [email for email in search_result if email.id in common_ids]
+
+        return combined_emails

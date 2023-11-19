@@ -1,7 +1,7 @@
 from EmailService.models import EmailClient, Email, Folder
 import logging
 
-PAGE_SIZE = 15
+PAGE_SIZE = 5
 
 class MainWindowController():
     def __init__(self, main_window, email_client: EmailClient):
@@ -18,6 +18,8 @@ class MainWindowController():
         self.main_window.email_list_area.email_clicked.connect(self.on_email_clicked)
         self.main_window.email_list_area.mark_email_as.connect(self.on_mark_email_as)
         self.main_window.email_list_area.email_deleted.connect(self.on_email_delete)
+        self.main_window.email_list_area.new_page.connect(self.on_new_page)
+
         self.main_window.search_area.search_signal.connect(self.on_search)
         self.main_window.search_area.new_mail_signal.connect(self.main_window.open_editor_window.emit)
         self.main_window.search_area.open_settings_signal.connect(self.main_window.open_settings_window.emit)
@@ -31,6 +33,10 @@ class MainWindowController():
         self.main_window.get_email_from_editor.connect(self.get_mail_from_editor)
         self.main_window.search_area.open_contacts_signal.connect(self.main_window.open_contacts_window.emit)
 
+    def on_new_page(self, page_number: int):
+        emails = self.email_client.get_mails(folder=self.current_folder, query="", max_results=PAGE_SIZE, page_number=page_number)
+        self.main_window.email_list_area.add_emails_to_list(emails)
+
     def move_email_to_folder(self, email: Email, folder: Folder):
         self.email_client.move_email_to_folder(email.folder, folder, email)
         if email.folder is not self.current_folder:
@@ -42,12 +48,13 @@ class MainWindowController():
     def on_folder_selected(self, folder: Folder):
         logging.info(f"Folder Selected: {folder.name}")
         self.current_folder = folder
+        self.main_window.email_list_area.current_page = 1
         logging.info(f"Retrieving {PAGE_SIZE} emails from {folder.id}")
         emails = self.email_client.get_mails(folder, "", PAGE_SIZE)
         self.main_window.email_list_area.add_emails_to_list(emails)
 
     def on_search(self, search_criteria: str):
-        mails = self.email_client.get_mails(query=search_criteria, number_of_mails=PAGE_SIZE)
+        mails = self.email_client.search(search_criteria, PAGE_SIZE)
         self.main_window.email_list_area.add_emails_to_list(mails)
 
     def get_delete_folder(self, folders: list[Folder]):

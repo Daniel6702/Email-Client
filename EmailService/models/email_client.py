@@ -49,10 +49,13 @@ class EmailClient():
     def send_mail(self, email: Email) -> bool:
         return self.send_mail_service.send_mail(email)
 
-    def get_mails(self, folder: Folder, query: str, max_results: int) -> list[Email]:
-        emails = self.get_mails_service.get_mails(folder, query, max_results)
+    def get_mails(self, folder: Folder, query: str, max_results: int, page_number: int = 1) -> list[Email]:
+        emails = self.get_mails_service.get_mails(folder, query, max_results, page_number)
         [email.__setattr__('to_email', self.user.email) for email in emails if email.to_email is None]
         return emails
+    
+    def search(self, query: str, max_results: int = 10) -> list[Email]:
+        return self.get_mails_service.search(query, max_results)
     
     def save_draft(self, email: Email):
         self.draft_service.save_draft(email)

@@ -1,57 +1,70 @@
 import html
-from ...models import Email
 import base64
 from email.utils import parsedate_to_datetime
 from datetime import timedelta
 import logging
-from typing import List, Generator
-from googleapiclient.errors import HttpError
+import re
+from datetime import datetime, timedelta
 
 from ..service_interfaces import GetMailsService
 from ...util import GmailSession 
-from ...models import Folder
+from ...models import Folder, Filter, Email
 
 class GmailGetMailsService(GetMailsService):
     def __init__(self, session: GmailSession):
         self.service = session.gmail_service
-    '''
-    def get_mails(self, folder_id: str ='INBOX', query: str = "", max_results: int = 10) -> Generator[Email, None, None]: #Test for improving loading time
-        query = f'in:{folder_id} {query}'
+        self.page_tokens = {1: None}  
+
+    def get_mails(self, folder: Folder = Folder("", "INBOX", []), query: str = "", max_results: int = 10, page_number: int = 1) -> list[Email]:
+        page_token = self.page_tokens.get(page_number)
+
+        if folder.id == "":
+            query = f' {query}'
+        else:
+            query = f' {query} label:{folder.id}'
+
         try:
-            response = self.service.users().messages().list(userId='me', q=query, maxResults=max_results, includeSpamTrash=False).execute()
+            response = self.service.users().messages().list(
+                userId='me', q=query, maxResults=max_results, 
+                includeSpamTrash=False, pageToken=page_token
+            ).execute()
             messages = response.get('messages', [])
             logging.info("Successfully retrieved email ids from Gmail")
-        except HttpError as e:
-            logging.error(f"Failed to retrieve emails: {e}")
-            raise
 
-        for message in messages:
-            try:
-                message_data = self.get_message_data('me', message['id'])
-                yield Email(*self.extract_data_from_message(message_data))
-            except HttpError as e:
-                logging.error(f"Error processing message {message['id']}: {e}")
+            nextPageToken = response.get('nextPageToken', None)
+            if nextPageToken:
+                self.page_tokens[page_number + 1] = nextPageToken
 
-        logging.info("Successfully parsed email data from Gmail")
-    '''
-
-    def get_mails(self, folder: Folder = Folder("","INBOX",[]), query: str = "", max_results: int = 10) -> list[Email]:
-        query = f'in:{folder.id} {query}'
-        try:
-            response = self.service.users().messages().list(userId='me', q=query, maxResults = max_results, includeSpamTrash = False).execute()
-            messages = response.get('messages', [])
-            logging.info(f"Successfully retrieved email id's from Gmail")
         except Exception as e:
             logging.error(f"An error occurred: {e}")
-            raise Exception(f"Request failed: {e}")    
+            raise Exception(f"Request failed: {e}")
 
         email_list = []
         for message in messages:
             message_data = self.get_message_data('me', message['id'])
-            email = Email(*self.extract_data_from_message(message_data), folder = folder)
+            email = Email(*self.extract_data_from_message(message_data), folder=folder)
             email_list.append(email)
-        logging.info(f"Successfully parsed email data from Gmail")
+        logging.info("Successfully parsed email data from Gmail")
+
         return email_list
+    
+    def get_page_token(self, page_number):
+        if page_number in self.page_tokens:
+            return self.page_tokens[page_number]
+
+        current_page = max(self.page_tokens.keys())
+        while current_page < page_number:
+            current_page += 1
+            response = self.service.users().messages().list(
+                userId='me', maxResults=10, pageToken=self.page_tokens[current_page - 1]
+            ).execute()
+
+            self.page_tokens[current_page] = response.get('nextPageToken')
+
+            if not self.page_tokens[current_page]:
+                break
+
+        return self.page_tokens.get(page_number)
         
     def get_message_data(self, user_id: str, message_id: str) -> dict:
         try:
@@ -141,17 +154,15 @@ class GmailGetMailsService(GetMailsService):
 
         for part in parts:
             if part['filename']:
-                # If 'data' is directly available in the body
                 if 'data' in part['body']:
                     data = part['body']['data']
                 else:
-                    # If 'data' is not available, use the attachment ID to retrieve the attachment
                     att_id = part['body'].get('attachmentId', '')
                     if att_id:
                         att = self.service.users().messages().attachments().get(userId='me', messageId=message_id, id=att_id).execute()
                         data = att['data']
                     else:
-                        continue  # Skip if there's no attachment ID
+                        continue
 
                 file_data = base64.urlsafe_b64decode(data.encode('UTF-8'))
                 file_name = part['filename']
@@ -177,9 +188,74 @@ class GmailGetMailsService(GetMailsService):
                 </html>
                 """
     
+    def construct_query(self, user_query: str) -> str:
+        from_pattern = re.compile(r"from:(\S+)")
+        to_pattern = re.compile(r"to:(\S+)")
+        subject_pattern = re.compile(r"subject:(\S+)")
 
+        query_parts = [f'({user_query})']
 
+        if from_match := from_pattern.search(user_query):
+            query_parts.append(f'from:{from_match.group(1)}')
 
+        if to_match := to_pattern.search(user_query):
+            query_parts.append(f'to:{to_match.group(1)}')
+
+        if subject_match := subject_pattern.search(user_query):
+            query_parts.append(f'subject:{subject_match.group(1)}')
+
+        date_pattern = re.compile(r"date:(\d{4}-\d{2}-\d{2})")
+        if date_match := date_pattern.search(user_query):
+            date_str = date_match.group(1)
+            try:
+                date = datetime.strptime(date_str, '%Y-%m-%d')
+                next_day = date + timedelta(days=1)
+                query_parts.append(f'after:{date.strftime("%Y/%m/%d")} before:{next_day.strftime("%Y/%m/%d")}')
+            except ValueError:
+                pass 
+
+        combined_query = ' '.join(query_parts)
+        return combined_query
     
+    def construct_filter_query(self, filter: Filter) -> str:
+        query_parts = []
 
+        if filter.before_date:
+            query_parts.append(f"before:{filter.before_date.strftime('%Y/%m/%d')}")
+        if filter.after_date:
+            query_parts.append(f"after:{filter.after_date.strftime('%Y/%m/%d')}")
+        if filter.from_email:
+            query_parts.append(f"from:{filter.from_email}")
+        if filter.to_email:
+            query_parts.append(f"to:{filter.to_email}")
+        if filter.is_read is not None:
+            query_parts.append("is:unread" if not filter.is_read else "is:read")
+        if filter.has_attachment:
+            query_parts.append("has:attachment")
+        if filter.contains:
+            for item in filter.contains:
+                query_parts.append(f'"{item}"')
+        if filter.not_contains:
+            for item in filter.not_contains:
+                query_parts.append(f'-"{item}"')
+
+        return ' '.join(query_parts)
     
+    def search(self, query: str, max_results: int = 10) -> list[Email]:
+        search_query = self.construct_query(query)
+        return self.get_mails(folder=Folder("","",[]),query=search_query, max_results=max_results)
+    
+    def filter(self, filter: Filter, max_results: int = 10) -> list[Email]:
+        filter_query = self.construct_filter_query(filter)
+        return self.get_mails(folder=filter.folder, query=filter_query, max_results=max_results)
+    
+    def search_filter(self, search_query: str, filter: Filter, max_results: int = 10) -> list[Email]:
+        search_result = self.search(search_query, max_results)
+        search_result_ids = {email.id for email in search_result}
+
+        filter_result = self.filter(filter, max_results)
+        filter_result_ids = {email.id for email in filter_result}
+
+        common_ids = search_result_ids.intersection(filter_result_ids)
+        combined_emails = [email for email in search_result if email.id in common_ids]
+        return combined_emails
