@@ -23,6 +23,8 @@ class MainWindowController():
         self.main_window.search_area.search_signal.connect(self.on_search)
         self.main_window.search_area.new_mail_signal.connect(self.main_window.open_editor_window.emit)
         self.main_window.search_area.open_settings_signal.connect(self.main_window.open_settings_window.emit)
+        self.main_window.search_area.open_filter_signal.connect(self.main_window.open_filter_window.emit)
+
         self.main_window.email_view_area.delete_email_signal.connect(self.on_email_delete)
         self.main_window.email_view_area.open_attachment_window.connect(self.main_window.open_attachment_window.emit)
         self.main_window.email_view_area.open_email_editor_window.connect(self.main_window.open_editor_window.emit)

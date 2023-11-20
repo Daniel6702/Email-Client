@@ -1,0 +1,39 @@
+QPushButton#filter_button {
+  background-color: %APP_BACKGROUND_COLOR%;
+  color: %TEXT_COLOR_SECONDARY%;
+  border: 2px solid %BORDER_COLOR%;
+  padding: 2px; 
+  margin: 2px;
+  border-radius: 2px;
+}
+QPushButton:hover#filter_button {
+  background-color: %APP_BACKGROUND_COLOR%;
+  color: %TEXT_COLOR_SECONDARY%;
+  border: 3px solid %SECONDARY_COLOR%;
+  padding: 2px; 
+  margin: 2px;
+  border-radius: 2px;
+}
+QPushButton:pressed#filter_button {
+  background-color: %APP_BACKGROUND_COLOR%;
+  color: %TEXT_COLOR_SECONDARY%;
+  border: 2px solid %BORDER_COLOR%;
+  padding: 2px; 
+  margin: 2px;
+  border-radius: 2px;
+}
+QPushButton#search_button {
+  margin-top: 0px;
+  padding 8px 8px;
+}
+QPushButton:hover#search_button {
+  margin-top: 0px;
+  padding 8px 8px;
+}
+QPushButton:pressed#search_button {
+  margin-top: 0px;
+  padding 8px 8px;
+}
+QCheckBox#filter_checkbox {
+    color: %TEXT_COLOR_SECONDARY%;
+}

@@ -1,9 +1,6 @@
-from PyQt5.QtWidgets import QApplication,QFileDialog, QListWidget, QListWidgetItem, QLabel, QMenu, QMainWindow, QDesktopWidget, QSplitter, QCheckBox, QFormLayout, QLineEdit, QVBoxLayout, QHBoxLayout, QWidget, QGridLayout, QPushButton, QWidget
-from PyQt5.QtCore import pyqtSignal,Qt
-from PyQt5.QtGui import *
-from PyQt5.QtWidgets import QWidget, QVBoxLayout, QLabel, QLineEdit, QTextEdit, QToolBar, QAction, QApplication, QDesktopWidget
-from datetime import datetime
-import os
+from PyQt5.QtWidgets import QDesktopWidget, QWidget, QWidget
+from PyQt5.QtCore import pyqtSignal
+from PyQt5.QtGui import QIcon
 from EmailService.models import Folder
 from Views.components.email_folder_layout import FolderArea
 

@@ -16,11 +16,23 @@ class TestGetMailsService(GetMailsService):
         return emails
     
     def search(self, query: str, max_results: int = 10) -> list[Email]:
-        pass
+        with open('EmailService\\services\\test_service\\test_service_mock_data.json', 'r') as f:
+            data = json.load(f)
+        email_data = data.get('emails', [])
+        emails = [Email(**email) for email in email_data]
+        return emails
 
     def filter(self, filter: Filter, max_results: int = 10) -> list[Email]:
-        pass
+        with open('EmailService\\services\\test_service\\test_service_mock_data.json', 'r') as f:
+            data = json.load(f)
+        email_data = data.get('emails', [])
+        emails = [Email(**email) for email in email_data]
+        return emails
 
     def search_filter(self, search_query: str, filter_obj: Filter, max_results: int = 10) -> list[Email]:
-        pass
+        with open('EmailService\\services\\test_service\\test_service_mock_data.json', 'r') as f:
+            data = json.load(f)
+        email_data = data.get('emails', [])
+        emails = [Email(**email) for email in email_data]
+        return emails
 

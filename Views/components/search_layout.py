@@ -7,6 +7,7 @@ class SearchArea(QVBoxLayout):
     new_mail_signal = pyqtSignal(object)
     open_settings_signal = pyqtSignal()
     open_contacts_signal = pyqtSignal()
+    open_filter_signal = pyqtSignal()
 
     def __init__(self):
         super().__init__()
@@ -23,9 +24,9 @@ class SearchArea(QVBoxLayout):
         self.searchbar.returnPressed.connect(self.search_update)
         search_layout.addWidget(self.searchbar)
 
-        self.filter_button = QPushButton("Filter")
+        self.filter_button = QPushButton(QIcon("Images\\filter.png"),"")
         self.filter_button.setObjectName("filter_button")
-        self.filter_button.clicked.connect(self.filter_button_open)
+        self.filter_button.clicked.connect(self.open_filter_signal.emit)
         search_layout.addWidget(self.filter_button)
 
         self.search_button = QPushButton("Search")
@@ -34,11 +35,9 @@ class SearchArea(QVBoxLayout):
         search_layout.addWidget(self.search_button)
         
         # Adds clickable icons
-        self.dark_mode_icon = QIcon("Images\\icon_moon.png")
-        self.light_mode_icon = QIcon("Images\\icon_sun.png")
         contact_button = QPushButton(QIcon("Images\\icon_contact.png"), "Contacts")
         contact_button.setObjectName("Contacts")
-        contact_button.clicked.connect(self.contacts_button_open)
+        contact_button.clicked.connect(self.open_contacts_signal.emit)
 
         new_mail_button = QPushButton(QIcon("Images\\icon_mail.png"), "Write New Mail")
         new_mail_button.setObjectName("new_mail_button") 
@@ -46,10 +45,7 @@ class SearchArea(QVBoxLayout):
 
         settings_button = QPushButton(QIcon("Images\\icon_gear.png"), "Settings")
         settings_button.setObjectName("Settings") 
-        settings_button.clicked.connect(self.settings_button_open)
-       
-        # Add the search bar widgets to the search layout
-        
+        settings_button.clicked.connect(self.open_settings_signal.emit)        
 
         # Create a horizontal layout for the icons
         icons_layout = QHBoxLayout()
@@ -62,18 +58,9 @@ class SearchArea(QVBoxLayout):
         search_bar_layout.addLayout(icons_layout)
         self.addLayout(search_bar_layout)
 
-    def filter_button_open(self):
-        pass
-
     def search_update(self):
         search_criteria = self.searchbar.text()
         self.search_signal.emit(search_criteria)
     
     def new_mail_button(self):
         self.new_mail_signal.emit(None)
-        
-    def settings_button_open(self):
-        self.open_settings_signal.emit()
-    
-    def contacts_button_open(self):
-        self.open_contacts_signal.emit()

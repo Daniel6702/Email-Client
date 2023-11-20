@@ -6,6 +6,7 @@ from Views.windows.attachment_window import AttachmentWindow
 from Views.windows.log_window import LogWindow
 from Views.windows.contact_window import ContactWindow
 from Views.windows.folder_selector_window import FolderWindow
+from Views.windows.filter_window import FilterWindow
 from Testing.logging_handler import setup_logger
 import logging
 import os
@@ -35,6 +36,7 @@ class WindowController:
         self.main_window.open_contacts_window.connect(self.show_contacts)
         self.main_window.open_attachment_window.connect(self.show_attachment)
         self.main_window.open_folder_selector_window.connect(self.show_folder_selector)
+        self.main_window.open_filter_window.connect(self.show_filter)
         self.main_window.show()
         self.login_window.close()
     
@@ -64,6 +66,10 @@ class WindowController:
         self.logging_window = LogWindow()
         self.logging_window.show()
         setup_logger(self.logging_window)
+
+    def show_filter(self):
+        self.filter_window = FilterWindow()
+        self.filter_window.show()
 
     def show_folder_selector(self, folders):
         logging.info("Showing folder selector window")
