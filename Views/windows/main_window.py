@@ -1,13 +1,11 @@
-from PyQt5.QtWidgets import QMessageBox, QMainWindow, QDesktopWidget, QWidget, QGridLayout, QWidget, QSpacerItem, QSizePolicy
-from PyQt5.QtCore import Qt, pyqtSignal
-from PyQt5.QtGui import *
+from PyQt5.QtWidgets import QMainWindow, QDesktopWidget, QWidget, QGridLayout, QWidget
+from PyQt5.QtCore import Qt
+from PyQt5.QtGui import QIcon
 
 from Views.components.email_folder_layout import FolderArea
 from Views.components.email_list_layout import EmailListArea
 from Views.components.search_layout import SearchArea
 from Views.components.email_view_area.email_view_layout import EmailView
-
-PAGE_SIZE = 15
 
 class MainWindow(QMainWindow):
     def __init__(self):

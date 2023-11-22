@@ -7,6 +7,7 @@ from Controllers.login_window_controller import LoginWindowController
 from Controllers.main_window_controller import MainWindowController
 from Controllers.settings_window_controller import SettingsWindowController
 from Controllers.editor_window_controller import EditorWindowController
+from Controllers.popup_window_controller import PopupWindowController
 from Views.styles.style_manager import StyleManager
 
 class AppController(QObject):
@@ -30,6 +31,7 @@ class AppController(QObject):
         self.attachment_window_controller = AttachmentWindowController()
         self.contacts_window_controller = ContactsWindowController()
         self.main_window_controller = MainWindowController(client)
+        self.popup_window_controller = PopupWindowController()
         self.setup_connections()
 
     def setup_connections(self):
@@ -41,4 +43,4 @@ class AppController(QObject):
         self.main_window_controller.open_contacts_window.connect(self.contacts_window_controller.show_contacts)
         self.filter_window_controller.set_filter_signal.connect(self.main_window_controller.set_filter)
         self.folder_selector_window_controller.folder_selected.connect(self.main_window_controller.on_folder_selected)
-
+        self.main_window_controller.open_popup_window.connect(self.popup_window_controller.show_popup)

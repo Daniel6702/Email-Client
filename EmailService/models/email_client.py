@@ -16,6 +16,7 @@ class EmailClient():
         self.folder_service = self.service_factory.create_folder_service(session)
         self.mail_management_service = self.service_factory.create_mail_management_service(session)
         self.user_manager = self.service_factory.create_user_manager()
+        self.spam_filter = self.service_factory.create_spam_filter()
    
     def login(self, user: User, save_user: bool):
         self.login_service.login(user)
@@ -40,6 +41,9 @@ class EmailClient():
     
     def delete_user(self, user: User):
         self.user_manager.delete_user(user)
+
+    def filter_emails(self, emails: list[Email], trusted_senders: list[str], untrusted_senders: list[str]) -> (list[Email], list[Email]):
+        return self.spam_filter.filter_emails(emails, trusted_senders, untrusted_senders)
 
     def get_user(self) -> User:
         if not hasattr(self, 'user'):

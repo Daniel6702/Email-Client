@@ -5,7 +5,7 @@ from EmailService.models.email_client import EmailClient
 from EmailService.factories.gmail_service_factory import GmailServiceFactory
 from EmailService.factories.outlook_service_factory import OutlookServiceFactory
 from EmailService.factories.test_service_factory import TestServiceFactory
-from EmailService.services.user_manager.user_manager_service import UserDataManager
+from EmailService.services.common.user_manager_service import UserDataManager
 import threading
 '''
 The primary purpose of the login screen is to generate and return a 'client' object.
