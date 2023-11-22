@@ -1,9 +1,10 @@
 from PyQt5.QtWidgets import QApplication, QListWidget, QListWidgetItem, QLabel, QMenu, QMainWindow, QDesktopWidget, QSplitter, QCheckBox, QFormLayout, QLineEdit, QVBoxLayout, QHBoxLayout, QWidget, QGridLayout, QPushButton, QWidget
 from PyQt5.QtCore import pyqtSignal
 from PyQt5.QtGui import *
+from EmailService.models import Filter, Folder
 
 class SearchArea(QVBoxLayout):
-    search_signal = pyqtSignal(str)
+    search_signal = pyqtSignal(str, Filter)
     new_mail_signal = pyqtSignal(object)
     open_settings_signal = pyqtSignal()
     open_contacts_signal = pyqtSignal()
@@ -13,10 +14,8 @@ class SearchArea(QVBoxLayout):
         super().__init__()
         self.setup_layout()
 
-    def toggleDarkMode(self):
-        self.dark_mode_signal.emit()
-
     def setup_layout(self):
+        self.filter = None
         search_bar_layout = QVBoxLayout()
         search_layout = QHBoxLayout()
         self.searchbar = QLineEdit()
@@ -58,9 +57,24 @@ class SearchArea(QVBoxLayout):
         search_bar_layout.addLayout(icons_layout)
         self.addLayout(search_bar_layout)
 
+    def set_filter(self, filter: Filter):
+        if filter:
+            self.filter = filter
+            self.current_background = self.filter_button.palette().color(QPalette.Background)
+            self.filter_button.setStyleSheet("background-color: green")
+        else:
+            self.filter = None
+            self.filter_button.setStyleSheet(f"background-color: {self.current_background.name()}")
+
     def search_update(self):
         search_criteria = self.searchbar.text()
-        self.search_signal.emit(search_criteria)
+        self.search_signal.emit(search_criteria, self.filter)
+
+    def add_filter(self, filter: Filter):
+        self.filter = filter
+
+    def reset_filter(self):
+        self.filter = None
     
     def new_mail_button(self):
         self.new_mail_signal.emit(None)

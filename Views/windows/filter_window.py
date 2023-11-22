@@ -1,55 +1,62 @@
 from PyQt5.QtWidgets import (QWidget, QLabel, QLineEdit, QComboBox, QPushButton, QVBoxLayout, QHBoxLayout, QCheckBox, QApplication, QDesktopWidget)
 from PyQt5.QtCore import pyqtSignal
 from PyQt5.QtGui import QIcon
-from EmailService.models import Filter
+from EmailService.models import Filter, Folder
+from Views.components.email_folder_layout import FolderArea
 
 class FilterWindow(QWidget):
-    filter_signal = pyqtSignal(Filter)
-
+    filter_signal = pyqtSignal(object)
     def __init__(self):
         super().__init__()
         self.window_settings()
         self.initUI()
 
+    def add_folders(self, folders: list[Folder]):
+        self.folders = folders
+
     def initUI(self):
+        self.main_layout = QHBoxLayout(self)
         layout = QVBoxLayout()
 
-        self.from_label = QLabel('Fra')
+        self.folder = Folder("","",[])
+        self.folder_widget = None
+
+        self.from_label = QLabel('From')
         self.from_input = QLineEdit(self)
 
-        self.to_label = QLabel('Til')
+        self.to_label = QLabel('To')
         self.to_input = QLineEdit(self)
 
-        self.subject_label = QLabel('Emne')
+        self.subject_label = QLabel('Subject')
         self.subject_input = QLineEdit(self)
 
-        self.contains_label = QLabel('Indeholder ordene')
+        self.contains_label = QLabel('Contains')
         self.contains_input = QLineEdit(self)
 
-        self.not_contains_label = QLabel('Indeholder ikke')
+        self.not_contains_label = QLabel('Does not contain')
         self.not_contains_input = QLineEdit(self)
-
-        self.size_label = QLabel('Størrelse')
-        self.size_combobox = QComboBox(self)
-        self.size_combobox.addItems(['større end', 'mindre end'])
-
-        self.size_input = QLineEdit(self)
-        self.size_input.setFixedWidth(50)
-
-        self.size_units_combobox = QComboBox(self)
-        self.size_units_combobox.addItems(['MB', 'KB'])
 
         self.date_label = QLabel('Dato inden for')
         self.date_combobox = QComboBox(self)
         self.date_combobox.addItems(['1 dag', '2 dage', '1 uge', '2 uger', '1 måned', '3 måneder', '6 måneder', '1 år'])
 
-        self.search_button = QPushButton('Søg', self)
-        self.search_button.clicked.connect(self.on_search)
+        self.set_filter_button = QPushButton('Set Filter', self)
+        self.set_filter_button.clicked.connect(self.on_set_filter)
 
-        self.attachments_checkbox = QCheckBox('Indeholder vedhæftede filer', self)
+        self.reset_filter_button = QPushButton('Reset Filter', self)
+        self.reset_filter_button.clicked.connect(self.on_reset_filter)
+
+        self.attachments_checkbox = QCheckBox('Contain attachments', self)
         self.attachments_checkbox.setObjectName('filter_checkbox')
-        self.exclude_chats_checkbox = QCheckBox('Inkluder ikke chatsamtaler', self)
-        self.exclude_chats_checkbox.setObjectName('filter_checkbox')
+
+        self.is_read_checkbox = QCheckBox('Is read', self)
+        self.is_read_checkbox.setObjectName('filter_checkbox')
+        self.attachments_checkbox.setObjectName('filter_checkbox')
+
+        self.folder_temp_layout = QHBoxLayout()
+        self.select_folder_button = QPushButton('Select folder', self)
+        self.select_folder_button.clicked.connect(self.on_select_folder)
+        self.folder_temp_layout.addWidget(self.select_folder_button)
 
         # Arrange widgets
         layout.addWidget(self.from_label)
@@ -63,28 +70,62 @@ class FilterWindow(QWidget):
         layout.addWidget(self.not_contains_label)
         layout.addWidget(self.not_contains_input)
 
-        size_hbox = QHBoxLayout()
-        size_hbox.addWidget(self.size_label)
-        size_hbox.addWidget(self.size_combobox)
-        size_hbox.addWidget(self.size_input)
-        size_hbox.addWidget(self.size_units_combobox)
-        layout.addLayout(size_hbox)
-
         date_hbox = QHBoxLayout()
         date_hbox.addWidget(self.date_label)
         date_hbox.addWidget(self.date_combobox)
         layout.addLayout(date_hbox)
 
         layout.addWidget(self.attachments_checkbox)
-        layout.addWidget(self.exclude_chats_checkbox)
-        layout.addWidget(self.search_button)
+        layout.addWidget(self.is_read_checkbox)
+        layout.addLayout(self.folder_temp_layout)
 
-        self.setLayout(layout)
+        temp = QHBoxLayout()
+        temp.addWidget(self.set_filter_button)
+        temp.addWidget(self.reset_filter_button)
+        layout.addLayout(temp)
 
-    def on_search(self):
-        filter_obj = Filter() 
+        self.main_layout.addLayout(layout) 
+        self.setLayout(self.main_layout)
+
+    def on_folder_selected(self, folder: Folder):
+        if self.folder_widget:
+            self.folder = folder
+            self.folder_widget.setVisible(False)
+            self.folder_widget.deleteLater() 
+            self.folder_widget = None
+            self.resize(self.width() - 200, self.height())
+
+            label = QLabel(f"Folder: {folder.name}")
+            self.folder_temp_layout.addWidget(label)
+
+    def on_select_folder(self):
+        if self.folder_widget is None:
+            self.folder_widget = QWidget()  
+
+            folder_area = FolderArea()  
+            folder_area.add_folders(self.folders)
+            folder_area.folder_selected.connect(self.on_folder_selected)
+
+            self.folder_widget.setLayout(folder_area)
+            self.main_layout.addWidget(self.folder_widget)  
+            self.resize(self.width() + 200, self.height())
+            self.folder_widget.setVisible(True)
+
+    def on_set_filter(self):
+        filter_obj = Filter(before_date=self.date_combobox.currentText(), 
+                            after_date=None,
+                            from_email=self.from_input.text(), 
+                            to_email=self.to_input.text(), 
+                            is_read=self.is_read_checkbox.isChecked(),
+                            has_attachment=self.attachments_checkbox.isChecked(),
+                            contains=self.contains_input.text(), 
+                            not_contains=self.not_contains_input.text(),
+                            folder=self.folder)
+        
         self.filter_signal.emit(filter_obj)
 
+    def on_reset_filter(self):
+        self.filter_signal.emit(None)
 
     def window_settings(self):
         self.setWindowTitle("Create filter")
@@ -95,3 +136,4 @@ class FilterWindow(QWidget):
         self.setGeometry(x, y, WINDOW_WIDTH, WINDOW_HEIGHT)
         icon = QIcon("Images\\icon_logo.png")
         self.setWindowIcon(icon)
+

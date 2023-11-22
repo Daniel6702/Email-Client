@@ -1,4 +1,6 @@
 from ...models import User
+#from EmailService.models.user import User
+
 from flask_app import FlaskAppWrapper
 from google_auth_oauthlib.flow import Flow
 from googleapiclient.discovery import build

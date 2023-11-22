@@ -14,11 +14,16 @@ class CustomQWebEnginePage(QWebEnginePage):
         pass
 
 class AttachmentWindow(QWidget):
-    def __init__(self, attachment: dict):
+    def __init__(self):
         super().__init__()
-
-        self.attachment = attachment
         self.initial_layout()   
+
+    def add_attachment(self, attachment: dict):
+        self.attachment = attachment
+        self.init()
+
+    def init(self):
+        self.setWindowTitle(self.attachment['file_name'])
         self.layout = QVBoxLayout()
 
         self.file_type = self.determine_file_type(self.attachment['file_data'], self.attachment['file_name'])
@@ -158,7 +163,7 @@ class AttachmentWindow(QWidget):
         return 'Unknown file type'
 
     def initial_layout(self):
-        self.setWindowTitle(self.attachment['file_name'])
+        self.setWindowTitle("Attachment")
         screen = QDesktopWidget().screenGeometry()
         x = (screen.width() - self.width()) // 2
         y = (screen.height() - self.height()) // 2

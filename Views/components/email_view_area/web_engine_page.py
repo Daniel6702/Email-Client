@@ -12,38 +12,28 @@ class WebEnginePage(QWebEnginePage):
     def __init__(self, *args, **kwargs):
         super(WebEnginePage, self).__init__(*args, **kwargs)
         self.loadFinished.connect(self.onLoadFinished)
-        print("WebEnginePage initialized")
 
     @pyqtSlot(bool)
     def onLoadFinished(self, ok):
-        print("Finished loading:", ok)
         if ok:
             self.load_qwebchannel()
             self.run_scripts_on_load()
-        else:
-            print("Page did not load successfully")
 
     def load_qwebchannel(self):
-        print("Loading qwebchannel.js...")
         file = QFile(":/qtwebchannel/qwebchannel.js")
         if file.open(QIODevice.ReadOnly):
             content = file.readAll()
             file.close()
             self.runJavaScript(content.data().decode())
-            print("qwebchannel.js loaded")
-        else:
-            print("Failed to load qwebchannel.js")
         if self.webChannel() is None:
             channel = QWebChannel(self)
             self.setWebChannel(channel)
-            print("QWebChannel set")
 
     def add_objects(self, objects):
         if self.webChannel() is not None:
             initial_script = ""
             end_script = ""
             self.webChannel().registerObjects(objects)
-            print("Objects registered with the web channel")
             for name, obj in objects.items():
                 initial_script += f"var {name};"
                 end_script += f"{name} = channel.objects.{name};"
@@ -52,10 +42,8 @@ class WebEnginePage(QWebEnginePage):
                  end_script + \
                  "} );"
             self.runJavaScript(js)
-            print("Injected JavaScript to add objects to the web channel")
 
     def run_scripts_on_load(self):
-        print("Injecting JavaScript for click interception...")
         current_dir = os.path.dirname(os.path.abspath(__file__))
         js_file_path = os.path.join(current_dir, 'click_interceptor.js')
         try:
@@ -70,5 +58,4 @@ class WebEnginePage(QWebEnginePage):
     
     @pyqtSlot(str)
     def openUrl(self, url):
-        print(f"Request to open URL: {url}")
         QDesktopServices.openUrl(QUrl(url))

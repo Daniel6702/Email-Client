@@ -6,17 +6,19 @@ from Views.components.email_folder_layout import FolderArea
 
 class FolderWindow(QWidget):
     on_folder_selected = pyqtSignal(Folder)
-    def __init__(self, folders: list[Folder]):
+    def __init__(self,):
         super().__init__()
         self.initial_layout()
         self.folder_area = FolderArea()
-        self.folder_area.add_folders(folders)
         self.folder_area.folder_selected.connect(self.folder_selected)
         self.setLayout(self.folder_area)
 
     def folder_selected(self, folder: Folder):
         self.on_folder_selected.emit(folder)
         self.close()
+
+    def add_folders(self, folders: list[Folder]):
+        self.folder_area.add_folders(folders)
 
     def initial_layout(self):
         self.setWindowTitle("Select a Folder")

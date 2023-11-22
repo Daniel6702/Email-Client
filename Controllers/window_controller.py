@@ -1,4 +1,4 @@
-from Views.windows.login_window import LoginScreen
+from Views.windows.login_window import LoginWindow
 from Views.windows.main_window import MainWindow
 from Views.windows.editor_window import EditorWindow
 from Views.windows.settings_window import SettingsWindow
@@ -21,10 +21,9 @@ class WindowController:
         if logging:
             self.show_logging()
 
-
     def show_login(self):
         logging.info("Showing login window")
-        self.login_window = LoginScreen()
+        self.login_window = LoginWindow()
         self.login_window.login_successful.connect(self.show_main)
         self.login_window.show()
         
@@ -67,8 +66,9 @@ class WindowController:
         self.logging_window.show()
         setup_logger(self.logging_window)
 
-    def show_filter(self):
-        self.filter_window = FilterWindow()
+    def show_filter(self, folders):
+        self.filter_window = FilterWindow(folders)
+        self.filter_window.filter_signal.connect(self.main_window.on_filter_created.emit)
         self.filter_window.show()
 
     def show_folder_selector(self, folders):

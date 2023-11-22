@@ -57,6 +57,9 @@ class EmailClient():
     def search(self, query: str, max_results: int = 10) -> list[Email]:
         return self.get_mails_service.search(query, max_results)
     
+    def search_filter(self, query: str, filter: dict, max_results: int = 10) -> list[Email]:
+        return self.get_mails_service.search_filter(query, filter, max_results)
+    
     def save_draft(self, email: Email):
         self.draft_service.save_draft(email)
     

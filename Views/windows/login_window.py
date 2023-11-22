@@ -10,10 +10,11 @@ import threading
 '''
 The primary purpose of the login screen is to generate and return a 'client' object.
 '''
-class LoginScreen(QWidget):
+class LoginWindow(QWidget):
     login_successful = pyqtSignal(object)
+    login_signal = pyqtSignal(str, object, bool)
     def __init__(self, parent=None):
-        super(LoginScreen, self).__init__(parent)
+        super(LoginWindow, self).__init__(parent)
         self.layout = QVBoxLayout(self)
         self.user_manager = UserDataManager()
         self.users = self.user_manager.get_users()
@@ -212,6 +213,10 @@ class LoginScreen(QWidget):
 
     def start_login_process(self, client_type, user):
         self.switch_to_loading_screen()
+        if self.developer_mode_checkbox.isChecked():
+            client_type = "test"
+        self.login_signal.emit(client_type, user, self.remember_me_checkbox.isChecked())
+        '''
 
         def login_thread(client_type, user):
             if client_type == "google":
@@ -231,4 +236,5 @@ class LoginScreen(QWidget):
         # Create a new thread to handle the login process
         login_process_thread = threading.Thread(target=login_thread, args=(client_type, user))
         login_process_thread.start()
+        '''
 

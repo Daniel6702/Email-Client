@@ -6,25 +6,12 @@ from Views.components.email_folder_layout import FolderArea
 from Views.components.email_list_layout import EmailListArea
 from Views.components.search_layout import SearchArea
 from Views.components.email_view_area.email_view_layout import EmailView
-from Controllers.main_window_controller import MainWindowController
-from EmailService.models.email_client import EmailClient
 
 PAGE_SIZE = 15
 
 class MainWindow(QMainWindow):
-    open_editor_window = pyqtSignal(object)
-    open_settings_window = pyqtSignal()
-    open_contacts_window = pyqtSignal()
-    open_attachment_window = pyqtSignal(dict)
-    get_email_from_editor = pyqtSignal(object, str)
-    show_warning_signal = pyqtSignal(str, str, str)
-    folder_selected = pyqtSignal(object)
-    open_folder_selector_window = pyqtSignal(object)
-    open_filter_window = pyqtSignal()
-    def __init__(self, email_client: EmailClient):
-        super(MainWindow, self).__init__()
-        self.show_warning_signal.connect(self.show_warning)
-               
+    def __init__(self):
+        super(MainWindow, self).__init__()               
         #Initialize UI
         self.initialize_ui()
         main_widget = QWidget(self)
@@ -35,9 +22,6 @@ class MainWindow(QMainWindow):
         self.email_list_area = EmailListArea()
         self.folder_area = FolderArea()
         self.search_area = SearchArea()
-
-        #Create Controller to handle signals and integration with email_client
-        self.controller = MainWindowController(self, email_client) 
 
         #Create Grid
         grid_layout = QGridLayout()
@@ -52,18 +36,6 @@ class MainWindow(QMainWindow):
         #Show grid
         main_widget.setLayout(grid_layout)
         self.show()
-
-    def show_warning(self, title, message, informative_text=""):
-        msg = QMessageBox()
-        msg.setIcon(QMessageBox.Warning)
-        msg.setText(message)
-        msg.setInformativeText(informative_text)
-        msg.setWindowTitle(title)
-        spacer = QSpacerItem(500, 0, QSizePolicy.Minimum, QSizePolicy.Expanding)
-        layout = msg.layout()
-        layout.addItem(spacer, layout.rowCount(), 0, 1, layout.columnCount())
-
-        msg.exec_()
 
     def initialize_ui(self):
         self.setWindowTitle("Smail")

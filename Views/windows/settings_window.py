@@ -8,7 +8,7 @@ import os
 class SettingsWindow(QWidget):
     style_signal = pyqtSignal(str)
 
-    def __init__(self, style_manager):
+    def __init__(self, style_manager=None):
         super().__init__()
         self.style_manager = style_manager
         self.initial_layout()
@@ -126,13 +126,13 @@ class SettingsWindow(QWidget):
 
     def light_mode_option(self):
          self.style_signal.emit('lightmode')
-         self.style_manager.set_style('lightmode')
+         #self.style_manager.set_style('lightmode')
     def dark_mode_option(self):
         self.style_signal.emit('darkmode')
-        self.style_manager.set_style('darkmode')
+        #self.style_manager.set_style('darkmode')
     def barbie_mode_option(self):
          self.style_signal.emit('barbiemode')
-         self.style_manager.set_style('barbiemode')
+         #self.style_manager.set_style('barbiemode')
 
 
     def clear_content_layout(self):
