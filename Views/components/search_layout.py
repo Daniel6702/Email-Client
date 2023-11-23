@@ -15,7 +15,7 @@ class SearchArea(QVBoxLayout):
         self.setup_layout()
 
     def setup_layout(self):
-        self.filter = None
+        self.filter = Filter()
         search_bar_layout = QVBoxLayout()
         search_layout = QHBoxLayout()
         self.searchbar = QLineEdit()

@@ -42,5 +42,5 @@ class AppController(QObject):
         self.main_window_controller.open_settings_window.connect(self.settings_window_controller.show_settings)
         self.main_window_controller.open_contacts_window.connect(self.contacts_window_controller.show_contacts)
         self.filter_window_controller.set_filter_signal.connect(self.main_window_controller.set_filter)
-        self.folder_selector_window_controller.folder_selected.connect(self.main_window_controller.on_folder_selected)
+        self.folder_selector_window_controller.folder_selected.connect(self.main_window_controller.on_folder_selected_from_folder_selector_window)
         self.main_window_controller.open_popup_window.connect(self.popup_window_controller.show_popup)

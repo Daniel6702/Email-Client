@@ -18,6 +18,9 @@ perhabs make dedicated pyqt signal hub thing instead of having it all connected 
 Improve GUI (make it not look terrible)
 gui controller (signals and connected functions in seperate class not in main window)
 
+show attachment file sizes
+email editor: underline, text color, hyper links
+
 BUGS:
 Date and Time for sent and recieved emails dont match (time zones problem i think)
 recepients field when opening (or saving) drafts (only outlook i think)

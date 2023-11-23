@@ -26,7 +26,6 @@ class OutlookGetMailsService(GetMailsService):
         base_url = "https://graph.microsoft.com/v1.0/me"
         endpoint_url = f"{base_url}/mailFolders/{folder_id}/messages" if folder_id else f"{base_url}/messages"
 
-        # Calculate the number of items to skip
         skip_count = (page_number - 1) * max_results
 
         query_parameters = {
@@ -37,10 +36,22 @@ class OutlookGetMailsService(GetMailsService):
         }
 
         if query:
+            query_parameters = {
+                "$top": max_results,
+                "$select": FIELDS_TO_RETRIEVE,
+                "$expand": "attachments"
+            }
             if query.startswith('search:'):
                 query_parameters["$search"] = query[len('search:'):]
             elif query.startswith('filter:'):
-                query_parameters["$filter"] = query[len('filter:'):]
+                query_parameters["$filter"] = query[len('filter:'):] 
+        else:
+            query_parameters = {
+                "$top": max_results,
+                "$skip": skip_count,
+                "$select": FIELDS_TO_RETRIEVE,
+                "$expand": "attachments"
+            }
 
         headers = {"Authorization": f"Bearer {access_token}"}
 

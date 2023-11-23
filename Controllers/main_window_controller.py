@@ -40,7 +40,7 @@ class MainWindowController(QWidget):
         self.main_window.email_view_area.open_folder_window.connect(lambda: self.open_folder_selector_window.emit(self.folders))
         self.main_window.email_view_area.move_email_to_folder.connect(self.move_email_to_folder)
         self.main_window.search_area.open_contacts_signal.connect(self.open_contacts_window.emit)
-
+    
     def set_filter(self, filter: Filter):
         self.main_window.search_area.set_filter(filter)
 
@@ -81,10 +81,13 @@ class MainWindowController(QWidget):
 
     def on_new_page(self, page_number: int):
         emails = self.email_client.get_mails(folder=self.current_folder, query="", max_results=PAGE_SIZE, page_number=page_number)
-        self.main_window.email_list_area.add_emails_to_list(emails)
+        if emails:
+            self.main_window.email_list_area.add_emails_to_list(emails)
+        else:
+            self.main_window.email_list_area.current_page -= 1
 
     def on_search(self, search_criteria: str, filter: Filter = None):
-        if not filter:
+        if filter.is_empty():
             mails = self.email_client.search(search_criteria, PAGE_SIZE)
         else:
             mails = self.email_client.search_filter(search_criteria, filter, PAGE_SIZE)

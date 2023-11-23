@@ -1,12 +1,7 @@
 from PyQt5.QtWidgets import QSpacerItem,QSizePolicy,QStackedWidget,QApplication, QListWidget, QLabel, QMainWindow,QFrame, QDesktopWidget, QSplitter, QCheckBox, QFormLayout, QLineEdit, QVBoxLayout, QHBoxLayout, QWidget, QGridLayout, QPushButton, QWidget, QLayout
 from PyQt5.QtCore import QUrl, Qt, pyqtSignal, QSettings,QSize, QEasingCurve, QPropertyAnimation, QRect, QPoint, QThread
 from PyQt5.QtGui import *
-from EmailService.models.email_client import EmailClient
-from EmailService.factories.gmail_service_factory import GmailServiceFactory
-from EmailService.factories.outlook_service_factory import OutlookServiceFactory
-from EmailService.factories.test_service_factory import TestServiceFactory
 from EmailService.services.common.user_manager_service import UserDataManager
-import threading
 '''
 The primary purpose of the login screen is to generate and return a 'client' object.
 '''
