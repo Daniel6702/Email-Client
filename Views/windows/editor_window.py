@@ -146,6 +146,8 @@ class EditorWindow(QWidget):
     def increase_font_size(self):
         current_font = self.mail_body_edit.currentFont()
         current_size = current_font.pointSize()
+        if current_size >= 72:
+            return
         new_size = current_size + 1
         current_font.setPointSize(new_size)
         self.mail_body_edit.setCurrentFont(current_font)
@@ -154,6 +156,8 @@ class EditorWindow(QWidget):
     def decrease_font_size(self):
         current_font = self.mail_body_edit.currentFont()
         current_size = current_font.pointSize()
+        if current_size <= 1:
+            return
         new_size = max(1, current_size - 1)
         current_font.setPointSize(new_size)
         self.mail_body_edit.setCurrentFont(current_font)

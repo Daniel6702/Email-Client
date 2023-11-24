@@ -23,7 +23,9 @@ class OutlookLoginService(LoginService):
         self.scopes = ["https://graph.microsoft.com/Mail.Send",
                        "https://graph.microsoft.com/Mail.Read",
                        "https://graph.microsoft.com/Mail.ReadWrite",
-                       "https://graph.microsoft.com/User.Read"]
+                       "https://graph.microsoft.com/User.Read",
+                       "https://graph.microsoft.com/Contacts.Read",
+                       "https://graph.microsoft.com/Contacts.ReadWrite"]
         self.redirect_uri = data["redirect_uri"]
 
     def new_login(self):

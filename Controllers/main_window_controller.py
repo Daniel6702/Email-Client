@@ -5,7 +5,7 @@ from EmailService.models import Email, Filter, Folder
 from EmailService.models.email_client import EmailClient   
 import logging
 
-PAGE_SIZE = 8
+PAGE_SIZE = 12
     
 class MainWindowController(QWidget):
     open_editor_window = pyqtSignal(object)
@@ -25,6 +25,9 @@ class MainWindowController(QWidget):
         
     def setup_connections(self):
         self.main_window.folder_area.folder_selected.connect(self.on_folder_selected)
+        self.main_window.folder_area.add_folder_signal.connect(self.on_add_folder)
+        self.main_window.folder_area.delete_folder_signal.connect(self.on_folder_delete)
+        self.main_window.folder_area.edit_folder_signal.connect(self.on_folder_edit)
         self.main_window.email_list_area.email_clicked.connect(self.on_email_clicked)
         self.main_window.email_list_area.mark_email_as.connect(self.on_mark_email_as)
         self.main_window.email_list_area.email_deleted.connect(self.on_email_delete)
@@ -40,6 +43,25 @@ class MainWindowController(QWidget):
         self.main_window.email_view_area.open_folder_window.connect(lambda: self.open_folder_selector_window.emit(self.folders))
         self.main_window.email_view_area.move_email_to_folder.connect(self.move_email_to_folder)
         self.main_window.search_area.open_contacts_signal.connect(self.open_contacts_window.emit)
+
+    def on_add_folder(self, folder: Folder):
+        folder = self.email_client.create_folder(folder, None)
+        self.folders.append(folder)
+        self.main_window.folder_area.clear_folders()
+        self.main_window.folder_area.add_folders(self.folders)
+
+    def on_folder_delete(self, folder: Folder):
+        self.email_client.delete_folder(folder)
+        self.folders.remove(folder)
+        self.main_window.folder_area.clear_folders()
+        self.main_window.folder_area.add_folders(self.folders)
+
+    def on_folder_edit(self, folder: Folder, new_folder_name: str):
+        self.folders.remove(folder)
+        folder = self.email_client.update_folder(folder, new_folder_name)
+        self.folders.append(folder)
+        self.main_window.folder_area.clear_folders()
+        self.main_window.folder_area.add_folders(self.folders)
     
     def set_filter(self, filter: Filter):
         self.main_window.search_area.set_filter(filter)

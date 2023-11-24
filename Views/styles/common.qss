@@ -22,6 +22,10 @@ QPushButton:pressed {
                                     stop:0 %ACCENT_COLOR%, stop:1 %SECONDARY_COLOR%);
   border: 2px solid %BORDER_COLOR%;
 }
+QPushButton:checked {
+  background-color: %ACCENT_COLOR%;
+  border: 2px solid %BORDER_COLOR%;
+}
 
 QCheckBox {
     background-color: %BACKGROUND_COLOR%;

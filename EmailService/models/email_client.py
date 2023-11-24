@@ -2,6 +2,7 @@ from ..factories.email_service_factory import EmailServiceFactory
 from ..models.email import Email
 from ..models.folder import Folder
 from ..models.user import User
+from ..models.contact import Contact
 
 class EmailClient():
     def __init__(self, service_factory: EmailServiceFactory):
@@ -17,6 +18,7 @@ class EmailClient():
         self.mail_management_service = self.service_factory.create_mail_management_service(session)
         self.user_manager = self.service_factory.create_user_manager()
         self.spam_filter = self.service_factory.create_spam_filter()
+        self.contacts_service = self.service_factory.create_contacts_service(session)
    
     def login(self, user: User, save_user: bool):
         self.login_service.login(user)
@@ -73,8 +75,8 @@ class EmailClient():
     def get_folders(self) -> list[Folder]:
         return self.folder_service.get_folders()
     
-    def create_folder(self, folder: Folder) -> Folder:
-        return self.folder_service.create_folder(folder)
+    def create_folder(self, folder: Folder, parrent_folder: Folder = None) -> Folder:
+        return self.folder_service.create_folder(folder, parrent_folder)
     
     def move_email_to_folder(self, from_folder_id: str, to_folder_id: str, message_id: str):
         self.folder_service.move_email_to_folder(from_folder_id, to_folder_id, message_id)
@@ -99,3 +101,15 @@ class EmailClient():
 
     def logout(self):
         self.delete_user(self.get_user())
+
+    def get_contacts(self) -> list[Contact]:
+        return self.contacts_service.get_contacts()
+    
+    def add_contact(self, contact: Contact) -> Contact:
+        return self.contacts_service.add_contact(contact)
+
+    def update_contact(self, contact: Contact) -> Contact:
+        return self.contacts_service.update_contact(contact)
+
+    def delete_contact(self, contact: Contact):
+        self.contacts_service.delete_contact(contact)
