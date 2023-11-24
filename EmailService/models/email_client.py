@@ -73,8 +73,8 @@ class EmailClient():
     def get_folders(self) -> list[Folder]:
         return self.folder_service.get_folders()
     
-    def create_folder(self, folder: Folder) -> Folder:
-        return self.folder_service.create_folder(folder)
+    def create_folder(self, folder: Folder, parrent_folder: Folder = None) -> Folder:
+        return self.folder_service.create_folder(folder, parrent_folder)
     
     def move_email_to_folder(self, from_folder_id: str, to_folder_id: str, message_id: str):
         self.folder_service.move_email_to_folder(from_folder_id, to_folder_id, message_id)

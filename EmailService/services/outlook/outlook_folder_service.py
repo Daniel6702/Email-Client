@@ -42,7 +42,9 @@ class OutlookFolderService(FolderService):
         }
 
         endpoint_url = "https://graph.microsoft.com/v1.0/me/mailFolders"
-        if parent_folder.id:
+
+        # Check if parent_folder is not None and has an 'id' attribute
+        if parent_folder and hasattr(parent_folder, 'id') and parent_folder.id:
             endpoint_url = f"{endpoint_url}/{parent_folder.id}/childFolders"
 
         payload = {"displayName": folder.name}
@@ -50,7 +52,7 @@ class OutlookFolderService(FolderService):
         try:
             response = requests.post(endpoint_url, headers=headers, json=payload)
             response.raise_for_status() 
-            folder = Folder(name=response.json()['displayName'], id=response.json()['id'], children = [])
+            folder = Folder(name=response.json()['displayName'], id=response.json()['id'], children=[])
             logging.info(f"Folder with ID {folder.id} created successfully.")
             return folder
         except requests.exceptions.RequestException as e:

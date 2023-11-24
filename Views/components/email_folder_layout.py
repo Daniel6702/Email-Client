@@ -1,4 +1,4 @@
-from PyQt5.QtWidgets import QSpacerItem, QSizePolicy, QListWidget, QLabel, QVBoxLayout, QHBoxLayout, QWidget, QPushButton, QWidget, QListWidgetItem
+from PyQt5.QtWidgets import QSpacerItem, QSizePolicy, QListWidget, QLabel, QVBoxLayout, QHBoxLayout, QWidget, QPushButton, QWidget, QListWidgetItem, QMessageBox, QInputDialog, QLineEdit
 from PyQt5.QtCore import pyqtSignal,Qt
 from PyQt5.QtGui import QPixmap
 from EmailService.models import Folder
@@ -55,16 +55,66 @@ class FolderWidget(QWidget):
 
 class FolderArea(QVBoxLayout):
     folder_selected = pyqtSignal(object) 
+    delete_folder_signal = pyqtSignal(object)
+    edit_folder_signal = pyqtSignal(object, str)
+    add_folder_signal = pyqtSignal(object)
 
-    def __init__(self):
+    def __init__(self, parent=None):
         super().__init__()
+        self.parent = parent
+        self.setup_buttons()
         self.setup_folder_field_layout()
         self.folder_widgets = {} 
         self.folder_items = {}
 
-    def setup_folder_field_layout(self):
+    def setup_buttons(self):
         label = QLabel("Folders:")
         self.addWidget(label)
+        self.button_layout = QHBoxLayout()
+
+        self.add_folder_button = QPushButton('Add')
+        self.add_folder_button.clicked.connect(self.add_folder_button_clicked)
+        self.delete_folder_button = QPushButton('Delete')
+        self.delete_folder_button.setCheckable(True)
+        self.delete_folder_button.clicked.connect(self.checkable_buttons_clicked)
+        self.edit_folder_button = QPushButton('Edit')
+        self.edit_folder_button.setCheckable(True)
+        self.edit_folder_button.clicked.connect(self.checkable_buttons_clicked)
+
+        self.button_layout.addWidget(self.add_folder_button)
+        self.button_layout.addWidget(self.delete_folder_button)
+        self.button_layout.addWidget(self.edit_folder_button)
+
+        self.addLayout(self.button_layout)
+    
+    def checkable_buttons_clicked(self):
+        if self.delete_folder_button.isChecked() or self.edit_folder_button.isChecked():
+            QMessageBox.information(self.parent, "Select a Folder", "Please select a folder.", QMessageBox.Ok)
+    
+    def add_folder_button_clicked(self):
+        text, okPressed = QInputDialog.getText(self.parent, "Add New Folder", "Enter folder name:", QLineEdit.Normal, "")
+        if okPressed and text != '':
+            folder = Folder(name=text, id=None, children=[])
+            self.add_folder_signal.emit(folder)
+            self.refresh_folder_list()
+
+    def delete_folder(self, folder: Folder):
+        reply = QMessageBox.question(self.parent, 'Delete folder', 
+                                     "Are you sure you want to delete this folder?",
+                                     QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
+        if reply == QMessageBox.Yes:
+            self.delete_folder_signal.emit(folder)
+            self.remove_folder(folder)
+        self.delete_folder_button.setChecked(False)
+
+    def edit_folder(self, folder: Folder):
+        text, okPressed = QInputDialog.getText(self.parent, "Edit folder name", "Enter new folder name:", QLineEdit.Normal, "")
+        if okPressed and text != '':
+            self.edit_folder_signal.emit(folder, text)
+            self.refresh_folder_list()
+        self.edit_folder_button.setChecked(False)
+
+    def setup_folder_field_layout(self):
         self.list_widget = QListWidget()
         self.list_widget.setObjectName('folder_list')
         self.addWidget(self.list_widget)
@@ -79,6 +129,7 @@ class FolderArea(QVBoxLayout):
         return folders
     
     def add_folders(self, folders: List['Folder']):
+        self.folders = folders
         folders = self.move_inbox_to_top(folders)
         for folder in folders:
             self.add_folder(folder, 0)
@@ -117,7 +168,15 @@ class FolderArea(QVBoxLayout):
     def handle_item_clicked(self, item):
         widget = self.list_widget.itemWidget(item)
         if hasattr(widget, 'folder'):
-            self.folder_selected.emit(widget.folder)
+            folder = widget.folder
+        else:
+            return
+        if self.delete_folder_button.isChecked():
+            self.delete_folder(folder)
+        elif self.edit_folder_button.isChecked():
+            self.edit_folder(folder)
+        else:
+            self.folder_selected.emit(folder)
 
     def remove_folder(self, folder: 'Folder'):
         for index in range(self.list_widget.count()):
