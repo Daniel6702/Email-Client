@@ -9,8 +9,6 @@ from Controllers.settings_window_controller import SettingsWindowController
 from Controllers.editor_window_controller import EditorWindowController
 from Controllers.popup_window_controller import PopupWindowController
 from Views.styles.style_manager import StyleManager
-from PyQt5.QtWidgets import QMessageBox
-import socket
 
 class AppController(QObject):
     def __init__(self, app):
@@ -20,25 +18,9 @@ class AppController(QObject):
         self.start()
 
     def start(self):
-        if self.is_internet_connected():
-            self.login_window_controller = LoginWindowController()
-            self.login_window_controller.on_login_signal.connect(self.initiate_on_login)
-            self.login_window_controller.show_login()
-        else:
-            self.show_internet_connection_error()
-
-    def is_internet_connected(self):
-        try:
-            # Try to connect to Google's DNS server (8.8.8.8) on port 53
-            socket.create_connection(("8.8.8.8", 53), timeout=5)
-            return True
-        except OSError:
-            return False
-
-    def show_internet_connection_error(self):
-        error_message = "Unable to connect to the internet. Please check your internet connection and try again."
-        window = PopupWindowController()
-        window.show_popup("error", "Internet Connection Error", error_message, "", 0)
+        self.login_window_controller = LoginWindowController()
+        self.login_window_controller.on_login_signal.connect(self.initiate_on_login)
+        self.login_window_controller.show_login()
 
     def initiate_on_login(self, client):
         self.login_window_controller.login_window.close()
