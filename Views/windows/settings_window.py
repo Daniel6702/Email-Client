@@ -18,24 +18,20 @@ class SettingsWindow(QWidget):
         # Left layout for buttons
         buttons_layout = QVBoxLayout()
 
-        # Add widgets for different settings options
-        notification_button = QPushButton("Notification")
         display_button = QPushButton("Display")
         rules_button = QPushButton("Rules")
         blacklist_button = QPushButton("Blacklist")
         switch_account_button = QPushButton("Switch Account")
         logout_button = QPushButton("Log Out")
 
-        # Connect buttons to functions
-        notification_button.clicked.connect(self.notification_settings)
+  
         display_button.clicked.connect(self.display_settings)
         rules_button.clicked.connect(self.rules_settings)
         blacklist_button.clicked.connect(self.blacklist_settings)
         switch_account_button.clicked.connect(self.switch_account_settings)
         logout_button.clicked.connect(self.logout_settings)
 
-        # Add buttons to the left layout
-        buttons_layout.addWidget(notification_button)
+        
         buttons_layout.addWidget(display_button)
         buttons_layout.addWidget(rules_button)
         buttons_layout.addWidget(blacklist_button)
@@ -70,9 +66,6 @@ class SettingsWindow(QWidget):
         icon = QIcon("Images\\icon_logo.png")
         self.setWindowIcon(icon)
 
-    def notification_settings(self):
-        # Implement the functionality for notification settings here
-        print("Show Notification Settings")
 
     def display_settings(self):
     # Clear the existing content layout
@@ -108,18 +101,41 @@ class SettingsWindow(QWidget):
 
     def rules_settings(self):
         # Implement the functionality for rules settings here
+        # Emit the settings_signal with the "logout" action
+        self.clear_content_layout()
         print("Show Rules Settings")
 
     def blacklist_settings(self):
         # Implement the functionality for blacklist settings here
+        # Emit the settings_signal with the "logout" action
+        self.clear_content_layout()
         print("Show Blacklist Settings")
 
     def switch_account_settings(self):
+        # Emit the settings_signal with the "logout" action
+        self.clear_content_layout()
         print("Show Switch Account Settings")
 
     def logout_settings(self):
         # Emit the settings_signal with the "logout" action
-        self.settings_signal.emit("logout")
+        self.clear_content_layout()
+        # Create a new widget for display settings
+        display_widget = QWidget()
+        # Layout for display settings
+        display_layout = QVBoxLayout()
+        self.content_label = QLabel("Are you sure you want to logout?")
+        
+
+        self.content_label.setAlignment(Qt.AlignCenter)
+        display_layout.addWidget(self.content_label)
+        # Add buttons for different display options
+        button1 = QPushButton("Logout")
+        button1.clicked.connect(self.logout)
+        display_layout.addWidget(button1)
+          # Set the layout for the display widget
+        display_widget.setLayout(display_layout)
+        # Add the display widget to the content layout
+        self.content_layout.addWidget(display_widget)
 
 
 
@@ -133,6 +149,10 @@ class SettingsWindow(QWidget):
     def barbie_mode_option(self):
          self.style_signal.emit('barbiemode')
          #self.style_manager.set_style('barbiemode')
+
+
+    def logout(self):
+        self.settings_signal.emit("logout")
 
 
     def clear_content_layout(self):
