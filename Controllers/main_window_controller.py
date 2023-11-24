@@ -117,7 +117,8 @@ class MainWindowController(QWidget):
 
     def move_email_to_folder(self, email: Email, folder: Folder):
         self.email_client.move_email_to_folder(email.folder, folder, email)
-        if email.folder is not self.current_folder:
+
+        if folder.name is not self.current_folder.name:
             self.main_window.email_list_area.remove_email_from_list(email)
 
 

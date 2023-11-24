@@ -6,14 +6,16 @@ from Views.components.email_folder_layout import FolderArea
 
 class FolderWindow(QWidget):
     on_folder_selected = pyqtSignal(Folder)
-    def __init__(self,):
+    
+    def __init__(self, controller):
         super().__init__()
+        self.controller = controller
         self.initial_layout()
         self.folder_area = FolderArea()
-        self.folder_area.folder_selected.connect(self.folder_selected)
+        self.folder_area.folder_selected.connect(self.emit_folder_selected)
         self.setLayout(self.folder_area)
 
-    def folder_selected(self, folder: Folder):
+    def emit_folder_selected(self, folder: Folder):
         self.on_folder_selected.emit(folder)
         self.close()
 
@@ -29,3 +31,9 @@ class FolderWindow(QWidget):
         self.setGeometry(x, y, WINDOW_WIDTH, WINDOW_HEIGHT)
         icon = QIcon("Images\\icon_logo.png")
         self.setWindowIcon(icon)
+        
+    def closeEvent(self, event):
+        # This method is called when the widget is being closed
+        if self.isVisible():
+            self.controller.set_user_initiated_selection(False)
+        super().closeEvent(event)
