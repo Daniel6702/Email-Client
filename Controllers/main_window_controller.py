@@ -47,6 +47,7 @@ class MainWindowController(QWidget):
     def on_add_folder(self, folder: Folder):
         folder = self.email_client.create_folder(folder, None)
         self.folders.append(folder)
+        self.main_window.folder_area.clear_folders()
         self.main_window.folder_area.add_folders(self.folders)
 
     def on_folder_delete(self, folder: Folder):

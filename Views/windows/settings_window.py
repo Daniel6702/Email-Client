@@ -123,7 +123,6 @@ class SettingsWindow(QWidget):
 
 
 
-
     def light_mode_option(self):
          self.style_signal.emit('lightmode')
          #self.style_manager.set_style('lightmode')
@@ -133,6 +132,7 @@ class SettingsWindow(QWidget):
     def barbie_mode_option(self):
          self.style_signal.emit('barbiemode')
          #self.style_manager.set_style('barbiemode')
+
 
 
     def clear_content_layout(self):

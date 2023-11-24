@@ -1,18 +1,113 @@
-from PyQt5.QtWidgets import QApplication,QFileDialog, QListWidget, QListWidgetItem, QLabel, QMenu, QMainWindow, QDesktopWidget, QSplitter, QCheckBox, QFormLayout, QLineEdit, QVBoxLayout, QHBoxLayout, QWidget, QGridLayout, QPushButton, QWidget
-from PyQt5.QtCore import pyqtSignal,Qt
-from PyQt5.QtGui import *
+from PyQt5.QtWidgets import QWidget, QPushButton, QListWidget, QLabel, QGridLayout, QHBoxLayout, QVBoxLayout, QLineEdit, QDialog, QDialogButtonBox
+from PyQt5.QtCore import pyqtSignal
+from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import QWidget, QVBoxLayout, QLabel, QLineEdit, QTextEdit, QToolBar, QAction, QApplication, QDesktopWidget
-from datetime import datetime
-import os
+from EmailService.models import Contact
 
 class ContactWindow(QWidget):
-    contacts_signal = pyqtSignal(object)
+    add_contact_signal = pyqtSignal(Contact)
+    delete_contact_signal = pyqtSignal(Contact) 
+    update_contact_signal = pyqtSignal(Contact)
 
     def __init__(self):
         super().__init__()
-        self.initial_layout()
+        self.contacts = []
+        self.window_settings()
+        self.setup_layout()
 
-    def initial_layout(self):
+    def window_settings(self):
+        self.setWindowTitle('Contact Manager')
+        self.setGeometry(300, 300, 600, 400)
+
+    def add_contacts(self, contacts):
+        self.contacts = contacts
+        self.contacts_list.clear()
+        for contact in contacts:
+            item_text = f"{contact.name}\n{contact.email}\n----------------------------------"
+            self.contacts_list.addItem(item_text)
+
+    def setup_layout(self):
+        main_layout = QVBoxLayout()
+
+        top_layout = QHBoxLayout()
+        add_contact_button = QPushButton("Add Contact")
+        add_contact_button.clicked.connect(self.show_contact_form)
+        delete_contact_button = QPushButton("Delete Contact")
+        delete_contact_button.clicked.connect(self.delete_contact)
+        update_contact_button = QPushButton("Update Contact")
+        update_contact_button.clicked.connect(self.show_update_form)
+
+        top_layout.addWidget(add_contact_button)
+        top_layout.addWidget(delete_contact_button)
+        top_layout.addWidget(update_contact_button)
+        main_layout.addLayout(top_layout)
+
+        self.contacts_list = QListWidget()
+        main_layout.addWidget(self.contacts_list)
+
+        self.setLayout(main_layout)
+
+    def show_contact_form(self, update=False):
+        self.contact_dialog = ContactDialog(update)
+        self.contact_dialog.accepted.connect(self.add_or_update_contact)
+        self.contact_dialog.show()
+
+    def add_or_update_contact(self):
+        contact_info = self.contact_dialog.get_contact_info()
+        contact = Contact(name=contact_info.name, email=contact_info.email)
+        if self.contact_dialog.is_update:
+            self.update_contact_signal.emit(contact)
+            self.contacts_list.currentItem().setText(contact.name)
+        else:
+            self.add_contact_signal.emit(contact)
+        self.contact_dialog.close()
+
+    def delete_contact(self):
+        selected_items = self.contacts_list.selectedItems()
+        if selected_items:
+            selected_contact_name = selected_items[0].text().split('\n')[0]
+            for contact in self.contacts:
+                if contact.name == selected_contact_name:
+                    self.contacts.remove(contact)
+                    self.delete_contact_signal.emit(contact)
+                    self.contacts_list.takeItem(self.contacts_list.row(selected_items[0]))
+                    break
+
+
+    def show_update_form(self):
+        selected_items = self.contacts_list.selectedItems()
+        if selected_items:
+            self.show_contact_form(update=True)
+
+class ContactDialog(QDialog):
+    def __init__(self, is_update):
+        super().__init__()
+        self.is_update = is_update
+        self.init_ui()
+
+    def init_ui(self):
+        self.setWindowTitle("Update Contact" if self.is_update else "Add Contact")
+        layout = QVBoxLayout(self)
+
+        self.name_input = QLineEdit(self)
+        self.email_input = QLineEdit(self)
+
+        layout.addWidget(QLabel("Name:"))
+        layout.addWidget(self.name_input)
+        layout.addWidget(QLabel("Email:"))
+        layout.addWidget(self.email_input)
+
+        buttons = QDialogButtonBox.Ok | QDialogButtonBox.Cancel
+        button_box = QDialogButtonBox(buttons)
+        button_box.accepted.connect(self.accept)
+        button_box.rejected.connect(self.reject)
+
+        layout.addWidget(button_box)
+
+    def get_contact_info(self):
+        return Contact(name=self.name_input.text(), email=self.email_input.text())
+
+    def window_settings(self):
         self.setWindowTitle("Contacts")
         screen = QDesktopWidget().screenGeometry()
         x = (screen.width() - self.width()) // 2
@@ -21,45 +116,3 @@ class ContactWindow(QWidget):
         self.setGeometry(x, y, WINDOW_WIDTH, WINDOW_HEIGHT)
         icon = QIcon("Images\\icon_logo.png")
         self.setWindowIcon(icon)
-
-        # Main layout for the window
-        main_layout = QGridLayout()
-
-        left_layout = QHBoxLayout()
-        # Add widgets for different settings options
-        add_contact_button = QPushButton("Add Contact")
-        add_contact_button.clicked.connect(self.show_contact_form)
-        sorting_button = QPushButton("Sorting")
-        sorting_button.clicked.connect(self.sorting_order)
-
-        # Add buttons to the grid layout
-        left_layout.addWidget(add_contact_button)
-        left_layout.addWidget(sorting_button)
-        # Set the left layout for buttons
-        main_layout.addLayout(left_layout, 0, 0)
-
-        left_layout = QVBoxLayout()
-        self.contacts_list = QListWidget()
-        left_layout.addWidget(self.contacts_list)
-        # Set the left layout for buttons
-        main_layout.addLayout(left_layout, 1, 0)
-        
-        # Right layout for content
-        right_layout = QVBoxLayout()
-         # Placeholder labels for content
-        self.content_label = QLabel("Select an option on the left to view content.")
-        right_layout.addWidget(self.content_label)
-        # Set the right layout for content in the main layout
-        main_layout.addLayout(right_layout, 0, 1)
-          # Set the stretch factor for the columns in the QGridLayout
-        main_layout.setColumnStretch(0, 5)  # Left column
-        main_layout.setColumnStretch(1, 5)  # Right column
-    
-        self.setLayout(main_layout)
-
-
-    def show_contact_form(self):
-        pass
-
-    def sorting_order(self):
-        pass
