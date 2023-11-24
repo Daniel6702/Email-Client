@@ -30,14 +30,20 @@ class EmailWidget(QWidget):
         self.date_label.setAlignment(Qt.AlignRight)
         
         plain_text_body = html2text.html2text(self.email.body)
-        self.body_label = QLabel(f"Body: {plain_text_body[:50]}...")
+        # self.body_label = QLabel(f"Body: {plain_text_body[:50]}...")
+        # self.body_label.setObjectName("body_label")
+        
+        # Use QLabel for the body
+        self.body_label = QLabel()
         self.body_label.setObjectName("body_label")
 
-        self.body_label.setMaximumHeight(self.body_label.fontMetrics().lineSpacing() * 1)
-
-
+        # Limit the number of visible lines in the QLabel
+        max_visible_lines = 2
+        lines = plain_text_body.split('\n')[:max_visible_lines]
+        truncated_body = '\n'.join(lines)
+        self.body_label.setText(f"Body: {truncated_body}...")
         
-
+        
         self.read_button = QPushButton()
         self.read_button.setStatusTip("Mark as read")
         self.read_button.setObjectName("list_button")
@@ -223,7 +229,7 @@ class EmailListArea(QVBoxLayout):
             self.currently_clicked_item = item
         
         if not widget.email.is_read:
-            self.timer.start(2000)  #milliseconds
+            self.timer.start(1000)  #milliseconds
     
     def handle_item_selection_changed(self):
         # This method is called when the item selection changes
