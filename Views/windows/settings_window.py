@@ -7,6 +7,8 @@ import os
 
 class SettingsWindow(QWidget):
     style_signal = pyqtSignal(str)
+    switch_account_signal = pyqtSignal()
+    logout_signal = pyqtSignal()
 
     def __init__(self, style_manager=None):
         super().__init__()
@@ -114,6 +116,20 @@ class SettingsWindow(QWidget):
     def switch_account_settings(self):
         # Emit the settings_signal with the "logout" action
         self.clear_content_layout()
+        display_widget = QWidget()
+        # Layout for display settings
+        display_layout = QVBoxLayout()
+        self.content_label = QLabel("Are you sure you want to switch account?")
+        self.content_label.setAlignment(Qt.AlignCenter)
+        display_layout.addWidget(self.content_label)
+        # Add buttons for different display options
+        button1 = QPushButton("Switch account")
+        button1.clicked.connect(self.switch_account)
+        display_layout.addWidget(button1)
+          # Set the layout for the display widget
+        display_widget.setLayout(display_layout)
+        # Add the display widget to the content layout
+        self.content_layout.addWidget(display_widget)
         print("Show Switch Account Settings")
 
     def logout_settings(self):
@@ -142,17 +158,17 @@ class SettingsWindow(QWidget):
 
     def light_mode_option(self):
          self.style_signal.emit('lightmode')
-         #self.style_manager.set_style('lightmode')
     def dark_mode_option(self):
         self.style_signal.emit('darkmode')
-        #self.style_manager.set_style('darkmode')
     def barbie_mode_option(self):
          self.style_signal.emit('barbiemode')
-         #self.style_manager.set_style('barbiemode')
+        
 
+    def switch_account(self):
+        self.switch_account_signal.emit()
 
     def logout(self):
-        self.settings_signal.emit("logout")
+        self.logout_signal.emit()
 
 
     def clear_content_layout(self):

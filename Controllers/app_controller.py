@@ -24,7 +24,7 @@ class AppController(QObject):
 
     def initiate_on_login(self, client):
         self.login_window_controller.login_window.close()
-        self.settings_window_controller = SettingsWindowController(self.style_manager)
+        self.settings_window_controller = SettingsWindowController(self.style_manager, client)
         self.editor_window_controller = EditorWindowController(client)
         self.filter_window_controller = FilterWindowController()
         self.folder_selector_window_controller = FolderSelectorWindowController()
@@ -44,3 +44,4 @@ class AppController(QObject):
         self.filter_window_controller.set_filter_signal.connect(self.main_window_controller.set_filter)
         self.folder_selector_window_controller.folder_selected.connect(self.main_window_controller.on_folder_selected_from_folder_selector_window)
         self.main_window_controller.open_popup_window.connect(self.popup_window_controller.show_popup)
+        self.settings_window_controller.close_window_signal.connect(self.main_window_controller.main_window.close)
