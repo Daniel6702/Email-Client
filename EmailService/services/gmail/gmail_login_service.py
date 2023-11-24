@@ -30,7 +30,8 @@ class GmailLoginService(LoginService):
                     'https://www.googleapis.com/auth/gmail.readonly',
                     'https://www.googleapis.com/auth/gmail.modify',
                     'https://www.googleapis.com/auth/userinfo.email',
-                    'https://www.googleapis.com/auth/userinfo.profile'], 
+                    'https://www.googleapis.com/auth/userinfo.profile',
+                    'https://www.googleapis.com/auth/contacts'], 
             redirect_uri='https://localhost:8080/oauth2callback'
         )
         authorization_url, state = flow.authorization_url(access_type='offline', prompt='consent')

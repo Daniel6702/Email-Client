@@ -155,7 +155,6 @@ class SettingsWindow(QWidget):
 
 
 
-
     def light_mode_option(self):
          self.style_signal.emit('lightmode')
     def dark_mode_option(self):

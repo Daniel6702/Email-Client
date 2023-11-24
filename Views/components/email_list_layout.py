@@ -1,7 +1,8 @@
 from PyQt5.QtWidgets import QAbstractItemView,QSizePolicy,QApplication, QListWidget, QListWidgetItem, QLabel, QMenu, QMainWindow, QDesktopWidget, QSplitter, QCheckBox, QFormLayout, QLineEdit, QVBoxLayout, QHBoxLayout, QWidget, QGridLayout, QPushButton, QWidget
-from PyQt5.QtCore import pyqtSignal,Qt, QEvent, QSize
+from PyQt5.QtCore import pyqtSignal,Qt, QEvent, QSize,QTimer,QDateTime
 from PyQt5.QtGui import *
 from EmailService.models import Email
+import html2text
 
 class EmailWidget(QWidget):
     mark_email_as = pyqtSignal(Email, bool)
@@ -20,15 +21,22 @@ class EmailWidget(QWidget):
         layout.setSpacing(0)
 
  
-        self.from_label = QLabel(f"From: {self.email.from_email}")
+        self.from_label = QLabel(f"From: {self.email.from_email[:50]}")
         self.from_label.setObjectName("from_label")
         self.subject_label = QLabel(f"Subject: {self.email.subject}")
         self.subject_label.setObjectName("subject_label")
         self.date_label = QLabel(f"Date: {self.email.datetime_info['date']}")
         self.date_label.setObjectName("subject_label")
         self.date_label.setAlignment(Qt.AlignRight)
-        self.body_label = QLabel(f"Body: {self.email.body[:50]}...")
+        
+        plain_text_body = html2text.html2text(self.email.body)
+        self.body_label = QLabel(f"Body: {plain_text_body[:50]}...")
         self.body_label.setObjectName("body_label")
+
+        self.body_label.setMaximumHeight(self.body_label.fontMetrics().lineSpacing() * 1)
+
+
+        
 
         self.read_button = QPushButton()
         self.read_button.setStatusTip("Mark as read")
@@ -128,6 +136,14 @@ class EmailListArea(QVBoxLayout):
         self.addWidget(self.list_widget)
         self.list_widget.itemClicked.connect(self.handle_item_clicked)
 
+        self.timer = QTimer(self)
+        self.timer.timeout.connect(self.handle_timer_timeout)
+        self.currently_clicked_item = None
+
+        # Connect the list widget's item selection signal
+        self.list_widget.itemSelectionChanged.connect(self.handle_item_selection_changed)
+        
+        
         bottom_layout = QHBoxLayout()
 
         self.previous_page_button = QPushButton("Previous Page")
@@ -204,7 +220,29 @@ class EmailListArea(QVBoxLayout):
         widget = self.list_widget.itemWidget(item)
         if hasattr(widget, 'email'):
             self.email_clicked.emit(widget.email)
+            self.currently_clicked_item = item
+        
+        if not widget.email.is_read:
+            self.timer.start(2000)  #milliseconds
+    
+    def handle_item_selection_changed(self):
+        # This method is called when the item selection changes
+        if self.timer.isActive():
+            self.timer.stop()
 
+    def handle_timer_timeout(self):
+        # This method is called when the timer times out
+        if self.currently_clicked_item is not None:
+            widget = self.list_widget.itemWidget(self.currently_clicked_item)
+            if widget and hasattr(widget, 'email'):
+                self.mark_email_as.emit(widget.email, True)
+                self.timer.stop()
+                self.currently_clicked_item = None
+           
+    # def mark_email_as_read(self, email):
+    #     self.mark_email_as.emit(email, True)
+    #     self.timer.stop()
+    
     def delete_email(self, mail: Email):
         self.email_deleted.emit(mail)
         self.remove_email_from_list(mail)

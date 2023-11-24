@@ -1,5 +1,24 @@
 from abc import ABC, abstractmethod
-from ..models import Email, Folder, User
+from ..models import Email, Folder, User, Contact
+
+###############################
+
+class ContactsService(ABC):
+    @abstractmethod
+    def get_contacts(self) -> list[Contact]:
+        pass
+
+    @abstractmethod
+    def add_contact(self, contact: Contact) -> Contact:
+        pass
+
+    @abstractmethod
+    def update_contact(self, contact: Contact) -> Contact:
+        pass
+
+    @abstractmethod
+    def delete_contact(self, contact: Contact):
+        pass
 
 ###############################
 

@@ -36,3 +36,7 @@ class EmailServiceFactory(ABC):
     @abstractmethod
     def create_mail_management_service(self):
         pass
+
+    @abstractmethod
+    def create_contacts_service(self):
+        pass
