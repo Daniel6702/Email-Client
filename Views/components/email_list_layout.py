@@ -1,4 +1,4 @@
-from PyQt5.QtWidgets import QAbstractItemView,QSizePolicy,QApplication, QListWidget, QListWidgetItem, QLabel, QMenu, QMainWindow, QDesktopWidget, QSplitter, QCheckBox, QFormLayout, QLineEdit, QVBoxLayout, QHBoxLayout, QWidget, QGridLayout, QPushButton, QWidget
+from PyQt5.QtWidgets import QAbstractItemView,QSizePolicy,QApplication, QListWidget, QListWidgetItem, QLabel, QMenu, QMainWindow, QDesktopWidget, QSplitter, QCheckBox, QFormLayout, QLineEdit, QVBoxLayout, QHBoxLayout, QWidget, QGridLayout, QPushButton, QWidget, QMessageBox
 from PyQt5.QtCore import pyqtSignal,Qt, QEvent, QSize,QTimer,QDateTime
 from PyQt5.QtGui import *
 from EmailService.models import Email
@@ -250,8 +250,14 @@ class EmailListArea(QVBoxLayout):
     #     self.timer.stop()
     
     def delete_email(self, mail: Email):
-        self.email_deleted.emit(mail)
-        self.remove_email_from_list(mail)
+        reply = QMessageBox.question(None, 'Delete email', 
+                                     "Are you sure you want to delete this email?",
+                                     QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
+        if reply == QMessageBox.Yes:
+            self.email_deleted.emit(mail)
+            self.remove_email_from_list(mail)
+        
+        
 
     def remove_email_from_list(self, mail: Email):
         for index in range(self.list_widget.count()):
