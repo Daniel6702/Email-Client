@@ -1,4 +1,4 @@
-from PyQt5.QtWidgets import QToolBar, QAction
+from PyQt5.QtWidgets import QToolBar, QAction, QMessageBox
 from PyQt5.QtCore import pyqtSignal
 from EmailService.models import Email
 from datetime import datetime
@@ -105,7 +105,13 @@ class ToolBarMenu(QToolBar):
         self.open_email_editor_window.emit(mail)
 
     def delete(self):
-        self.delete_email_signal.emit(self.current_email)
+        reply = QMessageBox.question(None, 'Delete email', 
+                                     "Are you sure you want to delete this email?",
+                                     QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
+        if reply == QMessageBox.Yes:
+            self.delete_email_signal.emit(self.current_email)
+            # self.remove_email_from_list(self.current_email)
+        
 
     def mark_as_read(self):
         self.mark_email_as.emit(self.current_email, True)

@@ -1,5 +1,5 @@
-from PyQt5.QtWidgets import QAbstractItemView,QSizePolicy,QApplication, QListWidget, QListWidgetItem, QLabel, QMenu, QMainWindow, QDesktopWidget, QSplitter, QCheckBox, QFormLayout, QLineEdit, QVBoxLayout, QHBoxLayout, QWidget, QGridLayout, QPushButton, QWidget
-from PyQt5.QtCore import pyqtSignal,Qt, QEvent, QSize
+from PyQt5.QtWidgets import QAbstractItemView,QSizePolicy,QApplication, QListWidget, QListWidgetItem, QLabel, QMenu, QMainWindow, QDesktopWidget, QSplitter, QCheckBox, QFormLayout, QLineEdit, QVBoxLayout, QHBoxLayout, QWidget, QGridLayout, QPushButton, QWidget, QMessageBox
+from PyQt5.QtCore import pyqtSignal,Qt, QEvent, QSize,QTimer,QDateTime
 from PyQt5.QtGui import *
 from EmailService.models import Email
 
@@ -27,9 +27,22 @@ class EmailWidget(QWidget):
         self.date_label = QLabel(f"Date: {self.email.datetime_info['date']}")
         self.date_label.setObjectName("subject_label")
         self.date_label.setAlignment(Qt.AlignRight)
-        self.body_label = QLabel(f"Body: {self.email.body[:50]}...")
+        
+        plain_text_body = html2text.html2text(self.email.body)
+        # self.body_label = QLabel(f"Body: {plain_text_body[:50]}...")
+        # self.body_label.setObjectName("body_label")
+        
+        # Use QLabel for the body
+        self.body_label = QLabel()
         self.body_label.setObjectName("body_label")
 
+        # Limit the number of visible lines in the QLabel
+        max_visible_lines = 2
+        lines = plain_text_body.split('\n')[:max_visible_lines]
+        truncated_body = '\n'.join(lines)
+        self.body_label.setText(f"Body: {truncated_body}...")
+        
+        
         self.read_button = QPushButton()
         self.read_button.setStatusTip("Mark as read")
         self.read_button.setObjectName("list_button")
@@ -204,10 +217,38 @@ class EmailListArea(QVBoxLayout):
         widget = self.list_widget.itemWidget(item)
         if hasattr(widget, 'email'):
             self.email_clicked.emit(widget.email)
+            self.currently_clicked_item = item
+        
+        if not widget.email.is_read:
+            self.timer.start(1000)  #milliseconds
+    
+    def handle_item_selection_changed(self):
+        # This method is called when the item selection changes
+        if self.timer.isActive():
+            self.timer.stop()
 
+    def handle_timer_timeout(self):
+        # This method is called when the timer times out
+        if self.currently_clicked_item is not None:
+            widget = self.list_widget.itemWidget(self.currently_clicked_item)
+            if widget and hasattr(widget, 'email'):
+                self.mark_email_as.emit(widget.email, True)
+                self.timer.stop()
+                self.currently_clicked_item = None
+           
+    # def mark_email_as_read(self, email):
+    #     self.mark_email_as.emit(email, True)
+    #     self.timer.stop()
+    
     def delete_email(self, mail: Email):
-        self.email_deleted.emit(mail)
-        self.remove_email_from_list(mail)
+        reply = QMessageBox.question(None, 'Delete email', 
+                                     "Are you sure you want to delete this email?",
+                                     QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
+        if reply == QMessageBox.Yes:
+            self.email_deleted.emit(mail)
+            self.remove_email_from_list(mail)
+        
+        
 
     def remove_email_from_list(self, mail: Email):
         for index in range(self.list_widget.count()):
