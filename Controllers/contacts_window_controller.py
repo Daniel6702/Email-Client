@@ -22,7 +22,7 @@ class ContactsWindowController(QWidget):
         self.contact_window.add_contacts(self.contacts)
     
     def delete_contact(self, contact):
-        print(contact)
+        self.contacts = [c for c in self.contacts if c.name != contact.name]
         self.email_client.delete_contact(contact)
     
     def update_contact(self, contact):
