@@ -2,7 +2,6 @@ from PyQt5.QtWidgets import QAbstractItemView,QSizePolicy,QApplication, QListWid
 from PyQt5.QtCore import pyqtSignal,Qt, QEvent, QSize,QTimer,QDateTime
 from PyQt5.QtGui import *
 from EmailService.models import Email
-import html2text
 
 class EmailWidget(QWidget):
     mark_email_as = pyqtSignal(Email, bool)
@@ -21,7 +20,7 @@ class EmailWidget(QWidget):
         layout.setSpacing(0)
 
  
-        self.from_label = QLabel(f"From: {self.email.from_email[:50]}")
+        self.from_label = QLabel(f"From: {self.email.from_email}")
         self.from_label.setObjectName("from_label")
         self.subject_label = QLabel(f"Subject: {self.email.subject}")
         self.subject_label.setObjectName("subject_label")
@@ -142,14 +141,6 @@ class EmailListArea(QVBoxLayout):
         self.addWidget(self.list_widget)
         self.list_widget.itemClicked.connect(self.handle_item_clicked)
 
-        self.timer = QTimer(self)
-        self.timer.timeout.connect(self.handle_timer_timeout)
-        self.currently_clicked_item = None
-
-        # Connect the list widget's item selection signal
-        self.list_widget.itemSelectionChanged.connect(self.handle_item_selection_changed)
-        
-        
         bottom_layout = QHBoxLayout()
 
         self.previous_page_button = QPushButton("Previous Page")

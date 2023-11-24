@@ -12,19 +12,13 @@ class ContactWindow(QWidget):
     def __init__(self):
         super().__init__()
         self.contacts = []
+        self.contact_map = {} 
         self.window_settings()
         self.setup_layout()
 
     def window_settings(self):
         self.setWindowTitle('Contact Manager')
         self.setGeometry(300, 300, 600, 400)
-
-    def add_contacts(self, contacts):
-        self.contacts = contacts
-        self.contacts_list.clear()
-        for contact in contacts:
-            item_text = f"{contact.name}\n{contact.email}\n----------------------------------"
-            self.contacts_list.addItem(item_text)
 
     def setup_layout(self):
         main_layout = QVBoxLayout()
@@ -52,32 +46,66 @@ class ContactWindow(QWidget):
         self.contact_dialog.accepted.connect(self.add_or_update_contact)
         self.contact_dialog.show()
 
+    def add_contacts(self, contacts):
+        self.contacts = contacts
+        self.contacts_list.clear()
+        self.contact_map.clear()  # Clear existing map entries
+        for contact in contacts:
+            item_text = f"{contact.name}\n{contact.email}\n----------------------------------"
+            self.contacts_list.addItem(item_text)
+            self.contact_map[item_text] = contact  # Map the item text to the Contact object
+
     def add_or_update_contact(self):
         contact_info = self.contact_dialog.get_contact_info()
-        contact = Contact(name=contact_info.name, email=contact_info.email)
+
         if self.contact_dialog.is_update:
-            self.update_contact_signal.emit(contact)
-            self.contacts_list.currentItem().setText(contact.name)
+            selected_item = self.contacts_list.currentItem()
+            if selected_item:
+                original_text = selected_item.text()
+                original_contact = self.contact_map.get(original_text)
+
+                # Update contact with new details but keep the same resource_name
+                updated_contact = Contact(
+                    name=contact_info.name, 
+                    email=contact_info.email, 
+                    resource_name=original_contact.resource_name if original_contact else ''
+                )
+                
+                self.update_contact_signal.emit(updated_contact)
+                
+                # Update list item and mapping
+                updated_item_text = f"{updated_contact.name}\n{updated_contact.email}\n----------------------------------"
+                selected_item.setText(updated_item_text)
+                self.contact_map[updated_item_text] = updated_contact
+                if original_text in self.contact_map:
+                    del self.contact_map[original_text]
         else:
-            self.add_contact_signal.emit(contact)
+            new_contact = Contact(name=contact_info.name, email=contact_info.email)
+            self.add_contact_signal.emit(new_contact)
+            new_item_text = f"{new_contact.name}\n{new_contact.email}\n----------------------------------"
+            self.contacts_list.addItem(new_item_text)
+            self.contact_map[new_item_text] = new_contact
+
         self.contact_dialog.close()
-
-    def delete_contact(self):
-        selected_items = self.contacts_list.selectedItems()
-        if selected_items:
-            selected_contact_name = selected_items[0].text().split('\n')[0]
-            for contact in self.contacts:
-                if contact.name == selected_contact_name:
-                    self.contacts.remove(contact)
-                    self.delete_contact_signal.emit(contact)
-                    self.contacts_list.takeItem(self.contacts_list.row(selected_items[0]))
-                    break
-
 
     def show_update_form(self):
         selected_items = self.contacts_list.selectedItems()
         if selected_items:
             self.show_contact_form(update=True)
+
+    def delete_contact(self):
+        print("1")
+        selected_items = self.contacts_list.selectedItems()
+        if selected_items:
+            print("2")
+            selected_contact_name = selected_items[0].text().split('\n')[0]
+            for contact in self.contacts:
+                if contact.name == selected_contact_name:
+                    print("3")
+                    self.contacts.remove(contact)
+                    self.delete_contact_signal.emit(contact)
+                    self.contacts_list.takeItem(self.contacts_list.row(selected_items[0]))
+                    break
 
 class ContactDialog(QDialog):
     def __init__(self, is_update):

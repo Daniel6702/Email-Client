@@ -53,7 +53,8 @@ class OutlookContactsService(ContactsService):
             print(f'An error occurred while adding contact: {e}')
             return None
         
-    def delete_contact(self, contact: Contact) -> bool:
+    def delete_contact(self, contact: Contact):
+        print(contact)
         headers = {
             'Authorization': f'Bearer {self.result["access_token"]}',
             'Content-Type': 'application/json'
@@ -63,10 +64,8 @@ class OutlookContactsService(ContactsService):
         try:
             response = requests.delete(url, headers=headers)
             response.raise_for_status()
-            return True
         except Exception as e:
             print(f'An error occurred while deleting contact: {e}')
-            return False
         
     def update_contact(self, contact: Contact) -> Contact:
         headers = {
