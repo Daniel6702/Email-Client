@@ -46,7 +46,7 @@ class AppController(QObject):
         self.filter_window_controller = FilterWindowController()
         self.folder_selector_window_controller = FolderSelectorWindowController()
         self.attachment_window_controller = AttachmentWindowController()
-        self.contacts_window_controller = ContactsWindowController()
+        self.contacts_window_controller = ContactsWindowController(client)
         self.main_window_controller = MainWindowController(client)
         self.popup_window_controller = PopupWindowController()
         self.setup_connections()
