@@ -2,6 +2,7 @@ from PyQt5.QtWidgets import QAbstractItemView,QSizePolicy,QApplication, QListWid
 from PyQt5.QtCore import pyqtSignal,Qt, QEvent, QSize,QTimer,QDateTime
 from PyQt5.QtGui import *
 from EmailService.models import Email
+import html2text
 
 class EmailWidget(QWidget):
     mark_email_as = pyqtSignal(Email, bool)
