@@ -147,7 +147,6 @@ class AttachmentWindow(QWidget):
             # Executables
             b'\x4D\x5A': 'exe',
         }
-        print(file_data[:32])
         for signature, filetype in file_signatures.items():
             if file_data.startswith(signature) or filetype in file_name.lower():
                 return filetype   

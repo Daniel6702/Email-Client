@@ -30,7 +30,6 @@ class GmailContactsService(ContactsService):
                     email = 'No Email'
 
                 resource_name = contact.get('resourceName', '')
-                print(resource_name)
                 contact_list.append(Contact(name=name, email=email, resource_name=resource_name))
 
             return contact_list

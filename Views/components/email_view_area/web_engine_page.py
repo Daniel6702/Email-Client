@@ -3,6 +3,7 @@ from PyQt5.QtGui import QDesktopServices
 from PyQt5.QtWebChannel import QWebChannel
 from PyQt5.QtWebEngineWidgets import  QWebEnginePage
 import os
+import logging
 
 #Custom WebEnginePage class to inject JavaScript into the page and allow for intercepting clicks on links and opening them in the default browser
 #there is no direct access to the page elements the only way you can interact with the html/dom is via javascript -
@@ -52,9 +53,9 @@ class WebEnginePage(QWebEnginePage):
             self.add_objects({"jshelper": self})
             self.runJavaScript(js)
         except FileNotFoundError:
-            print(f"The JavaScript file was not found at {js_file_path}")
+            logging.error(f"Could not find file: {js_file_path}")
         except Exception as e:
-            print(f"An error occurred: {e}")
+            logging.error(f"Error loading JavaScript: {e}")
     
     @pyqtSlot(str)
     def openUrl(self, url):

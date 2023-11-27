@@ -62,3 +62,4 @@ class AppController(QObject):
         self.folder_selector_window_controller.folder_selected.connect(self.main_window_controller.on_folder_selected_from_folder_selector_window)
         self.main_window_controller.open_popup_window.connect(self.popup_window_controller.show_popup)
         self.settings_window_controller.close_window_signal.connect(self.main_window_controller.main_window.close)
+        self.editor_window_controller.open_attachment_signal.connect(self.attachment_window_controller.show_attachment)

@@ -64,3 +64,22 @@ QLabel {
   font-size: 12px; 
   padding: 2px;
 }
+
+QListView#completer {
+  background-color: %BACKGROUND_COLOR%;
+  color: %TEXT_COLOR_SECONDARY%;
+  selection-background-color: %PRIMARY_COLOR%;
+  selection-color: %TEXT_COLOR%;
+  border: 1px solid %ACCENT_COLOR%;
+  border-radius: 4px;
+}
+
+QListView#completer:item:hover {
+  background-color: %SECONDARY_COLOR%;
+  color: %TEXT_COLOR_SECONDARY%;
+}
+
+QListView#completer:item:pressed {
+  background-color: %ACCENT_COLOR%; 
+  color: %TEXT_COLOR_SECONDARY%; 
+}

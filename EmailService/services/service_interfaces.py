@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from ..models import Email, Folder, User, Contact
+from ..models import Email, Folder, User, Contact, Filter
 
 ###############################
 
@@ -57,6 +57,14 @@ class GetMailsService(ABC):
 
     @abstractmethod
     def search(self, query: str, max_results: int = 10) -> list[Email]:
+        pass
+
+    @abstractmethod
+    def search_filter(self, query: str, filter: Filter, max_results: int = 10) -> list[Email]:
+        pass
+
+    @abstractmethod
+    def filter(self, filter: Filter, max_results: int = 10) -> list[Email]:
         pass
 
 ###############################

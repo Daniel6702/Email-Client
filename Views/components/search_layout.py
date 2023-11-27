@@ -58,23 +58,22 @@ class SearchArea(QVBoxLayout):
         self.addLayout(search_bar_layout)
 
     def set_filter(self, filter: Filter):
+        print("1")
         if filter:
+            print("2")
             self.filter = filter
             self.current_background = self.filter_button.palette().color(QPalette.Background)
             self.filter_button.setStyleSheet("background-color: green")
         else:
-            self.filter = None
+            print("3")
+            self.filter = Filter()
             self.filter_button.setStyleSheet(f"background-color: {self.current_background.name()}")
 
     def search_update(self):
         search_criteria = self.searchbar.text()
+        if search_criteria == "" or search_criteria == "Search" or search_criteria == " ":
+            search_criteria = None
         self.search_signal.emit(search_criteria, self.filter)
-
-    def add_filter(self, filter: Filter):
-        self.filter = filter
-
-    def reset_filter(self):
-        self.filter = None
     
     def new_mail_button(self):
         self.new_mail_signal.emit(None)

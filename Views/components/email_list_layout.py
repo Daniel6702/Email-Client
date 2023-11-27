@@ -20,8 +20,8 @@ class EmailWidget(QWidget):
         layout.setContentsMargins(0, 0, 0, 0)  # Remove margins
         layout.setSpacing(0)
 
- 
-        self.from_label = QLabel(f"From: {self.email.from_email[:50]}")
+
+        self.from_label = QLabel(f"From: {self.email.from_email[:50] if self.email.from_email else self.email.from_email}")
         self.from_label.setObjectName("from_label")
         self.subject_label = QLabel(f"Subject: {self.email.subject}")
         self.subject_label.setObjectName("subject_label")

@@ -6,6 +6,7 @@ from ..services.test_service.test_get_user_service import TestGetUserService
 from ..services.test_service.test_login_service import TestLoginService
 from ..services.test_service.test_mail_management_service import TestMailManagementService
 from ..services.test_service.test_send_mail_service import TestSendMailService
+from ..services.test_service.test_contacts_service import TestContactsService
 
 class TestServiceFactory(EmailServiceFactory):
     def create_login_service(self):
@@ -28,3 +29,6 @@ class TestServiceFactory(EmailServiceFactory):
     
     def create_mail_management_service(self, session):
         return TestMailManagementService(session)
+    
+    def create_contacts_service(self, session):
+        return TestContactsService(session)

@@ -14,7 +14,6 @@ class OutlookGetMailsService(GetMailsService):
 
     def get_mails(self, folder: Folder = Folder("", None, []), query: str = "", max_results: int = 10, page_number: int = 1) -> list[Email]:
         folder_id = folder.id
-        print(folder_id)
         
         try:
             access_token = self.result["access_token"]
@@ -55,7 +54,7 @@ class OutlookGetMailsService(GetMailsService):
 
         headers = {"Authorization": f"Bearer {access_token}"}
 
-        print("Endpoint: ", endpoint_url)
+        print(query_parameters)
 
         try:
             response = requests.get(endpoint_url, headers=headers, params=query_parameters, timeout=30)
@@ -129,9 +128,11 @@ class OutlookGetMailsService(GetMailsService):
         conditions = []
 
         if filter.before_date:
-            conditions.append(f"receivedDateTime lt {filter.before_date.isoformat()}")
+            formatted_before_date = filter.before_date.strftime('%Y-%m-%dT%H:%M:%S.000Z')
+            conditions.append(f"receivedDateTime lt {formatted_before_date}")
         if filter.after_date:
-            conditions.append(f"receivedDateTime ge {filter.after_date.isoformat()}")
+            formatted_after_date = filter.after_date.strftime('%Y-%m-%dT%H:%M:%S.000Z')
+            conditions.append(f"receivedDateTime ge {formatted_after_date}")
         if filter.from_email:
             conditions.append(f"from/emailAddress/address eq '{filter.from_email}'")
         if filter.to_email:

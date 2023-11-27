@@ -3,6 +3,7 @@ from PyQt5.QtCore import pyqtSignal
 from PyQt5.QtGui import QIcon
 from EmailService.models import Filter, Folder
 from Views.components.email_folder_layout import FolderArea
+from datetime import datetime, timedelta
 
 class FilterWindow(QWidget):
     filter_signal = pyqtSignal(object)
@@ -38,7 +39,7 @@ class FilterWindow(QWidget):
 
         self.date_label = QLabel('Dato inden for')
         self.date_combobox = QComboBox(self)
-        self.date_combobox.addItems(['1 dag', '2 dage', '1 uge', '2 uger', '1 måned', '3 måneder', '6 måneder', '1 år'])
+        self.date_combobox.addItems(['1 day', '2 days', '1 week', '2 week', '1 month', '3 months', '6 months', '1 year'])
 
         self.set_filter_button = QPushButton('Set Filter', self)
         self.set_filter_button.clicked.connect(self.on_set_filter)
@@ -87,6 +88,26 @@ class FilterWindow(QWidget):
         self.main_layout.addLayout(layout) 
         self.setLayout(self.main_layout)
 
+    def relative_date_to_datetime(self,relative_date):
+        current_date = datetime.now()
+        units = relative_date.split()
+        amount = int(units[0])
+        unit = units[1]
+
+        if unit.startswith('day'):
+            delta = timedelta(days=amount)
+        elif unit.startswith('week'):
+            delta = timedelta(weeks=amount)
+        elif unit.startswith('month'):
+            delta = timedelta(days=30 * amount)
+        elif unit.startswith('year'):
+            delta = timedelta(days=365 * amount)
+        else:
+            raise ValueError("Unsupported time unit")
+
+        past_date = current_date - delta
+        return past_date
+
     def on_folder_selected(self, folder: Folder):
         if self.folder_widget:
             self.folder = folder
@@ -112,8 +133,9 @@ class FilterWindow(QWidget):
             self.folder_widget.setVisible(True)
 
     def on_set_filter(self):
-        filter_obj = Filter(before_date=self.date_combobox.currentText(), 
-                            after_date=None,
+        
+        filter_obj = Filter(before_date=None, 
+                            after_date=self.relative_date_to_datetime(self.date_combobox.currentText()),
                             from_email=self.from_input.text(), 
                             to_email=self.to_input.text(), 
                             is_read=self.is_read_checkbox.isChecked(),
@@ -125,6 +147,16 @@ class FilterWindow(QWidget):
         self.filter_signal.emit(filter_obj)
 
     def on_reset_filter(self):
+        self.from_input.setText('')
+        self.to_input.setText('')
+        self.subject_input.setText('')
+        self.contains_input.setText('')
+        self.not_contains_input.setText('')
+        self.date_combobox.setCurrentIndex(0)
+        self.attachments_checkbox.setChecked(False)
+        self.is_read_checkbox.setChecked(False)
+        self.folder = Folder("","",[])
+        self.folder_widget = None
         self.filter_signal.emit(None)
 
     def window_settings(self):

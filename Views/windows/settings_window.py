@@ -4,6 +4,7 @@ from PyQt5.QtGui import *
 from PyQt5.QtWidgets import QWidget, QVBoxLayout, QLabel, QLineEdit, QTextEdit, QToolBar, QAction, QApplication, QDesktopWidget
 from datetime import datetime
 import os
+import logging
 
 class SettingsWindow(QWidget):
     style_signal = pyqtSignal(str)
@@ -105,13 +106,13 @@ class SettingsWindow(QWidget):
         # Implement the functionality for rules settings here
         # Emit the settings_signal with the "logout" action
         self.clear_content_layout()
-        print("Show Rules Settings")
+        logging.info("Show Rules Settings")
 
     def blacklist_settings(self):
         # Implement the functionality for blacklist settings here
         # Emit the settings_signal with the "logout" action
         self.clear_content_layout()
-        print("Show Blacklist Settings")
+        logging.info("Show Blacklist Settings")
 
     def switch_account_settings(self):
         # Emit the settings_signal with the "logout" action
@@ -130,7 +131,7 @@ class SettingsWindow(QWidget):
         display_widget.setLayout(display_layout)
         # Add the display widget to the content layout
         self.content_layout.addWidget(display_widget)
-        print("Show Switch Account Settings")
+        logging.info("Show Switch Account Settings")
 
     def logout_settings(self):
         # Emit the settings_signal with the "logout" action

@@ -47,6 +47,7 @@ class ContactWindow(QWidget):
         self.contact_dialog.show()
 
     def add_contacts(self, contacts):
+        if not contacts: contacts = []
         self.contacts = contacts
         self.contacts_list.clear()
         self.contact_map.clear()  # Clear existing map entries
@@ -94,14 +95,11 @@ class ContactWindow(QWidget):
             self.show_contact_form(update=True)
 
     def delete_contact(self):
-        print("1")
         selected_items = self.contacts_list.selectedItems()
         if selected_items:
-            print("2")
             selected_contact_name = selected_items[0].text().split('\n')[0]
             for contact in self.contacts:
                 if contact.name == selected_contact_name:
-                    print("3")
                     self.contacts.remove(contact)
                     self.delete_contact_signal.emit(contact)
                     self.contacts_list.takeItem(self.contacts_list.row(selected_items[0]))

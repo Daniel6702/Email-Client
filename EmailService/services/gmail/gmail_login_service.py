@@ -60,7 +60,7 @@ class GmailLoginService(LoginService):
             try:
                 credentials.refresh(Request())
             except Exception as refresh_error:
-                print(f"An error occurred during credentials refresh: {refresh_error}")
+                logging.error(f"Error refreshing credentials for user {user.email}: {refresh_error}")
                 self.new_login()
         self.build_service(credentials)
 

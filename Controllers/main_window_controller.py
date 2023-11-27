@@ -5,7 +5,7 @@ from EmailService.models import Email, Filter, Folder
 from EmailService.models.email_client import EmailClient   
 import logging
 
-PAGE_SIZE = 12
+PAGE_SIZE = 30
     
 class MainWindowController(QWidget):
     open_editor_window = pyqtSignal(object)
@@ -109,10 +109,17 @@ class MainWindowController(QWidget):
             self.main_window.email_list_area.current_page -= 1
 
     def on_search(self, search_criteria: str, filter: Filter = None):
-        if filter.is_empty():
+        if filter.is_empty() and search_criteria:
             mails = self.email_client.search(search_criteria, PAGE_SIZE)
-        else:
+        elif filter.is_empty() and not search_criteria:
+            mails = self.email_client.get_mails(folder=self.current_folder, query="", max_results=PAGE_SIZE, page_number=1)
+            self.main_window.email_list_area.current_page = 1
+        elif not filter.is_empty() and search_criteria:
             mails = self.email_client.search_filter(search_criteria, filter, PAGE_SIZE)
+        elif not filter.is_empty() and not search_criteria:
+            mails = self.email_client.filter(filter, PAGE_SIZE)
+        else:
+            mails = []
         self.main_window.email_list_area.add_emails_to_list(mails)
 
     def move_email_to_folder(self, email: Email, folder: Folder):
@@ -120,9 +127,6 @@ class MainWindowController(QWidget):
 
         if folder.name is not self.current_folder.name:
             self.main_window.email_list_area.remove_email_from_list(email)
-
-
-
 
 def is_delete_folder(folder: Folder) -> bool:
     if folder.name in ["Delete", "Delete", "DELETE", "delete", "DELETED", "deleted", "Deleted", "trash", "Trash", "TRASH", "bin", "Bin", "BIN", "Deleted Items"]:

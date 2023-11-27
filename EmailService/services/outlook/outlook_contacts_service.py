@@ -28,7 +28,7 @@ class OutlookContactsService(ContactsService):
                 ))
             return contact_list
         except Exception as e:
-            print(f'An error occurred: {e}')
+            logging.error(f'An error occurred while getting contacts: {e}')
             return []
         
     def add_contact(self, contact: Contact) -> Contact:
@@ -50,11 +50,10 @@ class OutlookContactsService(ContactsService):
             contact.resource_name = data.get('id', '')
             return contact
         except Exception as e:
-            print(f'An error occurred while adding contact: {e}')
+            logging.error(f'An error occurred while adding contact: {e}')
             return None
         
     def delete_contact(self, contact: Contact):
-        print(contact)
         headers = {
             'Authorization': f'Bearer {self.result["access_token"]}',
             'Content-Type': 'application/json'
@@ -65,7 +64,7 @@ class OutlookContactsService(ContactsService):
             response = requests.delete(url, headers=headers)
             response.raise_for_status()
         except Exception as e:
-            print(f'An error occurred while deleting contact: {e}')
+            logging.error(f'An error occurred while deleting contact: {e}')
         
     def update_contact(self, contact: Contact) -> Contact:
         headers = {
@@ -84,5 +83,5 @@ class OutlookContactsService(ContactsService):
             response.raise_for_status()
             return contact
         except Exception as e:
-            print(f'An error occurred while updating contact: {e}')
+            logging.error(f'An error occurred while updating contact: {e}')
             return None

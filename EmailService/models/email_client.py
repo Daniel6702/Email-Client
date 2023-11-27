@@ -3,6 +3,7 @@ from ..models.email import Email
 from ..models.folder import Folder
 from ..models.user import User
 from ..models.contact import Contact
+from ..models.filter import Filter
 
 class EmailClient():
     def __init__(self, service_factory: EmailServiceFactory):
@@ -63,8 +64,11 @@ class EmailClient():
     def search(self, query: str, max_results: int = 10) -> list[Email]:
         return self.get_mails_service.search(query, max_results)
     
-    def search_filter(self, query: str, filter: dict, max_results: int = 10) -> list[Email]:
+    def search_filter(self, query: str, filter: Filter, max_results: int = 10) -> list[Email]:
         return self.get_mails_service.search_filter(query, filter, max_results)
+    
+    def filter(self, filter: Filter, max_results: int = 10) -> list[Email]:
+        return self.get_mails_service.filter(filter, max_results)
     
     def save_draft(self, email: Email):
         self.draft_service.save_draft(email)
