@@ -20,5 +20,6 @@ class EditorWindowController(QWidget):
         elif action == "update":
             self.email_client.update_draft(email)
         
-    def show_editor(self):
+    def show_editor(self, email: Email = None):
+        self.editor_window = EditorWindow(email)
         self.editor_window.show()
