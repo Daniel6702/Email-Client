@@ -1,4 +1,4 @@
-from PyQt5.QtWidgets import QAbstractItemView,QSizePolicy,QApplication, QListWidget, QListWidgetItem, QLabel, QMenu, QMainWindow, QDesktopWidget, QSplitter, QCheckBox, QFormLayout, QLineEdit, QVBoxLayout, QHBoxLayout, QWidget, QGridLayout, QPushButton, QWidget, QMessageBox
+from PyQt5.QtWidgets import QAbstractItemView,QSizePolicy,QApplication, QListWidget, QListWidgetItem, QLabel, QMenu, QMainWindow, QDesktopWidget, QSplitter, QCheckBox, QFormLayout, QLineEdit, QVBoxLayout, QHBoxLayout, QWidget, QGridLayout, QPushButton, QWidget
 from PyQt5.QtCore import pyqtSignal,Qt, QEvent, QSize,QTimer,QDateTime
 from PyQt5.QtGui import *
 from EmailService.models import Email
@@ -21,7 +21,7 @@ class EmailWidget(QWidget):
         layout.setSpacing(0)
 
  
-        self.from_label = QLabel(f"From: {self.email.from_email}")
+        self.from_label = QLabel(f"From: {self.email.from_email[:50]}")
         self.from_label.setObjectName("from_label")
         self.subject_label = QLabel(f"Subject: {self.email.subject}")
         self.subject_label.setObjectName("subject_label")
@@ -30,20 +30,11 @@ class EmailWidget(QWidget):
         self.date_label.setAlignment(Qt.AlignRight)
         
         plain_text_body = html2text.html2text(self.email.body)
-        # self.body_label = QLabel(f"Body: {plain_text_body[:50]}...")
-        # self.body_label.setObjectName("body_label")
-        
-        # Use QLabel for the body
-        self.body_label = QLabel()
+        self.body_label = QLabel(f"Body: {plain_text_body[:50]}...")
         self.body_label.setObjectName("body_label")
 
-        # Limit the number of visible lines in the QLabel
-        max_visible_lines = 2
-        lines = plain_text_body.split('\n')[:max_visible_lines]
-        truncated_body = '\n'.join(lines)
-        self.body_label.setText(f"Body: {truncated_body}...")
-        
-        
+        self.body_label.setMaximumHeight(self.body_label.fontMetrics().lineSpacing() * 1)        
+
         self.read_button = QPushButton()
         self.read_button.setStatusTip("Mark as read")
         self.read_button.setObjectName("list_button")
@@ -142,6 +133,13 @@ class EmailListArea(QVBoxLayout):
         self.addWidget(self.list_widget)
         self.list_widget.itemClicked.connect(self.handle_item_clicked)
 
+        self.timer = QTimer(self)
+        self.timer.timeout.connect(self.handle_timer_timeout)
+        self.currently_clicked_item = None
+
+        # Connect the list widget's item selection signal
+        self.list_widget.itemSelectionChanged.connect(self.handle_item_selection_changed)
+        
         bottom_layout = QHBoxLayout()
 
         self.previous_page_button = QPushButton("Previous Page")
@@ -221,7 +219,7 @@ class EmailListArea(QVBoxLayout):
             self.currently_clicked_item = item
         
         if not widget.email.is_read:
-            self.timer.start(1000)  #milliseconds
+            self.timer.start(2000)  #milliseconds
     
     def handle_item_selection_changed(self):
         # This method is called when the item selection changes
@@ -242,14 +240,8 @@ class EmailListArea(QVBoxLayout):
     #     self.timer.stop()
     
     def delete_email(self, mail: Email):
-        reply = QMessageBox.question(None, 'Delete email', 
-                                     "Are you sure you want to delete this email?",
-                                     QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
-        if reply == QMessageBox.Yes:
-            self.email_deleted.emit(mail)
-            self.remove_email_from_list(mail)
-        
-        
+        self.email_deleted.emit(mail)
+        self.remove_email_from_list(mail)
 
     def remove_email_from_list(self, mail: Email):
         for index in range(self.list_widget.count()):
