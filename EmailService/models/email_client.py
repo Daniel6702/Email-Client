@@ -4,6 +4,7 @@ from ..models.folder import Folder
 from ..models.user import User
 from ..models.contact import Contact
 from ..models.filter import Filter
+from ..models.rule import Rule
 
 class EmailClient():
     def __init__(self, service_factory: EmailServiceFactory):
@@ -20,6 +21,7 @@ class EmailClient():
         self.user_manager = self.service_factory.create_user_manager()
         self.spam_filter = self.service_factory.create_spam_filter()
         self.contacts_service = self.service_factory.create_contacts_service(session)
+        self.rules_service = self.service_factory.create_rules_service(session)
    
     def login(self, user: User, save_user: bool):
         self.login_service.login(user)
@@ -117,3 +119,12 @@ class EmailClient():
 
     def delete_contact(self, contact: Contact):
         self.contacts_service.delete_contact(contact)
+
+    def get_rules(self) -> list[Rule]:
+        return self.rules_service.get_rules()
+    
+    def add_rule(self, rule: Rule) -> Rule:
+        return self.rules_service.add_rule(rule)
+    
+    def remove_rule(self, rule: Rule):
+        self.rules_service.remove_rule(rule)

@@ -7,7 +7,7 @@ from ..services.gmail.gmail_draft_service import GmailDraftService
 from ..services.gmail.gmail_folder_service import GmailFolderService
 from ..services.gmail.gmail_mail_management_service import GmailMailManagementService
 from ..services.gmail.gmail_contacts_service import GmailContactsService
-
+from ..services.gmail.gmail_rules_service import GmailRulesService
 
 class GmailServiceFactory(EmailServiceFactory):
     def create_login_service(self):
@@ -33,3 +33,6 @@ class GmailServiceFactory(EmailServiceFactory):
     
     def create_contacts_service(self, session):
         return GmailContactsService(session)
+    
+    def create_rules_service(self, session):
+        return GmailRulesService(session)

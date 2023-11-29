@@ -7,6 +7,7 @@ from ..services.outlook.outlook_login_service import OutlookLoginService
 from ..services.outlook.outlook_send_mail_service import OutlookSendMailService
 from ..services.outlook.outlook_mail_management_service import OutlookMailManagementService
 from ..services.outlook.outlook_contacts_service import OutlookContactsService
+from ..services.outlook.outlook_rules_service import OutlookRulesService
 
 class OutlookServiceFactory(EmailServiceFactory):
     def create_login_service(self):
@@ -32,3 +33,6 @@ class OutlookServiceFactory(EmailServiceFactory):
     
     def create_contacts_service(self, session):
         return OutlookContactsService(session)
+    
+    def create_rules_service(self, session):
+        return OutlookRulesService(session)

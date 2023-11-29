@@ -54,8 +54,6 @@ class OutlookGetMailsService(GetMailsService):
 
         headers = {"Authorization": f"Bearer {access_token}"}
 
-        print(query_parameters)
-
         try:
             response = requests.get(endpoint_url, headers=headers, params=query_parameters, timeout=30)
             response.raise_for_status()

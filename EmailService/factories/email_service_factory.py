@@ -40,3 +40,7 @@ class EmailServiceFactory(ABC):
     @abstractmethod
     def create_contacts_service(self):
         pass
+
+    @abstractmethod
+    def create_rules_service(self):
+        pass

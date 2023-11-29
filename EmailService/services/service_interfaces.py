@@ -1,5 +1,20 @@
 from abc import ABC, abstractmethod
-from ..models import Email, Folder, User, Contact, Filter
+from ..models import Email, Folder, User, Contact, Filter, Rule
+
+###############################
+
+class RulesService(ABC):
+    @abstractmethod
+    def get_rules(self) -> list[Rule]:
+        pass
+
+    @abstractmethod
+    def add_rule(self, rule: Rule) -> Rule:
+        pass
+
+    @abstractmethod
+    def remove_rule(self, rule: Rule):
+        pass
 
 ###############################
 
