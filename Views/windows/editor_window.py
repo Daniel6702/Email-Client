@@ -2,6 +2,7 @@ from PyQt5.QtCore import pyqtSignal, Qt
 from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import QWidget, QVBoxLayout, QLabel, QLineEdit, QTextEdit, QDesktopWidget, QListWidget, QListWidgetItem, QHBoxLayout, QPushButton
 from EmailService.models import Email, Contact
+import os
 
 from Views.components.editor_window_components.toolbar import Toolbar
 from Views.components.editor_window_components.email_processing import EditorEmailProcessing    
@@ -32,7 +33,7 @@ class EditorWindow(QWidget):
         self.attachments_list = QListWidget()
         self.attachments_list.setStyleSheet("QListWidget { border: none; }")
         self.attachments_list.setFixedHeight(1)
-        self.attachments_list.itemClicked.connect(self.on_attachment_clicked)  # Connect the signal
+        self.attachments_list.itemClicked.connect(self.on_attachment_clicked)
         self.main_layout.addWidget(self.attachments_list)
         self.email_processing = EditorEmailProcessing(self.recipient_line_edit, self.subject_line_edit, self.mail_body_edit, self.attachments_list)
         self.email_processing.mail_signal_from_editor.connect(self.mail_signal_from_editor)
@@ -67,7 +68,26 @@ class EditorWindow(QWidget):
         attachment = self.email_processing.generate_attachment_dict(file_path)
         self.open_attachment_signal.emit(attachment)
 
+    def get_file_size(self,file_path):
+        if os.path.exists(file_path):
+            size = os.path.getsize(file_path)
+            return size
+        else:
+            return "File does not exist"
+        
+    def format_size(self, size):
+        for unit in ['bytes', 'KB', 'MB', 'GB', 'TB']:
+            if size < 1024.0:
+                return f"{size:.2f} {unit}"
+            size /= 1024.0
+        return f"{size:.2f} TB"
+
     def add_attachment(self, item):
+        file_path = item.data(Qt.UserRole)
+        size = self.get_file_size(file_path)
+        readable_size = self.format_size(size)
+        item_text = f"{item.text()} - {readable_size}"
+        item.setText(item_text)
         self.attachments_list.addItem(item)
         item_height = 20
         total_height = item_height * self.attachments_list.count() + 5

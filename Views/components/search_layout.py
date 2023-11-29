@@ -58,14 +58,11 @@ class SearchArea(QVBoxLayout):
         self.addLayout(search_bar_layout)
 
     def set_filter(self, filter: Filter):
-        print("1")
         if filter:
-            print("2")
             self.filter = filter
             self.current_background = self.filter_button.palette().color(QPalette.Background)
             self.filter_button.setStyleSheet("background-color: green")
         else:
-            print("3")
             self.filter = Filter()
             self.filter_button.setStyleSheet(f"background-color: {self.current_background.name()}")
 
