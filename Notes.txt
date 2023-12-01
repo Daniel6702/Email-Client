@@ -35,3 +35,6 @@ kode: DACAtest
 
 
 glpat-AWYXLY6qvSnLeBj3KsCx
+
+
+pyinstaller --noconfirm --onedir --windowed --icon "C:/Users/peder/Downloads/Icon_logo.ico" --add-data "C:/Users/peder/OneDrive - Aarhus universitet/Softwareteknologi/soeng_email_client/Views;Views/" --add-data "C:/Users/peder/OneDrive - Aarhus universitet/Softwareteknologi/soeng_email_client/Images;Images/" --add-data "C:/Users/peder/OneDrive - Aarhus universitet/Softwareteknologi/soeng_email_client/EmailService;EmailService/" --add-data "C:/Users/peder/OneDrive - Aarhus universitet/Softwareteknologi/soeng_email_client/Certificates;Certificates/"  "C:/Users/peder/OneDrive - Aarhus universitet/Softwareteknologi/soeng_email_client/main.py"

@@ -13,6 +13,8 @@ class RecipientLine(QLineEdit):
             self.setText(", ".join(draft.to_email))
         elif draft and isinstance(draft.to_email, str):
             self.setText(draft.to_email)
+        elif not draft:
+            self.setText('')
         
     def init_completer(self):
         contact_strings = [contact.display_text() for contact in self.contacts]

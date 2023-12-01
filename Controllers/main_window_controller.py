@@ -5,7 +5,7 @@ from EmailService.models import Email, Filter, Folder
 from EmailService.models.email_client import EmailClient   
 import logging
 
-PAGE_SIZE = 30
+PAGE_SIZE = 10
     
 class MainWindowController(QWidget):
     open_editor_window = pyqtSignal(object)
@@ -70,7 +70,7 @@ class MainWindowController(QWidget):
         self.main_window.email_view_area.selected_folder.emit(folder)
 
     def on_folder_selected(self, folder: Folder):
-        self.open_popup_window.emit("info", "Loading Emails", "Please wait while we load your emails", "THIS IS A TEST POPUP WINDOW", 4000)
+        #self.open_popup_window.emit("info", "Loading Emails", "Please wait while we load your emails", "THIS IS A TEST POPUP WINDOW", 4000)
         logging.info(f"Folder Selected: {folder.name}")
         self.current_folder = folder
         self.main_window.email_list_area.current_page = 1

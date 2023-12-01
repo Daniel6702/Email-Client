@@ -61,6 +61,10 @@ class EditorWindow(QWidget):
                 item = QListWidgetItem(file_name)
                 item.setData(Qt.UserRole, file_name) 
                 self.add_attachment(item)
+        else:
+            self.subject_line_edit.setText("")
+            self.mail_body_edit.setHtml("")
+            self.attachments_list.clear()
         self.email_processing.update(draft_email, self.recipient_line_edit, self.subject_line_edit, self.mail_body_edit, self.attachments_list)
 
     def on_attachment_clicked(self, item):

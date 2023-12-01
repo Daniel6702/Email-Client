@@ -11,7 +11,7 @@ class OutlookRulesService(RulesService):
 
     def get_headers(self):
         return {
-            'Authorization': f'Bearer {self.result['access_token']}',
+            "Authorization": f"Bearer {self.result['access_token']}",
             'Content-Type': 'application/json'
         }
 
