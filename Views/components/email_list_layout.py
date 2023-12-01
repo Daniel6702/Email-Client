@@ -134,7 +134,14 @@ class EmailListArea(QVBoxLayout):
 
     def setup_email_list(self):
         label = QLabel("Emails:")
-        self.addWidget(label)
+        refresh = QPushButton(QIcon("Images\\refresh.png"),"")
+        refresh.setStatusTip("Refresh")
+        refresh.setObjectName("refresh_button")
+        refresh.clicked.connect(lambda: self.new_page.emit(self.current_page))
+        temp = QHBoxLayout()
+        temp.addWidget(label)
+        temp.addWidget(refresh)
+        self.addLayout(temp)
 
         self.list_widget = QListWidget()
         self.list_widget.setObjectName("email_list")

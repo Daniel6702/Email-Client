@@ -7,6 +7,12 @@ pop up info windows (waiting for emails, email sent, email deleted, etc)
 windows notifications
 Improve GUI (make it not look terrible)
 
+forward emails gmail recepient field wrong
+reset filter sometimes doesnt work
+refresh button
+
+
+
 BUGS:
 recepients field when opening (or saving) drafts (only outlook i think)
 cant zoom in pdf viewer (and throws weird js errors)

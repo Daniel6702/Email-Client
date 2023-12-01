@@ -3,7 +3,7 @@ from EmailService.models import Email
 
 class SpamFilter():
     def is_spam(self,email: Email, trusted_senders: List[str], untrusted_senders: List[str]) -> bool:
-        suspicious_subjects = ["win", "free", "offer", "urgent", "limited"]
+        suspicious_subjects = ["win", "free", "offer", "limited"]
         if email.from_email in untrusted_senders:
             return True
         if any(word in email.subject.lower() for word in suspicious_subjects):
