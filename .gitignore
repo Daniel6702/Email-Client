@@ -1,1 +1,4 @@
 *.pyc 
+
+# Untracked files
+Certifactes/users.bin
