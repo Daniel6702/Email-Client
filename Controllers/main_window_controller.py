@@ -23,6 +23,7 @@ class MainWindowController(QWidget):
         self.email_client = email_client
         self.setup_connections()
         self.folders = self.email_client.get_folders()
+        
         self.main_window.folder_area.add_folders(self.folders)
         
     def setup_connections(self):

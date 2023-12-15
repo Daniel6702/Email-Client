@@ -22,8 +22,29 @@ class EditorWindow(QWidget):
         self.main_layout = QVBoxLayout()
         self.recipient_label = QLabel("Recipient(s)")
         self.main_layout.addWidget(self.recipient_label)
+        self.recipient_layout = QHBoxLayout()
         self.recipient_line_edit = RecipientLine()
-        self.main_layout.addWidget(self.recipient_line_edit)
+        self.recipient_layout.addWidget(self.recipient_line_edit)
+        self.toggle_cc_bcc_button = QPushButton("CC/BCC")
+        self.toggle_cc_bcc_button.setFixedWidth(90) 
+        self.toggle_cc_bcc_button.clicked.connect(self.toggle_cc_bcc_visibility)
+        self.recipient_layout.addWidget(self.toggle_cc_bcc_button)
+        self.main_layout.addLayout(self.recipient_layout)
+        self.cc_label = QLabel("CC")
+        self.cc_line_edit = RecipientLine()
+        self.bcc_label = QLabel("BCC")
+        self.bcc_line_edit = RecipientLine()
+
+        self.cc_label.setVisible(False)
+        self.cc_line_edit.setVisible(False)
+        self.bcc_label.setVisible(False)
+        self.bcc_line_edit.setVisible(False)
+
+        self.main_layout.addWidget(self.cc_label)
+        self.main_layout.addWidget(self.cc_line_edit)
+        self.main_layout.addWidget(self.bcc_label)
+        self.main_layout.addWidget(self.bcc_line_edit)
+        
         self.subject_label = QLabel("Subject")
         self.main_layout.addWidget(self.subject_label)
         self.subject_line_edit = QLineEdit()
@@ -35,7 +56,8 @@ class EditorWindow(QWidget):
         self.attachments_list.setFixedHeight(1)
         self.attachments_list.itemClicked.connect(self.on_attachment_clicked)
         self.main_layout.addWidget(self.attachments_list)
-        self.email_processing = EditorEmailProcessing(self.recipient_line_edit, self.subject_line_edit, self.mail_body_edit, self.attachments_list)
+        self.email_processing = EditorEmailProcessing(self.recipient_line_edit, self.cc_line_edit, self.bcc_line_edit, self.subject_line_edit, self.mail_body_edit, self.attachments_list)
+
         self.email_processing.mail_signal_from_editor.connect(self.mail_signal_from_editor)
         self.send_button = QPushButton("Send")
         self.send_button.clicked.connect(self.email_processing.send_email)
@@ -65,7 +87,14 @@ class EditorWindow(QWidget):
             self.subject_line_edit.setText("")
             self.mail_body_edit.setHtml("")
             self.attachments_list.clear()
-        self.email_processing.update(draft_email, self.recipient_line_edit, self.subject_line_edit, self.mail_body_edit, self.attachments_list)
+        self.email_processing.update(draft_email, self.recipient_line_edit,self.cc_line_edit, self.bcc_line_edit, self.subject_line_edit, self.mail_body_edit, self.attachments_list)
+        
+    def toggle_cc_bcc_visibility(self):
+        is_visible = self.cc_label.isVisible()
+        self.cc_label.setVisible(not is_visible)
+        self.cc_line_edit.setVisible(not is_visible)
+        self.bcc_label.setVisible(not is_visible)
+        self.bcc_line_edit.setVisible(not is_visible)
 
     def on_attachment_clicked(self, item):
         file_path = item.data(Qt.UserRole)  
