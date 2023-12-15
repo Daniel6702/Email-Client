@@ -23,6 +23,7 @@ class MainWindowController(QWidget):
         self.email_client = email_client
         self.setup_connections()
         self.folders = self.email_client.get_folders()
+        
         self.main_window.folder_area.add_folders(self.folders)
         self.spam_folder = next((folder for folder in self.folders if is_spam_folder(folder)), None)
         

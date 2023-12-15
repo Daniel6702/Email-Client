@@ -26,8 +26,13 @@ class GmailSendMailService(SendMailService):
 
     def create_message(self, email: Email) -> dict:
         message = MIMEMultipart()
-        message['to'] = ', '.join(email.to_email) 
+        message['to'] = ', '.join(email.to_email)
         message['subject'] = email.subject
+
+        if email.cc:
+            message['cc'] = ', '.join(email.cc)
+        if email.bcc:
+            message['bcc'] = ', '.join(email.bcc)
 
         if self.is_html(email.body):
             part = MIMEText(email.body, 'html')
@@ -45,7 +50,7 @@ class GmailSendMailService(SendMailService):
 
         raw_message = base64.urlsafe_b64encode(message.as_bytes()).decode("utf-8")
         return {'raw': raw_message}
-    
+
     def is_html(self, text):
         tags = ['<html>', '<head>', '<body>', '<p>', '<br>', '<h1>', '<h2>', '<div>']
         return any(tag in text.lower() for tag in tags)

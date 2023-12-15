@@ -15,6 +15,8 @@ class Email:
     id: str = None
     is_read: bool = False
     folder: Folder = None
+    bcc: list[str] = field(default_factory=list)
+    cc: list[str] = field(default_factory=list)
 
     def __str__(self, body_limit: int = 500):
         email_info = [

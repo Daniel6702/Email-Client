@@ -7,17 +7,20 @@ from datetime import datetime
 
 class EditorEmailProcessing(QWidget):
     mail_signal_from_editor = pyqtSignal(Email, str)
-    def __init__(self, draft: Email = None, recipient_line: RecipientLine = None, subject_line_edit: QLineEdit = None, mail_body: QTextEdit = None, attachments_list: QListWidget = None):
+    def __init__(self, recipient_line: RecipientLine = None, cc_line: RecipientLine = None, bcc_line: RecipientLine = None, subject_line_edit: QLineEdit = None, mail_body: QTextEdit = None, attachments_list: QListWidget = None):
         super().__init__()
-        self.draft = draft
         self.recipient_line = recipient_line
+        self.cc_line = cc_line
+        self.bcc_line = bcc_line
         self.subject_line_edit = subject_line_edit
         self.mail_body = mail_body
         self.attachments_list = attachments_list
 
-    def update(self, draft: Email = None, recipient_line: RecipientLine = None, subject_line_edit: QLineEdit = None, mail_body: QTextEdit = None, attachments_list: QListWidget = None):
+    def update(self,draft: Email = None, recipient_line: RecipientLine = None, cc_line: RecipientLine = None, bcc_line: RecipientLine = None, subject_line_edit: QLineEdit = None, mail_body: QTextEdit = None, attachments_list: QListWidget = None):
         self.draft = draft
         self.recipient_line = recipient_line
+        self.cc_line = cc_line
+        self.bcc_line = bcc_line
         self.subject_line_edit = subject_line_edit
         self.mail_body = mail_body
         self.attachments_list = attachments_list
@@ -51,12 +54,14 @@ class EditorEmailProcessing(QWidget):
         email_addresses = self.recipient_line.get_email_addresses()
         subject = self.subject_line_edit.text()
         body = self.mail_body.toHtml()
+        cc_addresses = self.cc_line.get_email_addresses() if self.cc_line else []
+        bcc_addresses = self.bcc_line.get_email_addresses() if self.bcc_line else []
         attachments = []
         for file_path in self.get_attachment_paths():
             attachment_dict = self.generate_attachment_dict(file_path)
             attachments.append(attachment_dict)
         
-        email = Email(from_email='me', to_email=email_addresses, subject=subject, body=body,datetime_info={'date': str(datetime.now().date()),'time': str(datetime.now().time())}, attachments=attachments)
+        email = Email(from_email='me', to_email=email_addresses, bcc=bcc_addresses,cc=cc_addresses, subject=subject, body=body,datetime_info={'date': str(datetime.now().date()),'time': str(datetime.now().time())}, attachments=attachments)
         if self.draft:
             email.id = self.draft.id
             email.datetime_info = self.draft.datetime_info
