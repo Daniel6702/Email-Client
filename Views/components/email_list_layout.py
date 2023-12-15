@@ -132,7 +132,7 @@ class EmailListArea(QVBoxLayout):
 
         self.setup_email_list()
 
-        update_interval_seconds = 20
+        update_interval_seconds = 90
         self.start_periodic_updates(update_interval_seconds)
 
     def setup_email_list(self):
