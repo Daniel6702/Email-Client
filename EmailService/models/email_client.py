@@ -5,11 +5,18 @@ from ..models.user import User
 from ..models.contact import Contact
 from ..models.filter import Filter
 from ..models.rule import Rule
+import threading
+from queue import Queue
 
 class EmailClient():
     def __init__(self, service_factory: EmailServiceFactory):
         self.service_factory = service_factory
         self.login_service = service_factory.create_login_service()
+        self.email_cache = {}
+        self.cache_lock = threading.Lock()
+        self.cache_update_queue = Queue()
+
+        threading.Thread(target=self.update_cache_background, daemon=True).start()
 
     def initialize_services(self, session):
         self.send_mail_service = self.service_factory.create_send_mail_service(session)
@@ -35,6 +42,29 @@ class EmailClient():
         else:
             self.update_user(self.user)
 
+    def get_mails(self, folder: Folder, query: str, max_results: int, page_number: int = 1) -> list[Email]:
+        with self.cache_lock:
+            cached_emails = self.email_cache.get((folder.name, page_number))
+        if cached_emails is not None:
+            [email.__setattr__('to_email', self.user.email) for email in cached_emails if email.to_email is None]
+            return cached_emails
+        emails = self.get_mails_service.get_mails(folder, query, max_results, page_number)
+        with self.cache_lock:
+            self.email_cache[(folder.name, page_number)] = emails
+        self.cache_update_queue.put((folder, query, max_results, page_number + 1))
+        [email.__setattr__('to_email', self.user.email) for email in emails if email.to_email is None]
+        return emails
+
+    def update_cache_background(self):
+        while True:
+            folder, query, max_results, page_number = self.cache_update_queue.get()
+            emails = self.get_mails_service.get_mails(folder, query, max_results, page_number)
+            with self.cache_lock:
+                self.email_cache[(folder.name, page_number)] = emails
+       
+    def get_folders(self) -> list[Folder]:
+        return self.folder_service.get_folders()
+
     def add_user(self, user: User):
         self.user_manager.add_user(user)
 
@@ -58,11 +88,6 @@ class EmailClient():
     def send_mail(self, email: Email) -> bool:
         return self.send_mail_service.send_mail(email)
 
-    def get_mails(self, folder: Folder, query: str, max_results: int, page_number: int = 1) -> list[Email]:
-        emails = self.get_mails_service.get_mails(folder, query, max_results, page_number)
-        [email.__setattr__('to_email', self.user.email) for email in emails if email.to_email is None]
-        return emails
-    
     def search(self, query: str, max_results: int = 10) -> list[Email]:
         return self.get_mails_service.search(query, max_results)
     
