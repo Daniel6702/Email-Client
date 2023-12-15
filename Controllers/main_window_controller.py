@@ -23,7 +23,7 @@ class MainWindowController(QWidget):
         self.email_client = email_client
         self.setup_connections()
         self.folders = self.email_client.get_folders()
-        
+
         self.main_window.folder_area.add_folders(self.folders)
         self.spam_folder = next((folder for folder in self.folders if is_spam_folder(folder)), None)
         
@@ -131,7 +131,7 @@ class MainWindowController(QWidget):
         self.hide_loading()
         if accepted_emails:
             self.main_window.email_list_area.add_emails_to_list(accepted_emails)
-        else:
+        elif self.main_window.email_list_area.current_page > 1:
             self.main_window.email_list_area.current_page -= 1
         for email in spam_emails:
             self.email_client.move_email_to_folder(self.current_folder, self.spam_folder, email)
