@@ -34,7 +34,6 @@ class SettingsWindowController(QWidget):
 
     def show_settings(self):
         rules = self.email_client.get_rules()
-        print(rules)
         self.settings_window.add_rules(rules)
         self.settings_window.show()
 

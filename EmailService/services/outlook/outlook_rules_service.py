@@ -3,6 +3,7 @@ from ..service_interfaces import RulesService
 from ...models import Rule
 import requests
 import logging
+import json
 
 class OutlookRulesService(RulesService):
     def __init__(self, session: OutlookSession):
@@ -15,47 +16,44 @@ class OutlookRulesService(RulesService):
             'Content-Type': 'application/json'
         }
 
-    def map_conditions(self, conditions: dict):
-        outlook_conditions = {}
-        if "sender" in conditions:
-            outlook_conditions['senderContains'] = [conditions["sender"]]
-        if "subjectContains" in conditions:
-            outlook_conditions['subjectContains'] = [conditions["subjectContains"]]
-        if "bodyContains" in conditions:
-            outlook_conditions['bodyContains'] = [conditions["bodyContains"]]
-        return outlook_conditions
-
-    def map_actions(self, actions: dict):
-        outlook_actions = {}
-        if "delete" in actions and actions["delete"]:
-            outlook_actions['delete'] = True
-        if "moveToFolder" in actions:
-            outlook_actions['moveToFolder'] = actions["moveToFolder"]
-        if "setImportance" in actions:
-            outlook_actions['markImportance'] = actions["setImportance"].capitalize()
-        return outlook_actions
-
     def get_rules(self) -> list[Rule]:
         url = f'{self.base_url}/me/mailFolders/inbox/messageRules'
         response = requests.get(url, headers=self.get_headers())
         if response.status_code == 200:
             outlook_rules = response.json().get('value', [])
-            rules = [Rule(name=rule['displayName'],
-                          conditions=self.map_conditions(rule.get('conditions', {})),
-                          actions=self.map_actions(rule.get('actions', {})),
-                          id=rule['id']) for rule in outlook_rules]
+            rules = [
+                Rule(
+                    name=rule['displayName'],
+                    conditions=str(json.dumps(rule.get('conditions', {}))),
+                    actions=str(json.dumps(rule.get('actions', {}))),
+                    id=rule['id'],
+                    sequence=1, 
+                    is_enabled=True
+                ) for rule in outlook_rules
+            ]
             return rules
         else:
             logging.error(f'An error occurred: {response.text}')
             return []
-
+        
+    
     def add_rule(self, rule: Rule) -> Rule:
         url = f'{self.base_url}/me/mailFolders/inbox/messageRules'
+        try:
+            conditions_obj = json.loads(rule.conditions)
+            actions_obj = json.loads(rule.actions)
+        except json.JSONDecodeError as e:
+            logging.error(f"JSON parsing error: {e}")
+            return None
+
         rule_payload = {
             'displayName': rule.name,
-            'conditions': self.map_conditions(rule.conditions),
-            'actions': self.map_actions(rule.actions)
+            'sequence': rule.sequence,
+            'isEnabled': rule.is_enabled,
+            'conditions': conditions_obj,
+            'actions': actions_obj
         }
+
         response = requests.post(url, headers=self.get_headers(), json=rule_payload)
         if response.status_code == 201:
             created_rule = response.json()
