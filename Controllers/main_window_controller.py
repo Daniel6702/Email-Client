@@ -24,6 +24,7 @@ class MainWindowController(QWidget):
         self.setup_connections()
         self.folders = self.email_client.get_folders()
         self.main_window.folder_area.add_folders(self.folders)
+        self.spam_folder = next((folder for folder in self.folders if is_spam_folder(folder)), None)
         
     def setup_connections(self):
         self.main_window.folder_area.folder_selected.connect(self.on_folder_selected)
@@ -92,7 +93,10 @@ class MainWindowController(QWidget):
 
     def on_retrieval_finished(self, accepted_emails, spam_emails):
         self.hide_loading()
-        self.main_window.email_list_area.add_emails_to_list(accepted_emails)
+        if self.current_folder == self.spam_folder:
+            self.main_window.email_list_area.add_emails_to_list(spam_emails)
+        else:
+            self.main_window.email_list_area.add_emails_to_list(accepted_emails)
 
     def on_email_clicked(self, mail: Email):
         logging.info(f"Email Selected: {mail.subject}")
@@ -128,6 +132,8 @@ class MainWindowController(QWidget):
             self.main_window.email_list_area.add_emails_to_list(accepted_emails)
         else:
             self.main_window.email_list_area.current_page -= 1
+        for email in spam_emails:
+            self.email_client.move_email_to_folder(self.current_folder, self.spam_folder, email)
 
     def on_search(self, search_criteria: str, filter: Filter = None):
         self.show_loading()
@@ -150,6 +156,8 @@ class MainWindowController(QWidget):
         self.hide_loading()
         self.main_window.email_list_area.add_emails_to_list(accepted_emails)
         self.main_window.email_list_area.current_page = 1
+        for email in spam_emails:
+            self.email_client.move_email_to_folder(self.current_folder, self.spam_folder, email)
 
     def move_email_to_folder(self, email: Email, folder: Folder):
         self.email_client.move_email_to_folder(email.folder, folder, email)
@@ -165,6 +173,12 @@ def is_delete_folder(folder: Folder) -> bool:
 
 def is_draft_folder(folder: Folder) -> bool:
     if folder.name in ["Drafts", "Draft", "DRAFT", "draft", "DRAFTS", "drafts"]:
+        return True
+    else:
+        return False
+    
+def is_spam_folder(folder: Folder) -> bool:
+    if folder.name in ["Spam", "Spam", "SPAM", "spam", "Junk", "JUNK", "junk", "Junk Email"]:
         return True
     else:
         return False
