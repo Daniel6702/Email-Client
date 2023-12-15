@@ -2,6 +2,7 @@
 
 import pandas as pd
 import re
+import json
 
 # Read the data
 sms_spam = pd.read_csv('AI_SpamFilter\\SMSSpamCollection', sep='\t',
@@ -86,6 +87,11 @@ for word in vocabulary:
    n_word_given_ham = ham_messages[word].sum() # ham_messages already defined
    p_word_given_ham = (n_word_given_ham + alpha) / (n_ham + alpha*n_vocabulary)
    parameters_ham[word] = p_word_given_ham
+
+# Export relevant variables into a file (p_spam, p_ham, parameters_spam, parameters_ham)
+info = [p_spam, p_ham, parameters_spam, parameters_ham]
+with open('AI_SpamFilter\\info.json', 'w') as file:
+   json.dump(info, file)
 
 #------------------------
 # Classifying function
