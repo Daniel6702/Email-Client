@@ -1,9 +1,11 @@
-from PyQt5.QtCore import pyqtSignal
-from PyQt5.QtWidgets import QWidget
+from PyQt5.QtCore import pyqtSignal, Qt, QCoreApplication, QSize, QThread, QPoint
+from PyQt5.QtWidgets import QWidget, QLabel, QVBoxLayout, QApplication
+from PyQt5.QtGui import QMovie
 from Views.windows.main_window import MainWindow
 from EmailService.models import Email, Filter, Folder
 from EmailService.models.email_client import EmailClient   
 import logging
+import threading
 
 PAGE_SIZE = 10
     
@@ -70,13 +72,26 @@ class MainWindowController(QWidget):
         self.main_window.email_view_area.selected_folder.emit(folder)
 
     def on_folder_selected(self, folder: Folder):
-        #self.open_popup_window.emit("info", "Loading Emails", "Please wait while we load your emails", "THIS IS A TEST POPUP WINDOW", 4000)
-        logging.info(f"Folder Selected: {folder.name}")
         self.current_folder = folder
         self.main_window.email_list_area.current_page = 1
-        emails = self.email_client.get_mails(folder, "", PAGE_SIZE)
-        accepted_emails, spam_emails = self.email_client.filter_emails(emails, [], [])
-        print(spam_emails)
+        self.retrieve_emails(folder, "", 1)
+
+    def show_loading(self):
+        self.loading_popup = LoadingPopup()
+        self.loading_popup.show()
+
+    def hide_loading(self):
+        if self.loading_popup:
+            self.loading_popup.close()
+
+    def retrieve_emails(self, folder: Folder, query: str, page_number: int):
+        self.show_loading()
+        self.worker = EmailRetrievalThread(self.email_client, folder, query, page_number)
+        self.worker.finished.connect(self.on_retrieval_finished)
+        self.worker.start()
+
+    def on_retrieval_finished(self, accepted_emails, spam_emails):
+        self.hide_loading()
         self.main_window.email_list_area.add_emails_to_list(accepted_emails)
 
     def on_email_clicked(self, mail: Email):
@@ -102,25 +117,39 @@ class MainWindowController(QWidget):
                 self.email_client.move_email_to_folder(self.current_folder, delete_folder, email)
 
     def on_new_page(self, page_number: int):
-        emails = self.email_client.get_mails(folder=self.current_folder, query="", max_results=PAGE_SIZE, page_number=page_number)
-        if emails:
-            self.main_window.email_list_area.add_emails_to_list(emails)
+        self.show_loading()
+        self.worker = EmailRetrievalThread(self.email_client, self.current_folder, "", page_number)
+        self.worker.finished.connect(self.on_new_page_finished)
+        self.worker.start()
+
+    def on_new_page_finished(self, accepted_emails, spam_emails):
+        self.hide_loading()
+        if accepted_emails:
+            self.main_window.email_list_area.add_emails_to_list(accepted_emails)
         else:
             self.main_window.email_list_area.current_page -= 1
 
     def on_search(self, search_criteria: str, filter: Filter = None):
+        self.show_loading()
+        mode = 'search'
         if filter.is_empty() and search_criteria:
-            mails = self.email_client.search(search_criteria, PAGE_SIZE)
+            mode = 'search'
         elif filter.is_empty() and not search_criteria:
-            mails = self.email_client.get_mails(folder=self.current_folder, query="", max_results=PAGE_SIZE, page_number=1)
+            mode = 'get_mails'
             self.main_window.email_list_area.current_page = 1
         elif not filter.is_empty() and search_criteria:
-            mails = self.email_client.search_filter(search_criteria, filter, PAGE_SIZE)
+            mode = 'search_filter'
         elif not filter.is_empty() and not search_criteria:
-            mails = self.email_client.filter(filter, PAGE_SIZE)
-        else:
-            mails = []
-        self.main_window.email_list_area.add_emails_to_list(mails)
+            mode = 'filter'
+
+        self.worker = EmailRetrievalThread(self.email_client, self.current_folder, search_criteria, 1, mode, filter)
+        self.worker.finished.connect(self.on_search_finished)
+        self.worker.start()
+
+    def on_search_finished(self, accepted_emails, spam_emails):
+        self.hide_loading()
+        self.main_window.email_list_area.add_emails_to_list(accepted_emails)
+        self.main_window.email_list_area.current_page = 1
 
     def move_email_to_folder(self, email: Email, folder: Folder):
         self.email_client.move_email_to_folder(email.folder, folder, email)
@@ -139,3 +168,60 @@ def is_draft_folder(folder: Folder) -> bool:
         return True
     else:
         return False
+    
+class EmailRetrievalThread(QThread):
+    finished = pyqtSignal(list, list)
+
+    def __init__(self, email_client, folder, query, page_number, mode=None, filter=None):
+        super().__init__()
+        self.email_client = email_client
+        self.folder = folder
+        self.query = query
+        self.page_number = page_number
+        self.mode = mode
+        self.filter = filter
+
+    def run(self):
+        if self.mode == 'search':
+            emails = self.email_client.search(self.query, PAGE_SIZE)
+        elif self.mode == 'search_filter':
+            emails = self.email_client.search_filter(self.query, self.filter, PAGE_SIZE)
+        elif self.mode == 'filter':
+            emails = self.email_client.filter(self.filter, PAGE_SIZE)
+        else: 
+            emails = self.email_client.get_mails(self.folder, self.query, PAGE_SIZE, self.page_number)
+        
+        accepted_emails, spam_emails = self.email_client.filter_emails(emails, [], [])
+        self.finished.emit(accepted_emails, spam_emails)
+
+class LoadingPopup(QWidget):
+    def __init__(self):
+        super().__init__()
+        self.initUI()
+
+    def initUI(self):
+        self.layout = QVBoxLayout(self)
+        gif_container = QWidget()
+        gif_layout = QVBoxLayout(gif_container)
+        gif_label = QLabel()
+        movie = QMovie('Images\\loading.gif')
+        gif_label.setMovie(movie)
+        movie.start()
+        gif_label.setFixedSize(QSize(118, 118))
+        gif_label.setAlignment(Qt.AlignCenter)
+        gif_layout.addWidget(gif_label)
+        self.layout.addWidget(gif_container, 0, Qt.AlignCenter)
+        window_size = 100
+        self.setGeometry(0, 0, window_size, window_size)
+        self.setWindowTitle('Loading')
+        self.setWindowFlags(Qt.FramelessWindowHint)
+        self.centerWindow()
+
+    def centerWindow(self):
+        screen = QCoreApplication.instance().desktop().screenNumber(QCoreApplication.instance().desktop().cursor().pos())
+        centerPoint = QCoreApplication.instance().desktop().screenGeometry(screen).center()
+        windowWidth = self.frameGeometry().width()
+        windowHeight = self.frameGeometry().height()
+        newX = centerPoint.x() - windowWidth 
+        newY = centerPoint.y() - windowHeight
+        self.move(newX, newY)
