@@ -11,7 +11,8 @@ class EmailWidget(QWidget):
     def __init__(self, email: Email, parent=None):
         super().__init__(parent)
         self.email = email
-        self.init_ui()
+        self.init_ui() 
+        
     
     def init_ui(self):
         self.background_widget = QWidget(self)
@@ -74,6 +75,8 @@ class EmailWidget(QWidget):
         self.checkbox = QCheckBox()
         self.checkbox.setObjectName("list_checkbox")
         self.checkbox.setMaximumWidth(25)
+        self.checkbox.stateChanged.connect(lambda state: self.checkbox_changed_callback(state))
+
 
         temp = QHBoxLayout()
         temp.addWidget(self.checkbox)
@@ -89,6 +92,11 @@ class EmailWidget(QWidget):
 
         self.background_widget.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
 
+    def checkbox_changed_callback(self, state):
+        # Handle checkbox state change here
+        pass
+
+    
     def mark_email_as_read(self,new_background=None):
         self.read_button.setIcon(QIcon("Images\\mark_unread.png"))
         self.email.is_read = True
@@ -129,10 +137,11 @@ class EmailListArea(QVBoxLayout):
     def __init__(self):
         super().__init__()
         self.current_page = 1
+        self.selected_emails = []
 
         self.setup_email_list()
 
-        update_interval_seconds = 20
+        update_interval_seconds = 90
         self.start_periodic_updates(update_interval_seconds)
 
     def setup_email_list(self):
@@ -141,8 +150,20 @@ class EmailListArea(QVBoxLayout):
         refresh.setStatusTip("Refresh")
         refresh.setObjectName("refresh_button")
         refresh.clicked.connect(lambda: self.new_page.emit(self.current_page))
+        
+        #New Buttons
+        self.delete_selected_button = QPushButton("Delete")
+        self.delete_selected_button.clicked.connect(self.delete_selected)
+        self.mark_as_read_button = QPushButton("Mark as Read")
+        self.mark_as_read_button.clicked.connect(self.mark_selected_as_read)
+        self.mark_as_unread_button = QPushButton("Mark as Unread")
+        self.mark_as_unread_button.clicked.connect(self.mark_selected_as_unread)
+        
         temp = QHBoxLayout()
         temp.addWidget(label)
+        temp.addWidget(self.delete_selected_button)
+        temp.addWidget(self.mark_as_read_button)
+        temp.addWidget(self.mark_as_unread_button)
         temp.addWidget(refresh)
         self.addLayout(temp)
 
@@ -177,6 +198,41 @@ class EmailListArea(QVBoxLayout):
 
         self.addLayout(bottom_layout)
 
+    def checkbox_changed_callback(self, email_widget, state):
+        if email_widget.email in self.selected_emails and not state:
+            self.selected_emails.remove(email_widget.email)
+        elif state:
+            self.selected_emails.append(email_widget.email)
+            
+    def delete_selected(self):
+        for email in self.selected_emails:
+            self.delete_email(email)
+        # self.selected_emails = []
+        self.clear_selected_checkboxes()
+
+    def mark_selected_as_read(self):
+        for email in self.selected_emails:
+            if not email.is_read:
+                self.mark_email_as.emit(email, True)
+        # self.selected_emails = []
+        self.clear_selected_checkboxes()
+
+    def mark_selected_as_unread(self):
+        for email in self.selected_emails:
+            if email.is_read:
+                self.mark_email_as.emit(email, False)
+        # self.selected_emails = []
+        self.clear_selected_checkboxes()
+        
+    def clear_selected_checkboxes(self):
+        for index in range(self.list_widget.count()):
+            item = self.list_widget.item(index)
+            email_widget = self.list_widget.itemWidget(item)
+            if email_widget:
+                email_widget.checkbox.setChecked(False)
+
+        self.selected_emails = []
+    
     def next_page(self):
         self.current_page += 1
         self.page_number_label.setText(f"Page {self.current_page}")
@@ -190,6 +246,7 @@ class EmailListArea(QVBoxLayout):
 
     def add_emails_to_list(self, mails: list[Email]):
         self.list_widget.clear()
+        self.selected_emails = []
         for mail in mails:
             self.add_email_to_list(mail)
         for mail in mails:
@@ -200,6 +257,9 @@ class EmailListArea(QVBoxLayout):
         email_widget.mark_email_as.connect(self.mark_email_as)
         email_widget.delete_email.connect(self.delete_email)
         email_widget.setMaximumWidth(self.list_widget.width()+10)
+
+        # Connect the stateChanged signal of the checkbox to the checkbox_changed_callback method
+        email_widget.checkbox.stateChanged.connect(lambda state, widget=email_widget: self.checkbox_changed_callback(widget, state))
 
         item = QListWidgetItem()
         item.setSizeHint(email_widget.sizeHint())
