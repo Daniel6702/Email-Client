@@ -49,10 +49,12 @@
 - Flask
 - PyQt5
 - PyQtWebEngine
+- scikit-learn
+- joblib
 
 ### Package Installation
 ```
-pip install google-auth-oauthlib google-api-python-client msal Flask PyQt5 PyQtWebEngine bs4 keyring cryptography
+pip install google-auth-oauthlib google-api-python-client msal Flask PyQt5 PyQtWebEngine bs4 keyring cryptography scikit-learn joblib
 ```
 
 # Test Emails
