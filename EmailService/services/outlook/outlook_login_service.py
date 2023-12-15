@@ -20,12 +20,15 @@ class OutlookLoginService(LoginService):
             data = json.load(json_file)
 
         self.app = msal.PublicClientApplication(data["client_id"],authority="https://login.microsoftonline.com/common")
-        self.scopes = ["https://graph.microsoft.com/Mail.Send",
-                       "https://graph.microsoft.com/Mail.Read",
-                       "https://graph.microsoft.com/Mail.ReadWrite",
-                       "https://graph.microsoft.com/User.Read",
-                       "https://graph.microsoft.com/Contacts.Read",
-                       "https://graph.microsoft.com/Contacts.ReadWrite"]
+        self.scopes = [
+            "https://graph.microsoft.com/Mail.Send",
+            "https://graph.microsoft.com/Mail.Read",
+            "https://graph.microsoft.com/Mail.ReadWrite",
+            "https://graph.microsoft.com/User.Read",
+            "https://graph.microsoft.com/Contacts.Read",
+            "https://graph.microsoft.com/Contacts.ReadWrite",
+            "https://graph.microsoft.com/MailboxSettings.ReadWrite"  # Added scope
+        ]
         self.redirect_uri = data["redirect_uri"]
 
     def new_login(self):

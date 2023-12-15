@@ -29,10 +29,9 @@ class RulesLayout(QVBoxLayout):
 
     def addWidgets(self, rules: list[Rule]):
         for rule in rules:
-            text = f"Rule: {rule.name} \nConditions: {rule.conditions} \nActions: {rule.actions}"
-            print("TEXT: ",text)
+            text = f"Name: {rule.name} \nConditions: {rule.conditions} \nActions: {rule.actions}"
             item = QListWidgetItem(text)
-            item.setData(0, rule)
+            item.setData(Qt.UserRole, rule) 
             self.rules_list_widget.addItem(item)
 
     def add_rule(self):
@@ -59,14 +58,25 @@ class RulesLayout(QVBoxLayout):
             name = name_line_edit.text()
             conditions = eval(conditions_line_edit.text())
             actions = eval(actions_line_edit.text())
-            new_rule = Rule(name, conditions, actions)
+            new_rule = Rule(
+                name=name,
+                conditions=conditions,
+                actions=actions,
+                id=None,
+                sequence=1,
+                is_enabled=True,
+            )
+            item = QListWidgetItem(f"Name: {new_rule.name} \nConditions: {new_rule.conditions} \nActions: {new_rule.actions}")
+            item.setData(Qt.UserRole, new_rule)
+            self.rules_list_widget.addItem(item)
             self.add_rule_signal.emit(new_rule)
 
     def delete_rule(self):
         selected_items = self.rules_list_widget.selectedItems()
         if selected_items:
-            selected_rule = selected_items[0].data(0)
-            self.delete_rule_signal.emit(selected_rule)
+            selected_rule = selected_items[0].data(Qt.UserRole)
+            if selected_rule.id:
+                self.delete_rule_signal.emit(selected_rule)
             self.rules_list_widget.takeItem(self.rules_list_widget.row(selected_items[0]))
         
 
