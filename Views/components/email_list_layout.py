@@ -132,6 +132,9 @@ class EmailListArea(QVBoxLayout):
 
         self.setup_email_list()
 
+        update_interval_seconds = 20
+        self.start_periodic_updates(update_interval_seconds)
+
     def setup_email_list(self):
         label = QLabel("Emails:")
         refresh = QPushButton(QIcon("Images\\refresh.png"),"")
@@ -274,3 +277,12 @@ class EmailListArea(QVBoxLayout):
             if email_widget and email_widget.email == mail:
                 self.list_widget.takeItem(index)
                 break
+
+    def start_periodic_updates(self, interval_seconds):
+        self.timer_updates = QTimer(self)
+        self.timer_updates.timeout.connect(self.handle_periodic_update)
+        self.timer_updates.start(interval_seconds * 1000)  # Convert seconds to milliseconds
+
+    def handle_periodic_update(self):
+        # Trigger the update by emitting the new_page signal
+        self.new_page.emit(self.current_page)
