@@ -18,6 +18,16 @@ class Email:
     bcc: list[str] = field(default_factory=list)
     cc: list[str] = field(default_factory=list)
 
+    def is_empty(self) -> bool:
+        if self.from_email == None or self.from_email == "" \
+        or self.to_email == None or self.to_email == [] \
+        or self.subject == None or self.subject == "" \
+        or self.body == None or self.body == "" \
+        or self.datetime_info == None or self.datetime_info == {}:
+            return True
+        else:
+            return False
+
     def __str__(self, body_limit: int = 500):
         email_info = [
             "=====================================",

@@ -42,3 +42,4 @@ class EmailCacheManager:
 
     def get_next_cache_update_task(self):
         return self.cache_update_queue.get()
+

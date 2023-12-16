@@ -77,6 +77,9 @@ class EmailView(QVBoxLayout):
       
     def updateEmailView(self, email: Email) -> None:
         self.clearEmailView()
+        if email is None or email.is_empty():
+            self.toolbar.setVisible(False)
+            return
         self.toolbar.setVisible(True)
         self.toolbar.current_email = email
         self.current_email = email

@@ -6,6 +6,7 @@ from EmailService.models import Email, Filter, Folder
 from EmailService.models.email_client import EmailClient   
 import logging
 import threading
+import time
 
 PAGE_SIZE = 10
     
@@ -51,7 +52,7 @@ class MainWindowController(QWidget):
 
     def refresh_cache(self):
         self.email_client.refresh_cache()
-        self.retrieve_emails(self.current_folder, "", self.main_window.email_list_area.current_page)
+        self.retrieve_emails(self.current_folder, "", self.main_window.email_list_area.current_page, refresh=True)
 
     def on_add_folder(self, folder: Folder):
         folder = self.email_client.create_folder(folder, None)
@@ -91,9 +92,9 @@ class MainWindowController(QWidget):
         if self.loading_popup:
             self.loading_popup.close()
 
-    def retrieve_emails(self, folder: Folder, query: str, page_number: int):
+    def retrieve_emails(self, folder: Folder, query: str, page_number: int, refresh=False):
         self.show_loading()
-        self.worker = EmailRetrievalThread(self.email_client, folder, query, page_number)
+        self.worker = EmailRetrievalThread(self.email_client, folder, query, page_number, refresh=refresh)
         self.worker.finished.connect(self.on_retrieval_finished)
         self.worker.start()
 
@@ -194,7 +195,7 @@ def is_spam_folder(folder: Folder) -> bool:
 class EmailRetrievalThread(QThread):
     finished = pyqtSignal(list, list)
 
-    def __init__(self, email_client, folder, query, page_number, mode=None, filter=None):
+    def __init__(self, email_client, folder, query, page_number, mode=None, filter=None, refresh=False):
         super().__init__()
         self.email_client = email_client
         self.folder = folder
@@ -202,8 +203,11 @@ class EmailRetrievalThread(QThread):
         self.page_number = page_number
         self.mode = mode
         self.filter = filter
+        self.refresh = refresh
 
     def run(self):
+        if self.refresh: #dont ask
+            time.sleep(0.25)
         if self.mode == 'search':
             emails = self.email_client.search(self.query, PAGE_SIZE)
         elif self.mode == 'search_filter':

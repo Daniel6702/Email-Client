@@ -139,6 +139,7 @@ class EmailListArea(QVBoxLayout):
         super().__init__()
         self.current_page = 1
         self.selected_emails = []
+        self.last_selected_email = None
 
         self.setup_email_list()
 
@@ -155,10 +156,13 @@ class EmailListArea(QVBoxLayout):
         #New Buttons
         self.delete_selected_button = QPushButton("Delete")
         self.delete_selected_button.clicked.connect(self.delete_selected)
+        self.delete_selected_button.setVisible(False)  # Initially hidden
         self.mark_as_read_button = QPushButton("Mark as Read")
         self.mark_as_read_button.clicked.connect(self.mark_selected_as_read)
+        self.mark_as_read_button.setVisible(False)  # Initially hidden
         self.mark_as_unread_button = QPushButton("Mark as Unread")
         self.mark_as_unread_button.clicked.connect(self.mark_selected_as_unread)
+        self.mark_as_unread_button.setVisible(False)  
         
         temp = QHBoxLayout()
         temp.addWidget(label)
@@ -204,6 +208,14 @@ class EmailListArea(QVBoxLayout):
             self.selected_emails.remove(email_widget.email)
         elif state:
             self.selected_emails.append(email_widget.email)
+
+        self.update_button_visibility()
+
+    def update_button_visibility(self):
+        has_selection = len(self.selected_emails) > 0
+        self.delete_selected_button.setVisible(has_selection)
+        self.mark_as_read_button.setVisible(has_selection)
+        self.mark_as_unread_button.setVisible(has_selection)
             
     def delete_selected(self):
         for email in self.selected_emails:
@@ -296,11 +308,19 @@ class EmailListArea(QVBoxLayout):
     def handle_item_clicked(self, item: QListWidgetItem):
         widget = self.list_widget.itemWidget(item)
         if hasattr(widget, 'email'):
-            self.email_clicked.emit(widget.email)
+            if self.last_selected_email == widget.email:
+                # If the same email is clicked again, emit the signal with an empty email and reset the last selected email
+                self.list_widget.clearSelection()
+                self.email_clicked.emit(Email(None, None, None, None, None, None, None, None))
+                self.last_selected_email = None
+            else:
+                # If a different email is clicked, emit the signal with the selected email
+                self.email_clicked.emit(widget.email)
+                self.last_selected_email = widget.email
             self.currently_clicked_item = item
-        
+
         if not widget.email.is_read:
-            self.timer.start(2000)  #milliseconds
+            self.timer.start(2000)
     
     def handle_item_selection_changed(self):
         # This method is called when the item selection changes

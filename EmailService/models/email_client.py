@@ -43,6 +43,12 @@ class EmailClient():
             self.update_user(self.user)
     
     ########################################################################################################################## Cache functions
+            
+    def update_cache_background(self):
+        while True:
+            folder, query, max_results, page_number = self.cache_manager.get_next_cache_update_task()
+            emails = self.get_mails_service.get_mails(folder, query, max_results, page_number)
+            self.cache_manager.set_cached_emails(folder.name, page_number, emails)
 
     def get_mails(self, folder: Folder, query: str, max_results: int, page_number: int = 1) -> list[Email]:
         cached_emails = self.cache_manager.get_cached_emails(folder.name, page_number)
@@ -76,10 +82,10 @@ class EmailClient():
         self.cache_manager.enqueue_for_cache_update(updated_folder, "", PAGE_SIZE, 1)
         return updated_folder
 
-    def refresh_cache(self):
+    def refresh_cache(self): 
         self.cache_manager.clear_cache()
-        for folder in self.get_folders():
-            self.cache_manager.enqueue_for_cache_update(folder, "", PAGE_SIZE, 1)
+        #for folder in self.get_folders():
+        #    self.cache_manager.enqueue_for_cache_update(folder, "", PAGE_SIZE, 1)
 
     def update_cache_background(self):
         while True:
