@@ -1,16 +1,11 @@
 TODO List:
-implement asynchronous email retrieval in the background
 implement settings in settings window
 preview attachments (80% DONE, video not working)
-spamfilter
-pop up info windows (waiting for emails, email sent, email deleted, etc)
 windows notifications
 Improve GUI (make it not look terrible)
 
 forward emails gmail recepient field wrong
 reset filter sometimes doesnt work
-refresh button
-
 
 
 BUGS:
