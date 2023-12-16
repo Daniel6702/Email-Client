@@ -58,11 +58,15 @@ class OutlookGetMailsService(GetMailsService):
             response = requests.get(endpoint_url, headers=headers, params=query_parameters, timeout=30)
             response.raise_for_status()
             data = response.json()
-            emails = [Email(*self.extract_data_from_message(item)) for item in data.get('value', [])]
+            emails = [Email(*self.extract_data_from_message(item), folder=folder) for item in data.get('value', [])]
 
             return emails
         except requests.RequestException as e:
-            logging.error(f"Request failed: {e.response.text}")
+            if e.response:
+                if hasattr(e.response, "text"):
+                    logging.error(f"Request failed: {e.response.text}")
+                else:
+                    logging.error("Request failed: No response text available.")
             raise Exception(f"Request failed: {e}")
 
     def extract_data_from_message(self, email_data: dict) -> tuple[str, str, str, str, dict, list[dict], str]:

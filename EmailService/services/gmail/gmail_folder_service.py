@@ -19,6 +19,14 @@ class GmailFolderService(FolderService):
         
         return folders
     
+    def get_email_count_in_folder(self, folder: Folder) -> int:
+        try:
+            response = self.service.users().labels().get(userId='me', id=folder.id).execute()
+            return response.get('messagesTotal', 0)
+        except Exception as e:
+            logging.error(f"An error occurred while fetching email count: {e}")
+            return 0
+    
     def create_folder(self, folder: Folder, parent_folder: Folder = None) -> Folder:
         new_label = {
             'name': folder.name,

@@ -34,6 +34,23 @@ class OutlookFolderService(FolderService):
                 logging.error(f"An error occurred: {e}")
         logging.info("Getting folders from Outlook")     
         return _get_email_folders()
+    
+    def get_email_count_in_folder(self, folder: Folder) -> int:
+        headers = {
+            "Authorization": f"Bearer {self.result['access_token']}"
+        }
+        try:
+            endpoint_url = f"https://graph.microsoft.com/v1.0/me/mailFolders/{folder.id}"
+
+            response = requests.get(endpoint_url, headers=headers, timeout=30)
+            response.raise_for_status()
+
+            folder_data = response.json()
+
+            return folder_data.get('totalItemCount', 0)
+        except requests.RequestException as e:
+            logging.error(f"An error occurred while fetching email count: {e}")
+            return 0
 
     def create_folder(self, folder: Folder, parent_folder: Folder = None) -> Folder:
         headers = {

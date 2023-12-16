@@ -7,17 +7,15 @@ from ..models.filter import Filter
 from ..models.rule import Rule
 import threading
 from queue import Queue
+import math
+
+PAGE_SIZE = 10
 
 class EmailClient():
     def __init__(self, service_factory: EmailServiceFactory):
         self.service_factory = service_factory
         self.login_service = service_factory.create_login_service()
-        self.email_cache = {}
-        self.cache_lock = threading.Lock()
-        self.cache_update_queue = Queue()
-
-        threading.Thread(target=self.update_cache_background, daemon=True).start()
-
+ 
     def initialize_services(self, session):
         self.send_mail_service = self.service_factory.create_send_mail_service(session)
         self.get_user_service = self.service_factory.create_get_user_service(session)
@@ -27,6 +25,7 @@ class EmailClient():
         self.mail_management_service = self.service_factory.create_mail_management_service(session)
         self.user_manager = self.service_factory.create_user_manager()
         self.spam_filter = self.service_factory.create_spam_filter()
+        self.cache_manager = self.service_factory.create_cache_service()
         self.contacts_service = self.service_factory.create_contacts_service(session)
         self.rules_service = self.service_factory.create_rules_service(session)
    
@@ -35,33 +34,64 @@ class EmailClient():
         self.login_service.login_event.wait()
         session = self.login_service.get_session()
         self.initialize_services(session)
+        threading.Thread(target=self.update_cache_background, daemon=True).start()
 
         self.user = self.get_user()
         if save_user and user is None:
             self.add_user(self.user)
         else:
             self.update_user(self.user)
+    
+    ########################################################################################################################## Cache functions
 
     def get_mails(self, folder: Folder, query: str, max_results: int, page_number: int = 1) -> list[Email]:
-        with self.cache_lock:
-            cached_emails = self.email_cache.get((folder.name, page_number))
+        cached_emails = self.cache_manager.get_cached_emails(folder.name, page_number)
         if cached_emails is not None:
             [email.__setattr__('to_email', self.user.email) for email in cached_emails if email.to_email is None]
             return cached_emails
         emails = self.get_mails_service.get_mails(folder, query, max_results, page_number)
-        with self.cache_lock:
-            self.email_cache[(folder.name, page_number)] = emails
-        self.cache_update_queue.put((folder, query, max_results, page_number + 1))
+        self.cache_manager.set_cached_emails(folder.name, page_number, emails)
+        self.cache_manager.enqueue_for_cache_update(folder, query, max_results, page_number + 1)
         [email.__setattr__('to_email', self.user.email) for email in emails if email.to_email is None]
         return emails
 
+    def delete_mail(self, email: Email, folder: Folder):
+        self.mail_management_service.delete_email(email)
+        self.cache_manager.delete_cache_for_folder(folder.name)
+        self.cache_manager.enqueue_for_cache_update(folder, "", PAGE_SIZE, 1)
+
+    def move_email_to_folder(self, from_folder: Folder, to_folder: Folder, email: Email):
+        self.folder_service.move_email_to_folder(from_folder, to_folder, email)
+        self.cache_manager.update_cache_for_folder_move(from_folder.name, to_folder.name, email.id)
+        self.cache_manager.enqueue_for_cache_update(from_folder, "", PAGE_SIZE, 1)
+        self.cache_manager.enqueue_for_cache_update(to_folder, "", PAGE_SIZE, 1)
+
+    def delete_folder(self, folder: Folder):
+        self.folder_service.delete_folder(folder.id)
+        self.cache_manager.delete_cache_for_folder(folder.name)
+
+    def update_folder(self, folder: Folder, new_folder_name: str) -> Folder:
+        updated_folder = self.folder_service.update_folder(folder, new_folder_name)
+        self.cache_manager.delete_cache_for_folder(folder.name)
+        self.cache_manager.enqueue_for_cache_update(updated_folder, "", PAGE_SIZE, 1)
+        return updated_folder
+
+    def refresh_cache(self):
+        self.cache_manager.clear_cache()
+        for folder in self.get_folders():
+            self.cache_manager.enqueue_for_cache_update(folder, "", PAGE_SIZE, 1)
+
     def update_cache_background(self):
         while True:
-            folder, query, max_results, page_number = self.cache_update_queue.get()
+            folder, query, max_results, page_number = self.cache_manager.get_next_cache_update_task()
             emails = self.get_mails_service.get_mails(folder, query, max_results, page_number)
-            with self.cache_lock:
-                self.email_cache[(folder.name, page_number)] = emails
-       
+            self.cache_manager.set_cached_emails(folder.name, page_number, emails)
+
+    ##########################################################################################################################
+
+    def get_email_count_in_folder(self, folder: Folder) -> int:
+        return self.folder_service.get_email_count_in_folder(folder)
+
     def get_folders(self) -> list[Folder]:
         return self.folder_service.get_folders()
 
@@ -88,13 +118,13 @@ class EmailClient():
     def send_mail(self, email: Email) -> bool:
         return self.send_mail_service.send_mail(email)
 
-    def search(self, query: str, max_results: int = 10) -> list[Email]:
+    def search(self, query: str, max_results: int = PAGE_SIZE) -> list[Email]:
         return self.get_mails_service.search(query, max_results)
     
-    def search_filter(self, query: str, filter: Filter, max_results: int = 10) -> list[Email]:
+    def search_filter(self, query: str, filter: Filter, max_results: int = PAGE_SIZE) -> list[Email]:
         return self.get_mails_service.search_filter(query, filter, max_results)
     
-    def filter(self, filter: Filter, max_results: int = 10) -> list[Email]:
+    def filter(self, filter: Filter, max_results: int = PAGE_SIZE) -> list[Email]:
         return self.get_mails_service.filter(filter, max_results)
     
     def save_draft(self, email: Email):
@@ -108,18 +138,6 @@ class EmailClient():
     
     def create_folder(self, folder: Folder, parrent_folder: Folder = None) -> Folder:
         return self.folder_service.create_folder(folder, parrent_folder)
-    
-    def move_email_to_folder(self, from_folder_id: str, to_folder_id: str, message_id: str):
-        self.folder_service.move_email_to_folder(from_folder_id, to_folder_id, message_id)
-
-    def delete_folder(self, folder_id: str):
-        self.folder_service.delete_folder(folder_id)
-
-    def update_folder(self, folder: Folder, new_folder_name: str) -> Folder:
-        return self.folder_service.update_folder(folder, new_folder_name)
-    
-    def delete_mail(self, email: Email):
-        self.mail_management_service.delete_email(email)
 
     def mark_email_as_read(self, email: Email):
         self.mail_management_service.mark_email_as_read(email)

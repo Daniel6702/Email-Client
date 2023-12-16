@@ -116,6 +116,10 @@ class FolderService(ABC):
     def update_folder(self, folder: Folder, new_folder_name: str) -> Folder:
         pass
 
+    @abstractmethod
+    def get_email_count_in_folder(self, folder: Folder) -> int:
+        pass
+
 ###############################
 
 class MailManagementService(ABC):

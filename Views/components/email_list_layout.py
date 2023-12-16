@@ -133,6 +133,7 @@ class EmailListArea(QVBoxLayout):
     mark_email_as = pyqtSignal(Email, bool)
     email_deleted = pyqtSignal(Email)
     new_page = pyqtSignal(int)
+    refresh_signal = pyqtSignal()
 
     def __init__(self):
         super().__init__()
@@ -149,7 +150,7 @@ class EmailListArea(QVBoxLayout):
         refresh = QPushButton(QIcon("Images\\refresh.png"),"")
         refresh.setStatusTip("Refresh")
         refresh.setObjectName("refresh_button")
-        refresh.clicked.connect(lambda: self.new_page.emit(self.current_page))
+        refresh.clicked.connect(self.refresh_signal.emit)
         
         #New Buttons
         self.delete_selected_button = QPushButton("Delete")
@@ -327,8 +328,7 @@ class EmailListArea(QVBoxLayout):
         if reply == QMessageBox.Yes:
             self.email_deleted.emit(mail)
             self.remove_email_from_list(mail)
-        
-        
+            
 
     def remove_email_from_list(self, mail: Email):
         for index in range(self.list_widget.count()):
@@ -341,8 +341,7 @@ class EmailListArea(QVBoxLayout):
     def start_periodic_updates(self, interval_seconds):
         self.timer_updates = QTimer(self)
         self.timer_updates.timeout.connect(self.handle_periodic_update)
-        self.timer_updates.start(interval_seconds * 1000)  # Convert seconds to milliseconds
+        self.timer_updates.start(interval_seconds * 1000)
 
     def handle_periodic_update(self):
-        # Trigger the update by emitting the new_page signal
-        self.new_page.emit(self.current_page)
+        self.refresh_signal.emit()

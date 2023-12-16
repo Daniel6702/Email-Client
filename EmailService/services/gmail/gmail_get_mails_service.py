@@ -98,7 +98,6 @@ class GmailGetMailsService(GetMailsService):
         headers = message_data['payload']['headers']
         return next((header['value'] for header in headers if header['name'] == 'From'), None).strip()
          
-    
     def extract_subject(self, message_data: dict) -> str:
         headers = message_data['payload']['headers']
         return next((header['value'] for header in headers if header['name'].lower() == 'subject'), None)

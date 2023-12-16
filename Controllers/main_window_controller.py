@@ -36,6 +36,7 @@ class MainWindowController(QWidget):
         self.main_window.email_list_area.mark_email_as.connect(self.on_mark_email_as)
         self.main_window.email_list_area.email_deleted.connect(self.on_email_delete)
         self.main_window.email_list_area.new_page.connect(self.on_new_page)
+        self.main_window.email_list_area.refresh_signal.connect(self.refresh_cache)
         self.main_window.search_area.search_signal.connect(self.on_search)
         self.main_window.search_area.new_mail_signal.connect(self.open_editor_window.emit)
         self.main_window.search_area.open_settings_signal.connect(self.open_settings_window.emit)
@@ -47,6 +48,10 @@ class MainWindowController(QWidget):
         self.main_window.email_view_area.open_folder_window.connect(lambda: self.open_folder_selector_window.emit(self.folders))
         self.main_window.email_view_area.move_email_to_folder.connect(self.move_email_to_folder)
         self.main_window.search_area.open_contacts_signal.connect(self.open_contacts_window.emit)
+
+    def refresh_cache(self):
+        self.email_client.refresh_cache()
+        self.retrieve_emails(self.current_folder, "", self.main_window.email_list_area.current_page)
 
     def on_add_folder(self, folder: Folder):
         folder = self.email_client.create_folder(folder, None)
@@ -115,8 +120,10 @@ class MainWindowController(QWidget):
         self.main_window.email_view_area.updateEmailView(empty_mail)
         self.main_window.email_list_area.remove_email_from_list(email)
         if is_delete_folder(self.current_folder):
+            print("1")
             self.email_client.delete_mail(email)
         else:     
+            print("2")
             delete_folder = next((folder for folder in self.folders if is_delete_folder(folder)), None)
             if delete_folder: 
                 self.email_client.move_email_to_folder(self.current_folder, delete_folder, email)
