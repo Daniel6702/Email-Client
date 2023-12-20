@@ -135,7 +135,9 @@ class FolderArea(QVBoxLayout):
             self.add_folder(folder, 0)
         self.list_widget.setCurrentItem(self.list_widget.item(0))
 
-    def add_folder(self, folder: 'Folder', indent_level):
+    def add_folder(self, folder: Folder, indent_level):
+        if not folder:
+            return
         item = QListWidgetItem()
         custom_widget = FolderWidget(folder, indent_level)
         custom_widget.toggle_children.connect(self.hide_show_subfolders)

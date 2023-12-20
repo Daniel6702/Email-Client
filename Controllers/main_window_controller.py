@@ -67,11 +67,12 @@ class MainWindowController(QWidget):
         self.main_window.folder_area.add_folders(self.folders)
 
     def on_folder_edit(self, folder: Folder, new_folder_name: str):
-        self.folders.remove(folder)
-        folder = self.email_client.update_folder(folder, new_folder_name)
-        self.folders.append(folder)
-        self.main_window.folder_area.clear_folders()
-        self.main_window.folder_area.add_folders(self.folders)
+        new_folder = self.email_client.update_folder(folder, new_folder_name)
+        if new_folder is not None:
+            self.folders.remove(folder)
+            self.folders.append(new_folder)
+            self.main_window.folder_area.clear_folders()
+            self.main_window.folder_area.add_folders(self.folders)
     
     def set_filter(self, filter: Filter):
         self.main_window.search_area.set_filter(filter)
