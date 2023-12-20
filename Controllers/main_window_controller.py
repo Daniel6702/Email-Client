@@ -206,17 +206,33 @@ class EmailRetrievalThread(QThread):
         self.refresh = refresh
 
     def run(self):
-        if self.refresh: #dont ask
-            time.sleep(0.25)
+        #if self.refresh: #dont ask
+        #    time.sleep(0.25)
         if self.mode == 'search':
             emails = self.email_client.search(self.query, PAGE_SIZE)
         elif self.mode == 'search_filter':
             emails = self.email_client.search_filter(self.query, self.filter, PAGE_SIZE)
         elif self.mode == 'filter':
             emails = self.email_client.filter(self.filter, PAGE_SIZE)
-        else: 
-            emails = self.email_client.get_mails(self.folder, self.query, PAGE_SIZE, self.page_number)
-        
+        else:
+
+            MAX_RETRIES = 3
+            retry_delay = 0.5
+            for attempt in range(MAX_RETRIES):
+                try:
+                    emails = self.email_client.get_mails(self.folder, self.query, PAGE_SIZE, self.page_number)
+                    break  
+                except ConnectionError as e:
+                    print(f"Attempt {attempt+1} failed with error: {e}")
+                    if attempt < MAX_RETRIES - 1:
+                        time.sleep(retry_delay)
+                        retry_delay *= 2 
+                    else:
+                        raise  
+                except Exception as e:
+                    print(f"An unexpected error occurred: {e}")
+                    raise 
+                    
         accepted_emails, spam_emails = self.email_client.filter_emails(emails, [], [])
         self.finished.emit(accepted_emails, spam_emails)
 

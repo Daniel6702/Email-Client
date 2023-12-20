@@ -1,0 +1,278 @@
+@startuml NAME 
+
+class AppController {
+    - pyqtApp
+    + start()
+    + is_internet_connected()
+    + show_internet_connection_error()
+    + initiate_on_login()
+    + setup_connections()
+}
+
+class LoginWindowController {
+    - login_window: LoginWindow
+    - on_login_signal: pyqtSignal
+    + __init__()
+    + setup_connections()
+    + on_login(client_type: str, user: User, save_user: bool)
+    + show_login()
+}
+
+class LoginWindow {
+    - layout: QVBoxLayout
+    - user_manager: UserDataManager
+    - users: list
+    - new_user_widget: QWidget
+    - existing_user_widget: QWidget
+    - loading_widget: QWidget
+    - stacked_widget: QStackedWidget
+    - animation: QPropertyAnimation
+    - remember_me_checkbox: QCheckBox
+    - developer_mode_checkbox: QCheckBox
+    + login_successful: pyqtSignal
+    + login_signal: pyqtSignal
+    + __init__(parent: QWidget)
+    + loading_screen_layout(parent_widget: QWidget)
+    + start_animation()
+    + new_user_login_layout(parent_widget: QWidget)
+    + existing_user_login_layout(parent_widget: QWidget)
+    + switch_to_existing_user_login_layout()
+    + switch_to_new_user_login_layout()
+    + switch_to_loading_screen()
+    + initial_layout()
+    + create_logo(): QLabel
+    + new_login_google()
+    + new_login_outlook()
+    + start_login_process(client_type: str, user: User)
+}
+
+class User {
+    - name: str
+    - email: str
+    - client_type: str
+    - credentials: dict
+    + __str__(): string
+    + from_dict(data: dict): User
+}
+
+class EmailClient {
+    - service_factory: EmailServiceFactory
+    - login_service
+    - send_mail_service
+    - get_user_service
+    - get_mails_service
+    - draft_service
+    - folder_service
+    - mail_management_service
+    - user_manager
+    - spam_filter
+    - contacts_service
+    - rules_service
+    - user: User
+    + __init__(service_factory: EmailServiceFactory)
+    + initialize_services(session)
+    + login(user: User, save_user: bool)
+    + add_user(user: User)
+    + update_user(user: User)
+    + get_users(): list[User]
+    + delete_user(user: User)
+    + filter_emails(emails: list[Email], trusted_senders: list[str], untrusted_senders: list[str]): tuple[list[Email], list[Email]]
+    + get_user(): User
+    + send_mail(email: Email): bool
+    + get_mails(folder: Folder, query: str, max_results: int, page_number: int = 1): list[Email]
+    + search(query: str, max_results: int = 10): list[Email]
+    + search_filter(query: str, filter: Filter, max_results: int = 10): list[Email]
+    + filter(filter: Filter, max_results: int = 10): list[Email]
+    + save_draft(email: Email)
+    + update_draft(email: Email)
+    + get_folders(): list[Folder]
+    + create_folder(folder: Folder, parrent_folder: Folder = None): Folder
+    + move_email_to_folder(from_folder_id: str, to_folder_id: str, message_id: str)
+    + delete_folder(folder_id: str)
+    + update_folder(folder: Folder, new_folder_name: str): Folder
+    + delete_mail(email: Email)
+    + mark_email_as_read(email: Email)
+    + mark_email_as_unread(email: Email)
+    + mark_email_as(email: Email, is_read: bool)
+    + logout()
+    + get_contacts(): list[Contact]
+    + add_contact(contact: Contact): Contact
+    + update_contact(contact: Contact): Contact
+    + delete_contact(contact: Contact)
+    + get_rules(): list[Rule]
+    + add_rule(rule: Rule): Rule
+    + remove_rule(rule: Rule)
+}
+
+abstract class EmailServiceFactory {
+    + create_user_manager(): UserDataManager
+    + create_spam_filter(): SpamFilter
+    + create_login_service()
+    + create_get_user_service(session)
+    + create_send_mail_service(session)
+    + create_get_mails_service(session)
+    + create_draft_service(session)
+    + create_folder_service(session)
+    + create_mail_management_service(session)
+    + create_contacts_service(session)
+    + create_rules_service(session)
+}
+
+class GmailServiceFactory {
+    + create_login_service(): GmailLoginService
+    + create_get_user_service(session): GmailGetUserService
+    + create_send_mail_service(session): GmailSendMailService
+    + create_get_mails_service(session): GmailGetMailsService
+    + create_draft_service(session): GmailDraftService
+    + create_folder_service(session): GmailFolderService
+    + create_mail_management_service(session): GmailMailManagementService
+    + create_contacts_service(session): GmailContactsService
+    + create_rules_service(session): GmailRulesService
+}
+
+class OutlookServiceFactory {
+    + create_login_service(): OutlookLoginService
+    + create_get_user_service(session): OutlookGetUserService
+    + create_send_mail_service(session): OutlookSendMailService
+    + create_get_mails_service(session): OutlookGetMailsService
+    + create_draft_service(session): OutlookDraftService
+    + create_folder_service(session): OutlookFolderService
+    + create_mail_management_service(session): OutlookMailManagementService
+    + create_contacts_service(session): OutlookContactsService
+    + create_rules_service(session): OutlookRulesService
+}
+
+class TestServiceFactory {
+    + create_login_service(): TestLoginService
+    + create_get_user_service(session): TestGetUserService
+    + create_send_mail_service(session): TestSendMailService
+    + create_get_mails_service(session): TestGetMailsService
+    + create_draft_service(session): TestDraftService
+    + create_folder_service(session): TestFolderService
+    + create_mail_management_service(session): TestMailManagementService
+    + create_contacts_service(session): TestContactsService
+}
+
+class UserDataManager {
+    - file_path: string
+    - cipher_suite: Fernet
+    + __init__(file_path: string)
+    + encrypt_data(data: string): string
+    + decrypt_data(data: string): string
+    + add_user(user: User)
+    + update_user(user: User)
+    + delete_user(user: User)
+    + get_users(): list[User]
+    ' Static methods for key management...
+}
+
+abstract class RulesService {
+    {abstract} +get_rules() : list[Rule]
+    {abstract} +add_rule(rule : Rule) : Rule
+    {abstract} +remove_rule(rule : Rule)
+}
+
+abstract class ContactsService {
+    {abstract} +get_contacts() : list[Contact]
+    {abstract} +add_contact(contact : Contact) : Contact
+    {abstract} +update_contact(contact : Contact) : Contact
+    {abstract} +delete_contact(contact : Contact)
+}
+
+abstract class LoginService {
+    +login(user : User)
+    {abstract} +new_login()
+    {abstract} +login_user(user : User)
+    {abstract} +get_session()
+}
+
+abstract class SendMailService {
+    {abstract} +send_mail(email : Email) : bool
+}
+
+abstract class GetMailsService {
+    {abstract} +get_mails(folder : Folder, query : str, max_results : int, page_number : int) : list[Email]
+    {abstract} +search(query : str, max_results : int) : list[Email]
+    {abstract} +search_filter(query : str, filter : Filter, max_results : int) : list[Email]
+    {abstract} +filter(filter : Filter, max_results : int) : list[Email]
+}
+
+abstract class DraftService {
+    {abstract} +save_draft(email : Email)
+    {abstract} +update_draft(email : Email)
+}
+
+abstract class FolderService {
+    {abstract} +get_folders() : list[Folder]
+    {abstract} +create_folder(folder : Folder, parent_folder : Folder) : Folder
+    {abstract} +move_email_to_folder(from_folder : Folder, to_folder : Folder, email : Email)
+    {abstract} +delete_folder(folder : Folder)
+    {abstract} +update_folder(folder : Folder, new_folder_name : str) : Folder
+}
+
+abstract class MailManagementService {
+    {abstract} +delete_email(email : Email)
+    {abstract} +mark_email_as_read(email : Email)
+    {abstract} +mark_email_as_unread(email : Email)
+    {abstract} +mark_email_as(email : Email, is_read : bool)
+}
+
+abstract class GetUserService {
+    {abstract} +get_user() : User
+}
+
+class ConcreteRulesService  {
+}
+
+class ConcreteContactsService {
+}
+
+class SpamFilter {
+    ' Attributes and methods of SpamFilter can be added here
+}
+
+class Email {
+    ' Attributes and methods of Email can be added here
+}
+
+class Folder {
+    ' Attributes and methods of Folder can be added here
+}
+
+class Filter {
+    ' Attributes and methods of Filter can be added here
+}
+
+class Contact {
+    ' Attributes and methods of Contact can be added here
+}
+
+class Rule {
+    ' Attributes and methods of Rule can be added here
+}
+
+
+AppController --> LoginWindowController
+LoginWindowController -right-> LoginWindow
+LoginWindow --> UserDataManager : uses >
+
+LoginWindowController .down.> EmailClient : creates
+LoginWindowController .right.> OutlookServiceFactory : creates >
+LoginWindowController .right.> GmailServiceFactory : creates >
+LoginWindowController .right.> TestServiceFactory : creates >
+EmailClient --> OutlookServiceFactory : uses
+EmailClient --> GmailServiceFactory : uses
+EmailClient --> TestServiceFactory : uses
+
+
+EmailServiceFactory <|-- UserDataManager
+EmailServiceFactory <|-- SpamFilter
+
+GmailServiceFactory --|> EmailServiceFactory
+OutlookServiceFactory --|> EmailServiceFactory
+TestServiceFactory --|> EmailServiceFactory
+UserDataManager --> User : manages
+EmailClient --> EmailServiceFactory : uses
+
+
+@enduml
