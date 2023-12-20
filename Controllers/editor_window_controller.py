@@ -28,7 +28,7 @@ class EditorWindowController(QWidget):
             self.email_client.save_draft(email)
         elif action == "update":
             self.email_client.update_draft(email)
-        self.editor_window.close()
+        #self.editor_window.close()
 
     def show_editor(self, email: Email = None):
         contacts = self.email_client.get_contacts()
