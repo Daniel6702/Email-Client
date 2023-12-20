@@ -91,12 +91,6 @@ class EmailClient():
         #for folder in self.get_folders():
         #    self.cache_manager.enqueue_for_cache_update(folder, "", PAGE_SIZE, 1)
 
-    def update_cache_background(self):
-        while True:
-            folder, query, max_results, page_number = self.cache_manager.get_next_cache_update_task()
-            emails = self.get_mails_service.get_mails(folder, query, max_results, page_number)
-            self.cache_manager.set_cached_emails(folder.name, page_number, emails)
-
     ##########################################################################################################################
 
     def get_email_count_in_folder(self, folder: Folder) -> int:

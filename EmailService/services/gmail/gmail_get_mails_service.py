@@ -17,7 +17,7 @@ class GmailGetMailsService(GetMailsService):
 
     def get_mails(self, folder: Folder = Folder("", "INBOX", []), query: str = "", max_results: int = 10, page_number: int = 1) -> list[Email]:
         page_token = self.page_tokens.get(page_number)
-
+        messages = []
         if folder.id == "":
             query = f' {query}'
         else:
@@ -41,6 +41,8 @@ class GmailGetMailsService(GetMailsService):
         email_list = []
         for message in messages:
             message_data = self.get_message_data('me', message['id'])
+            if not message_data:
+                continue
             email = Email(*self.extract_data_from_message(message_data), folder=folder)
             email_list.append(email)
         logging.info("Successfully parsed email data from Gmail")
@@ -71,7 +73,7 @@ class GmailGetMailsService(GetMailsService):
             return message
         except Exception as e:
             logging.error(f"An error occurred: {e}")
-            raise Exception(f"Request failed: {e}")
+            return {}
         
     def extract_data_from_message(self, message_data: dict) -> tuple:
         from_email = self.extract_sender(message_data)

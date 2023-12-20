@@ -217,7 +217,7 @@ class EmailRetrievalThread(QThread):
         else:
 
             MAX_RETRIES = 4
-            retry_delay = 0.6
+            retry_delay = 0.75
             for attempt in range(MAX_RETRIES):
                 try:
                     emails = self.email_client.get_mails(self.folder, self.query, PAGE_SIZE, self.page_number)
