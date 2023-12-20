@@ -57,12 +57,11 @@ class EditorWindow(QWidget):
         self.attachments_list.itemClicked.connect(self.on_attachment_clicked)
         self.main_layout.addWidget(self.attachments_list)
         self.email_processing = EditorEmailProcessing(self.recipient_line_edit, self.cc_line_edit, self.bcc_line_edit, self.subject_line_edit, self.mail_body_edit, self.attachments_list)
-
         self.email_processing.mail_signal_from_editor.connect(self.mail_signal_from_editor)
         self.send_button = QPushButton("Send")
-        self.send_button.clicked.connect(self.email_processing.send_email)
+        self.send_button.clicked.connect(self.test2)
         self.save_button = QPushButton("Save")
-        self.save_button.clicked.connect(self.email_processing.save_email)
+        self.save_button.clicked.connect(self.test)
         self.button_layout = QHBoxLayout()
         self.button_layout.addWidget(self.send_button,4)
         self.button_layout.addWidget(self.save_button,1)
@@ -71,6 +70,14 @@ class EditorWindow(QWidget):
         self.toolbar.add_attachment.connect(self.add_attachment)
         self.main_layout.addLayout(self.toolbar)
         self.setLayout(self.main_layout)
+
+    def test(self):
+        self.email_processing.save_email()
+        self.close()
+
+    def test2(self):
+        self.email_processing.send_email()
+        self.close()
 
     def update_window(self, draft_email: Email = None, contacts: list[Contact] = []):
         self.recipient_line_edit.init(draft_email, contacts)
