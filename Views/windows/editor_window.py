@@ -78,11 +78,12 @@ class EditorWindow(QWidget):
             self.subject_line_edit.setText(draft_email.subject)
             self.mail_body_edit.setHtml(draft_email.body)
             self.attachments_list.clear()
-            for attachment in draft_email.attachments:
-                file_name = attachment.get('file_name')
-                item = QListWidgetItem(file_name)
-                item.setData(Qt.UserRole, file_name) 
-                self.add_attachment(item)
+            if draft_email.attachments:
+                for attachment in draft_email.attachments:
+                    file_name = attachment.get('file_name')
+                    item = QListWidgetItem(file_name)
+                    item.setData(Qt.UserRole, file_name) 
+                    self.add_attachment(item)
         else:
             self.subject_line_edit.setText("")
             self.mail_body_edit.setHtml("")

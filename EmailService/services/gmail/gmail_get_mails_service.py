@@ -56,16 +56,19 @@ class GmailGetMailsService(GetMailsService):
         current_page = max(self.page_tokens.keys())
         while current_page < page_number:
             current_page += 1
-            response = self.service.users().messages().list(
-                userId='me', maxResults=10, pageToken=self.page_tokens[current_page - 1]
-            ).execute()
+            try:
+                response = self.service.users().messages().list(
+                    userId='me', maxResults=10, pageToken=self.page_tokens[current_page - 1]
+                ).execute()
+            except:
+                response = {}
 
-            self.page_tokens[current_page] = response.get('nextPageToken')
+            self.page_tokens[current_page] = response.get('nextPageToken', None)
 
             if not self.page_tokens[current_page]:
                 break
 
-        return self.page_tokens.get(page_number)
+        return self.page_tokens.get(page_number, None)
         
     def get_message_data(self, user_id: str, message_id: str) -> dict:
         try:
@@ -159,7 +162,10 @@ class GmailGetMailsService(GetMailsService):
                 else:
                     att_id = part['body'].get('attachmentId', '')
                     if att_id:
-                        att = self.service.users().messages().attachments().get(userId='me', messageId=message_id, id=att_id).execute()
+                        try:
+                            att = self.service.users().messages().attachments().get(userId='me', messageId=message_id, id=att_id).execute()
+                        except:
+                            att = None
                         data = getattr(att, 'data', '')
                     else:
                         continue
