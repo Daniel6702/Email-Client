@@ -37,7 +37,6 @@ class GmailGetMailsService(GetMailsService):
 
         except Exception as e:
             logging.error(f"An error occurred: {e}")
-            raise Exception(f"Request failed: {e}")
 
         email_list = []
         for message in messages:
@@ -159,7 +158,7 @@ class GmailGetMailsService(GetMailsService):
                     att_id = part['body'].get('attachmentId', '')
                     if att_id:
                         att = self.service.users().messages().attachments().get(userId='me', messageId=message_id, id=att_id).execute()
-                        data = att['data']
+                        data = getattr(att, 'data', '')
                     else:
                         continue
 

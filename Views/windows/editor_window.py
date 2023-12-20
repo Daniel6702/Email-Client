@@ -109,6 +109,7 @@ class EditorWindow(QWidget):
             return "File does not exist"
         
     def format_size(self, size):
+        size = float(size)
         for unit in ['bytes', 'KB', 'MB', 'GB', 'TB']:
             if size < 1024.0:
                 return f"{size:.2f} {unit}"

@@ -58,10 +58,12 @@ class GmailFolderService(FolderService):
             logging.error(f'An error occurred: {error}')
 
     def delete_folder(self, folder: Folder):
+        print(folder)
         try:
             self.service.users().labels().delete(userId='me', id=folder.id).execute()
             logging.info(f'Label with id: {folder.id} deleted.')
         except Exception as error:
+            print(error)
             logging.error(f'An error occurred: {error}')
 
     def update_folder(self, folder: Folder, new_folder_name: str) -> Folder:

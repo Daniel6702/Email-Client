@@ -65,10 +65,10 @@ class EmailClient():
         [email.__setattr__('to_email', self.user.email) for email in emails if email.to_email is None]
         return emails
 
-    def delete_mail(self, email: Email, folder: Folder):
+    def delete_mail(self, email: Email):
         self.mail_management_service.delete_email(email)
-        self.cache_manager.delete_cache_for_folder(folder.name)
-        self.cache_manager.enqueue_for_cache_update(folder, "", PAGE_SIZE, 1)
+        self.cache_manager.delete_cache_for_folder(email.folder.name)
+        self.cache_manager.enqueue_for_cache_update(email.folder, "", PAGE_SIZE, 1)
 
     def move_email_to_folder(self, from_folder: Folder, to_folder: Folder, email: Email):
         self.folder_service.move_email_to_folder(from_folder, to_folder, email)
@@ -77,7 +77,7 @@ class EmailClient():
         self.cache_manager.enqueue_for_cache_update(to_folder, "", PAGE_SIZE, 1)
 
     def delete_folder(self, folder: Folder):
-        self.folder_service.delete_folder(folder.id)
+        self.folder_service.delete_folder(folder)
         self.cache_manager.delete_cache_for_folder(folder.name)
 
     def update_folder(self, folder: Folder, new_folder_name: str) -> Folder:

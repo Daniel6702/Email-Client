@@ -8,6 +8,8 @@ from Controllers.main_window_controller import MainWindowController
 from Controllers.settings_window_controller import SettingsWindowController
 from Controllers.editor_window_controller import EditorWindowController
 from Controllers.popup_window_controller import PopupWindowController
+from Views.windows.log_window import LogWindow
+from Testing.logging_handler import setup_logger
 from Views.styles.style_manager import StyleManager
 import requests
 
@@ -23,6 +25,10 @@ class AppController(QObject):
             self.login_window_controller = LoginWindowController()
             self.login_window_controller.on_login_signal.connect(self.initiate_on_login)
             self.login_window_controller.show_login()
+
+            log = LogWindow()
+            setup_logger(log)
+
         else:
             self.show_internet_connection_error()
 

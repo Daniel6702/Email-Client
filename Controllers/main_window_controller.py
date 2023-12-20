@@ -216,8 +216,8 @@ class EmailRetrievalThread(QThread):
             emails = self.email_client.filter(self.filter, PAGE_SIZE)
         else:
 
-            MAX_RETRIES = 3
-            retry_delay = 0.5
+            MAX_RETRIES = 4
+            retry_delay = 0.6
             for attempt in range(MAX_RETRIES):
                 try:
                     emails = self.email_client.get_mails(self.folder, self.query, PAGE_SIZE, self.page_number)

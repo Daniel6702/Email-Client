@@ -160,9 +160,9 @@ class LoginWindow(QWidget):
         layout.addWidget(new_user_button,0, Qt.AlignCenter)
 
         #TEMPORARY
-        self.developer_mode_checkbox = QCheckBox("Developer Mode")
-        self.developer_mode_checkbox.setStyleSheet("QCheckBox { color: black; }")
-        layout.addWidget(self.developer_mode_checkbox)
+        #self.developer_mode_checkbox = QCheckBox("Developer Mode")
+        #self.developer_mode_checkbox.setStyleSheet("QCheckBox { color: black; }")
+        #layout.addWidget(self.developer_mode_checkbox)
 
     def switch_to_existing_user_login_layout(self):
         self.previous_index = self.stacked_widget.currentIndex()
@@ -208,8 +208,8 @@ class LoginWindow(QWidget):
 
     def start_login_process(self, client_type, user):
         self.switch_to_loading_screen()
-        if self.developer_mode_checkbox.isChecked():
-            client_type = "test"
+        #if self.developer_mode_checkbox.isChecked():
+        #    client_type = "test"
         self.login_signal.emit(client_type, user, self.remember_me_checkbox.isChecked())
         '''
 
