@@ -27,6 +27,7 @@ class MainWindowController(QWidget):
 
         self.main_window.folder_area.add_folders(self.folders)
         self.spam_folder = next((folder for folder in self.folders if is_spam_folder(folder)), None)
+        self.inbox_folder = next((folder for folder in self.folders if is_inbox_folder(folder)), None)
         
     def setup_connections(self):
         self.main_window.folder_area.folder_selected.connect(self.on_folder_selected)
@@ -149,6 +150,7 @@ class MainWindowController(QWidget):
             self.email_client.move_email_to_folder(self.current_folder, self.spam_folder, email)
 
     def on_search(self, search_criteria: str, filter: Filter = None):
+        self.current_folder = self.inbox_folder
         self.show_loading()
         mode = 'search'
         if filter.is_empty() and search_criteria:
@@ -192,6 +194,12 @@ def is_draft_folder(folder: Folder) -> bool:
     
 def is_spam_folder(folder: Folder) -> bool:
     if folder.name in ["Spam", "Spam", "SPAM", "spam", "Junk", "JUNK", "junk", "Junk Email"]:
+        return True
+    else:
+        return False
+    
+def is_inbox_folder(folder: Folder) -> bool:
+    if folder.name in ["Inbox", "Inbox", "INBOX", "inbox"]:
         return True
     else:
         return False
