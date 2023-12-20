@@ -50,8 +50,12 @@ class FilterWindow(QWidget):
         self.attachments_checkbox = QCheckBox('Contain attachments', self)
         self.attachments_checkbox.setObjectName('filter_checkbox')
 
-        self.is_read_checkbox = QCheckBox('Is read', self)
-        self.is_read_checkbox.setObjectName('filter_checkbox')
+        #self.is_read_checkbox = QCheckBox('Is read', self)
+        #self.is_read_checkbox.setObjectName('filter_checkbox')
+        self.read_status_label = QLabel('Read Status')
+        self.read_status_combobox = QComboBox(self)
+        self.read_status_combobox.addItems(['All', 'Read', 'Unread'])
+
         self.attachments_checkbox.setObjectName('filter_checkbox')
 
         self.folder_temp_layout = QHBoxLayout()
@@ -77,7 +81,9 @@ class FilterWindow(QWidget):
         layout.addLayout(date_hbox)
 
         layout.addWidget(self.attachments_checkbox)
-        layout.addWidget(self.is_read_checkbox)
+        #layout.addWidget(self.is_read_checkbox)
+        layout.addWidget(self.read_status_label)
+        layout.addWidget(self.read_status_combobox)
         layout.addLayout(self.folder_temp_layout)
 
         temp = QHBoxLayout()
@@ -133,12 +139,20 @@ class FilterWindow(QWidget):
             self.folder_widget.setVisible(True)
 
     def on_set_filter(self):
-        
+        read = self.read_status_combobox.currentText()
+        val = None
+        if read == 'All':
+            self.is_read_checkbox = None
+        elif read == 'Read':
+            val = True
+        elif read == 'Unread':
+            val = False
+
         filter_obj = Filter(before_date=None, 
                             after_date=self.relative_date_to_datetime(self.date_combobox.currentText()),
                             from_email=self.from_input.text(), 
                             to_email=self.to_input.text(), 
-                            is_read=self.is_read_checkbox.isChecked(),
+                            is_read=val,
                             has_attachment=self.attachments_checkbox.isChecked(),
                             contains=self.contains_input.text(), 
                             not_contains=self.not_contains_input.text(),
@@ -154,7 +168,7 @@ class FilterWindow(QWidget):
         self.not_contains_input.setText('')
         self.date_combobox.setCurrentIndex(0)
         self.attachments_checkbox.setChecked(False)
-        self.is_read_checkbox.setChecked(False)
+        self.read_status_combobox.setCurrentIndex(0)
         self.folder = Folder("","",[])
         self.folder_widget = None
         self.filter_signal.emit(None)
