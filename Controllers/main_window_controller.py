@@ -86,9 +86,11 @@ class MainWindowController(QWidget):
 
     def show_loading(self):
         self.loading_popup = LoadingPopup()
+        self.main_window.setEnabled(False)
         self.loading_popup.show()
 
     def hide_loading(self):
+        self.main_window.setEnabled(True)
         if self.loading_popup:
             self.loading_popup.close()
 
