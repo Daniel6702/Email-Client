@@ -82,6 +82,7 @@ class MainWindowController(QWidget):
     def on_folder_selected(self, folder: Folder):
         self.current_folder = folder
         self.main_window.email_list_area.current_page = 1
+        self.main_window.email_list_area.page_number_label.setText(f"Page {self.main_window.email_list_area.current_page}")
         self.retrieve_emails(folder, "", 1)
 
     def show_loading(self):
@@ -133,6 +134,7 @@ class MainWindowController(QWidget):
 
     def on_new_page(self, page_number: int):
         self.show_loading()
+        self.main_window.email_list_area.current_page = page_number
         self.worker = EmailRetrievalThread(self.email_client, self.current_folder, "", page_number)
         self.worker.finished.connect(self.on_new_page_finished)
         self.worker.start()
@@ -141,8 +143,8 @@ class MainWindowController(QWidget):
         self.hide_loading()
         if accepted_emails:
             self.main_window.email_list_area.add_emails_to_list(accepted_emails)
-        elif self.main_window.email_list_area.current_page > 1:
-            self.main_window.email_list_area.current_page -= 1
+        #elif self.main_window.email_list_area.current_page > 1:
+        #    self.main_window.email_list_area.current_page -= 1
         for email in spam_emails:
             self.email_client.move_email_to_folder(self.current_folder, self.spam_folder, email)
 
