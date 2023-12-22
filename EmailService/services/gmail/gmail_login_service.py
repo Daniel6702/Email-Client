@@ -20,8 +20,8 @@ class GmailLoginService(LoginService):
 
     def new_login(self):
         logging.info("Starting Gmail login process")
-        app = FlaskAppWrapper('redirect_server')
-        app.add_endpoint(endpoint='/oauth2callback', 
+        self.flask_app = FlaskAppWrapper('redirect_server')
+        self.flask_app.add_endpoint(endpoint='/oauth2callback', 
                          endpoint_name='gmail_callback', 
                          handler=self.gmail_login_process_callback())
         flow = Flow.from_client_secrets_file(
@@ -33,7 +33,7 @@ class GmailLoginService(LoginService):
                     'https://www.googleapis.com/auth/userinfo.profile',
                     'https://www.googleapis.com/auth/contacts',
                     'https://www.googleapis.com/auth/gmail.settings.basic'], 
-            redirect_uri='https://localhost:8080/oauth2callback'
+            redirect_uri='https://localhost:8081/oauth2callback'
         )
         authorization_url, state = flow.authorization_url(access_type='offline', prompt='consent')
         open(authorization_url)
@@ -48,7 +48,7 @@ class GmailLoginService(LoginService):
         flow = Flow.from_client_secrets_file(
             'Certificates\\client_secret_google.json', 
             scopes=None,
-            redirect_uri='https://localhost:8080/oauth2callback'
+            redirect_uri='https://localhost:8081/oauth2callback'
         )
         flow.fetch_token(authorization_response=args)
         credentials = flow.credentials
