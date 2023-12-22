@@ -37,7 +37,7 @@ class FilterWindow(QWidget):
         self.not_contains_label = QLabel('Does not contain')
         self.not_contains_input = QLineEdit(self)
 
-        self.date_label = QLabel('Dato inden for')
+        self.date_label = QLabel('Recieved within')
         self.date_combobox = QComboBox(self)
         self.date_combobox.addItems(['1 day', '2 days', '1 week', '2 week', '1 month', '3 months', '6 months', '1 year'])
 
