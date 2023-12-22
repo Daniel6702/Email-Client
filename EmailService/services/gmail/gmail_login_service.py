@@ -71,7 +71,7 @@ class GmailLoginService(LoginService):
         self.session.people_service = build('people', 'v1', credentials=credentials)
         logging.info(f"Successfully logged in")
         self.flask_app.shutdown()
-        self.login_event.sest()
+        self.login_event.set()
 
     def get_session(self):
         return self.session
