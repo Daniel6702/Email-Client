@@ -66,6 +66,7 @@ class OutlookLoginService(LoginService):
         self.session.result = result
         self.session.credentials = {'credentials': result.get('refresh_token')}  
         logging.info(f"Successfully logged in")   
+        self.flask_app.shutdown()
         self.login_event.set()
 
     def get_session(self):
