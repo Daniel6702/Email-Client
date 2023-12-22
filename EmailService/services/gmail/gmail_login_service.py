@@ -52,6 +52,7 @@ class GmailLoginService(LoginService):
         )
         flow.fetch_token(authorization_response=args)
         credentials = flow.credentials
+        self.flask_app.shutdown()
         self.build_service(credentials)
 
     def login_user(self, user: User):
@@ -70,7 +71,6 @@ class GmailLoginService(LoginService):
         self.session.gmail_service = build('gmail', 'v1', credentials=credentials)
         self.session.people_service = build('people', 'v1', credentials=credentials)
         logging.info(f"Successfully logged in")
-        self.flask_app.shutdown()
         self.login_event.set()
 
     def get_session(self):
