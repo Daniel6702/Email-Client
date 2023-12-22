@@ -18,10 +18,7 @@ class GmailGetMailsService(GetMailsService):
     def get_mails(self, folder: Folder = Folder("", "INBOX", []), query: str = "", max_results: int = 10, page_number: int = 1) -> list[Email]:
         page_token = self.page_tokens.get(page_number)
         messages = []
-        if folder.id == "":
-            query = f' {query}'
-        else:
-            query = f' {query} label:{folder.id}'
+        query = f" {query}" if folder.id == "" else f" {query} label:{folder.id}"
 
         try:
             response = self.service.users().messages().list(
@@ -37,6 +34,19 @@ class GmailGetMailsService(GetMailsService):
 
         except Exception as e:
             logging.error(f"An error occurred: {e}")
+        if not messages or len(messages) == 0 or messages == [] and query == "":
+            try:
+                response = self.service.users().messages().list(
+                    userId='me', q=f"label:{folder.name}", maxResults=max_results, 
+                    includeSpamTrash=True
+                ).execute()
+                messages = response.get('messages', [])
+                logging.info("Successfully retrieved email ids from Gmail")
+                nextPageToken = response.get('nextPageToken', None)
+                if nextPageToken:
+                    self.page_tokens[page_number + 1] = nextPageToken
+            except Exception as e:
+                logging.error(f"An error occurred: {e}")
 
         email_list = []
         for message in messages:
