@@ -106,9 +106,12 @@ class MainWindowController(QWidget):
     def on_retrieval_finished(self, accepted_emails, spam_emails):
         self.hide_loading()
         if self.current_folder == self.spam_folder:
-            self.main_window.email_list_area.add_emails_to_list(spam_emails)
+            combined_emails = accepted_emails + spam_emails
+            self.main_window.email_list_area.add_emails_to_list(combined_emails)
         else:
             self.main_window.email_list_area.add_emails_to_list(accepted_emails)
+            for email in spam_emails:
+                self.email_client.move_email_to_folder(self.current_folder, self.spam_folder, email)
 
     def on_email_clicked(self, mail: Email):
         logging.info(f"Email Selected: {mail.subject}")
@@ -126,10 +129,8 @@ class MainWindowController(QWidget):
         self.main_window.email_view_area.updateEmailView(empty_mail)
         self.main_window.email_list_area.remove_email_from_list(email)
         if is_delete_folder(self.current_folder):
-            print("1")
             self.email_client.delete_mail(email)
         else:     
-            print("2")
             delete_folder = next((folder for folder in self.folders if is_delete_folder(folder)), None)
             if delete_folder: 
                 self.email_client.move_email_to_folder(self.current_folder, delete_folder, email)
