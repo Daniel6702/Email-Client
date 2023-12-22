@@ -33,12 +33,13 @@ class OutlookLoginService(LoginService):
 
     def new_login(self):
         logging.info("Starting Outlook login process")
-        app = FlaskAppWrapper('redirect_server')
-        app.add_endpoint(endpoint='/oauth2callbackoutlook', 
+        self.flask_app = FlaskAppWrapper('redirect_server')
+        self.flask_app.add_endpoint(endpoint='/oauth2callbackoutlook', 
                          endpoint_name='outlook_callback', 
                          handler=self.outlook_login_process_callback()) 
                
         authorization_url = self.app.get_authorization_request_url(scopes=self.scopes,redirect_uri=self.redirect_uri)
+        print(authorization_url)
         webbrowser.open(authorization_url)
 
     def login_user(self, user: User):

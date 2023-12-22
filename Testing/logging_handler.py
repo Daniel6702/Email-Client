@@ -1,3 +1,4 @@
+import sys
 import logging
 from PyQt5.QtCore import QObject, pyqtSignal
 
@@ -14,10 +15,19 @@ class QtHandler(logging.Handler, QObject):
         msg = self.format(record)
         self.newLogMessage.emit(record.levelno, msg)
 
-def setup_logger(log_window):
+def setup_logger(log_window, console_print=True):
     logger = logging.getLogger()
     logger.setLevel(logging.DEBUG)
-    handler = QtHandler(log_window)
-    formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
-    handler.setFormatter(formatter)
-    logger.addHandler(handler)
+
+    # QtHandler
+    qt_handler = QtHandler(log_window)
+    qt_formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
+    qt_handler.setFormatter(qt_formatter)
+    logger.addHandler(qt_handler)
+
+    # StreamHandler for console output
+    if console_print:
+        console_handler = logging.StreamHandler(sys.stdout)
+        console_formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
+        console_handler.setFormatter(console_formatter)
+        logger.addHandler(console_handler)
