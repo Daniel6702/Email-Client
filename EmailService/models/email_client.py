@@ -16,6 +16,7 @@ class EmailClient():
     def __init__(self, service_factory: EmailServiceFactory):
         self.service_factory = service_factory
         self.login_service = service_factory.create_login_service()
+        self.get_mails_lock = threading.Lock()
  
     def initialize_services(self, session):
         self.send_mail_service = self.service_factory.create_send_mail_service(session)
@@ -48,22 +49,24 @@ class EmailClient():
     def update_cache_background(self):
         while True:
             folder, query, max_results, page_number = self.cache_manager.get_next_cache_update_task()
-            try:
-                emails = self.get_mails_service.get_mails(folder, query, max_results, page_number)
-            except:
-                continue
+            with self.get_mails_lock:
+                try:
+                    emails = self.get_mails_service.get_mails(folder, query, max_results, page_number)
+                except:
+                    continue
             self.cache_manager.set_cached_emails(folder.name, page_number, emails)
 
     def get_mails(self, folder: Folder, query: str, max_results: int, page_number: int = 1) -> list[Email]:
-        cached_emails = self.cache_manager.get_cached_emails(folder.name, page_number)
-        if cached_emails is not None:
-            [email.__setattr__('to_email', self.user.email) for email in cached_emails if email.to_email is None]
-            return cached_emails
-        emails = self.get_mails_service.get_mails(folder, query, max_results, page_number)
-        self.cache_manager.set_cached_emails(folder.name, page_number, emails)
-        self.cache_manager.enqueue_for_cache_update(folder, query, max_results, page_number + 1)
-        [email.__setattr__('to_email', self.user.email) for email in emails if email.to_email is None]
-        return emails
+        with self.get_mails_lock:
+            cached_emails = self.cache_manager.get_cached_emails(folder.name, page_number)
+            if cached_emails is not None:
+                [email.__setattr__('to_email', self.user.email) for email in cached_emails if email.to_email is None]
+                return cached_emails
+            emails = self.get_mails_service.get_mails(folder, query, max_results, page_number)
+            self.cache_manager.set_cached_emails(folder.name, page_number, emails)
+            self.cache_manager.enqueue_for_cache_update(folder, query, max_results, page_number + 1)
+            [email.__setattr__('to_email', self.user.email) for email in emails if email.to_email is None]
+            return emails
 
     def delete_mail(self, email: Email):
         self.mail_management_service.delete_email(email)

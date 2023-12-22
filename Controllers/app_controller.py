@@ -26,8 +26,7 @@ class AppController(QObject):
             self.login_window_controller.on_login_signal.connect(self.initiate_on_login)
             self.login_window_controller.show_login()
 
-            log = LogWindow()
-            setup_logger(log)
+            #setup_logger(LogWindow(),console_print=True)
 
         else:
             self.show_internet_connection_error()

@@ -26,6 +26,7 @@ class FlaskAppWrapper(object):
         self.context = ssl.SSLContext(ssl.PROTOCOL_TLSv1_2)
         self.context.load_cert_chain(certfile='Certificates\\certificate.crt', keyfile='Certificates\\private_key.key')
         self.app = Flask(name)
+        self.app.debug = True
         self.flask_thread = threading.Thread(target=self.run)
         self.flask_thread.start()
 
@@ -36,3 +37,4 @@ class FlaskAppWrapper(object):
     #Add a new URL rule to the Flask app. The handler is the method to be called when the endpoint is accessed.
     def add_endpoint(self, endpoint=None, endpoint_name=None, handler=None):
         self.app.add_url_rule(endpoint, endpoint_name, EndpointAction(handler))
+        print(self.app.url_map)

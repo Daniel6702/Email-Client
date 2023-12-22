@@ -89,7 +89,7 @@ class GmailGetMailsService(GetMailsService):
         except Exception as e:
             logging.error(f"An error occurred: {e}")
             return {}
-        
+    
     def extract_data_from_message(self, message_data: dict) -> tuple:
         from_email = self.extract_sender(message_data)
         to_email = self.extract_recipient(message_data)
@@ -176,13 +176,19 @@ class GmailGetMailsService(GetMailsService):
                     if att_id:
                         try:
                             att = self.service.users().messages().attachments().get(userId='me', messageId=message_id, id=att_id).execute()
-                        except:
-                            att = None
-                        data = getattr(att, 'data', '')
+                            data = getattr(att, 'data', '')
+                        except Exception as e:
+                            logging.error(f"Error retrieving attachment: {e}")
+                            continue
                     else:
                         continue
 
-                file_data = base64.urlsafe_b64decode(data.encode('UTF-8'))
+                try:
+                    file_data = base64.urlsafe_b64decode(data.encode('UTF-8'))
+                except Exception as e:
+                    logging.error(f"Error decoding attachment data: {e}")
+                    continue
+
                 file_name = part['filename']
 
                 attachment_info = {
@@ -194,7 +200,7 @@ class GmailGetMailsService(GetMailsService):
                 attachments_list.append(attachment_info)
 
         return attachments_list
-    
+        
     def text_to_html(self,text):
         escaped_text = html.escape(text)
         return f"""
