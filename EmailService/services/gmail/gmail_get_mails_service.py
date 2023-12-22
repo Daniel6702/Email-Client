@@ -6,7 +6,7 @@ import logging
 import re
 from datetime import datetime, timedelta
 import socket
-socket.setdefaulttimeout(10)
+socket.setdefaulttimeout(15)
 
 from ..service_interfaces import GetMailsService
 from ...util import GmailSession 
