@@ -33,7 +33,7 @@ class FlaskAppWrapper(object):
         self.flask_thread.start()
 
     #Run the Flask app with given host and port, and with SSL
-    def run(self, host='0.0.0.0', port=8081):
+    def run(self, host='0.0.0.0', port=2550):
         self.app.run(host=host, port=port, threaded=True, ssl_context=self.context)
 
     #Add a new URL rule to the Flask app. The handler is the method to be called when the endpoint is accessed.
